@@ -1,0 +1,309 @@
+<%
+/* REESCRITO (módulo de auditoria): Logs do Sistema deixou de ser uma
+   lista simples pra virar um painel de auditoria — filtros avançados
+   (usuário/módulo/tipo/período/busca), histórico em formato de timeline
+   (cada card já mostra quem, quando, o quê e onde) e "Ver Comprovante"
+   com o antes/depois completo de cada alteração (ver
+   partials/logs-comprovante.ejs).
+
+   ATUALIZADO (redesign): o antigo "dashboard dos logs" (10 stat-cards
+   com totais do dia/semana/mês, usuário mais ativo e contagem por
+   módulo) foi REMOVIDO desta tela — era resumo duplicado de informação
+   que a própria busca + filtros + histórico já entregam com muito mais
+   detalhe. O espaço liberado foi para o que interessa: a busca ganhou
+   uma barra própria em destaque, os filtros viraram uma grade rotulada
+   (não mais rótulos só para leitor de tela) e o histórico virou uma
+   seção com título próprio, agrupada por dia ("Hoje", "Ontem", data por
+   extenso) para que a data de cada alteração seja identificada de
+   relance. `estatisticas` continua vindo da rota (backend intocado),
+   apenas não é mais consumido aqui.
+
+   `rotuloAcao`/`rotuloModulo`/`iconeModulo`/`moduloDaAcao`/`tipoDaAcao`
+   vêm prontos de app/helpers/logsRotulos.js, passados pela rota (EJS
+   não tem acesso a `require` dentro do template).
+
+   NOTA DE ESCOPO: os filtros "Produto/Pedido/Cliente/Cupom/Banner/
+   Categoria" pedidos viram, na prática, o mesmo filtro "Módulo" abaixo
+   (selecionar "Produtos" já restringe a alterações desse módulo) — em
+   vez de 6 seletores redundantes fazendo a mesma coisa. Um "Status" de
+   filtro não foi incluído porque hoje só existe um status possível
+   (todo log representa uma ação já concluída); o selo "Concluído"
+   continua aparecendo em cada card. "Nível" de evento é o próprio tipo
+   de alteração (criar/editar/excluir/status), já identificado pela cor
+   do selo e do marcador na timeline — não é uma coluna própria.
+
+   ADICIONADO (redesign 2): ordenação (`ordenar`, ver LogAdmin.findAllAdmin)
+   além da paginação já existente — o agrupamento por dia da timeline só
+   faz sentido em ordem cronológica, então com "Usuário"/"Módulo" ele
+   é desligado (ver `agrupaPorDia`). O select fica fora do <form> mas
+   associado a ele via `form="log-filtros-form"`, e some auto-submit no
+   `change` (admin-logs.js) — os demais filtros continuam exigindo o
+   botão "Aplicar filtros" para não disparar requisições a cada clique.
+   Também adicionado: um estado de erro (`erro`) distinto do estado vazio
+   — antes uma falha na consulta caía silenciosamente no mesmo texto de
+   "nenhum registro encontrado", o que confundia "sem dados" com "consulta
+   falhou". E uma barra de progresso no topo (#log-progresso) para dar
+   retorno imediato em filtro/ordenação/paginação/exportação, que são
+   navegação de página inteira sem nenhum outro feedback visual. */
+const BADGE_TIPO = { criar: 'badge--verde', editar: 'badge--azul', excluir: 'badge--vermelho', status: 'badge--dourado' };
+
+/* Data/hora: o cabeçalho de cada dia usa a forma longa ("quinta-feira,
+   08 de agosto de 2026") ou o atalho "Hoje"/"Ontem"; dentro do card fica
+   a hora em destaque + a data curta como apoio. */
+const fmtDiaLongo  = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+const fmtDataCurta = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const fmtHora      = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
+const chaveDia = (d) => { const x = new Date(d); return `${x.getFullYear()}-${x.getMonth()}-${x.getDate()}`; };
+const HOJE = new Date();
+const ONTEM = new Date(); ONTEM.setDate(ONTEM.getDate() - 1);
+const rotuloDia = (d) => {
+  const k = chaveDia(d);
+  if (k === chaveDia(HOJE))  return 'Hoje';
+  if (k === chaveDia(ONTEM)) return 'Ontem';
+  return fmtDiaLongo.format(new Date(d));
+};
+const isoDe = (d) => { const x = new Date(d); return isNaN(x) ? '' : x.toISOString(); };
+
+const paramsBase =
+  (acao ? `&acao=${encodeURIComponent(acao)}` : '') +
+  (modulo ? `&modulo=${encodeURIComponent(modulo)}` : '') +
+  (usuarioId ? `&usuarioId=${encodeURIComponent(usuarioId)}` : '') +
+  (dataInicio ? `&dataInicio=${encodeURIComponent(dataInicio)}` : '') +
+  (dataFim ? `&dataFim=${encodeURIComponent(dataFim)}` : '') +
+  (busca ? `&busca=${encodeURIComponent(busca)}` : '') +
+  (ordenar && ordenar !== 'recentes' ? `&ordenar=${encodeURIComponent(ordenar)}` : '');
+const qtdFiltros = [acao, modulo, usuarioId, dataInicio, dataFim, busca].filter(Boolean).length;
+const temFiltro = qtdFiltros > 0;
+/* Agrupar por dia só faz sentido quando a ordenação é cronológica —
+   ordenar por usuário/módulo espalha os dias, então nesses casos a
+   timeline vira uma lista simples (sem separador de dia). */
+const agrupaPorDia = ordenar === 'recentes' || ordenar === 'antigos';
+const ROTULOS_ORDENACAO = { recentes: 'Mais recentes primeiro', antigos: 'Mais antigos primeiro', usuario: 'Usuário responsável (A-Z)', modulo: 'Módulo (A-Z)' };
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Logs do Sistema</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <progress class="pagina-progresso" id="log-progresso" max="100" hidden></progress>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'logs' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Logs do Sistema' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Logs do Sistema</h1>
+          <p class="admin-page-header__data">Registro de todas as alterações feitas no sistema: quem alterou, o que mudou, quando e a partir de qual dispositivo.</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas" aria-label="Exportar auditoria">
+          <a class="btn-admin btn-admin--secundario js-exportar-log" href="/admin/logs/exportar/csv<%= paramsBase ? '?' + paramsBase.slice(1) : '' %>"><i class="fas fa-file-csv" aria-hidden="true"></i>CSV</a>
+          <a class="btn-admin btn-admin--secundario js-exportar-log" href="/admin/logs/exportar/excel<%= paramsBase ? '?' + paramsBase.slice(1) : '' %>"><i class="fas fa-file-excel" aria-hidden="true"></i>Excel</a>
+          <a class="btn-admin btn-admin--primario js-exportar-log" href="/admin/logs/exportar/pdf<%= paramsBase ? '?' + paramsBase.slice(1) : '' %>"><i class="fas fa-file-pdf" aria-hidden="true"></i>PDF</a>
+        </nav>
+      </header>
+
+      <!-- PESQUISA + FILTROS -->
+      <form class="log-filtros" id="log-filtros-form" method="get" action="/admin/logs">
+        <search class="log-filtros__busca" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <label for="log-busca" class="sr-only">Pesquisar nos logs</label>
+          <input id="log-busca" type="search" name="busca" value="<%= busca %>" placeholder="Pesquisar nos logs por produto, pedido, cliente, cupom...">
+          <button type="submit" class="btn-admin btn-admin--primario btn-admin--pequeno"><i class="fas fa-search" aria-hidden="true"></i>Pesquisar</button>
+        </search>
+
+        <fieldset class="log-filtros__grupo">
+          <legend class="sr-only">Filtrar o histórico de alterações</legend>
+          <ul class="log-filtros__grade">
+            <li>
+              <label class="campo-admin">
+                <b>Usuário responsável</b>
+                <select name="usuarioId">
+                  <option value="">Todos os usuários</option>
+                  <% usuariosDisponiveis.forEach(u => { %>
+                    <option value="<%= u.usuario_id %>" <%= String(usuarioId) === String(u.usuario_id) ? 'selected' : '' %>><%= u.usuario_nome %></option>
+                  <% }) %>
+                </select>
+              </label>
+            </li>
+            <li>
+              <label class="campo-admin">
+                <b>Módulo</b>
+                <select name="modulo">
+                  <option value="">Todos os módulos</option>
+                  <% modulosDisponiveis.forEach(m => { %>
+                    <option value="<%= m %>" <%= modulo === m ? 'selected' : '' %>><%= rotuloModulo(m) %></option>
+                  <% }) %>
+                </select>
+              </label>
+            </li>
+            <li>
+              <label class="campo-admin">
+                <b>Tipo de alteração</b>
+                <select name="acao">
+                  <option value="">Todos os tipos</option>
+                  <% acoesDisponiveis.forEach(a => { %>
+                    <option value="<%= a %>" <%= acao === a ? 'selected' : '' %>><%= rotuloAcao(a) %></option>
+                  <% }) %>
+                </select>
+              </label>
+            </li>
+            <li>
+              <label class="campo-admin">
+                <b>Data inicial</b>
+                <input type="date" name="dataInicio" value="<%= dataInicio %>" data-br-enhance>
+              </label>
+            </li>
+            <li>
+              <label class="campo-admin">
+                <b>Data final</b>
+                <input type="date" name="dataFim" value="<%= dataFim %>" data-br-enhance>
+              </label>
+            </li>
+          </ul>
+        </fieldset>
+
+        <footer class="log-filtros__acoes">
+          <% if (temFiltro) { %>
+            <p class="log-filtros__resumo"><i class="fas fa-filter" aria-hidden="true"></i><%= qtdFiltros %> filtro(s) aplicado(s)</p>
+          <% } %>
+          <button type="submit" id="log-filtros-submit" class="btn-admin btn-admin--primario"><i class="fas fa-check" aria-hidden="true"></i>Aplicar filtros</button>
+          <% if (temFiltro) { %><a class="btn-admin btn-admin--secundario" href="/admin/logs"><i class="fas fa-eraser" aria-hidden="true"></i>Limpar</a><% } %>
+        </footer>
+      </form>
+
+      <!-- HISTÓRICO DE ALTERAÇÕES -->
+      <section class="log-historico" aria-labelledby="log-historico-titulo">
+        <header class="log-historico__cabecalho">
+          <hgroup>
+            <h2 id="log-historico-titulo">Histórico de alterações</h2>
+            <p class="log-historico__subtitulo">
+              <%= ordenar === 'antigos' ? 'Da alteração mais antiga para a mais recente'
+                : ordenar === 'usuario' ? 'Agrupado por usuário responsável'
+                : ordenar === 'modulo' ? 'Agrupado por módulo do sistema'
+                : 'Da alteração mais recente para a mais antiga' %>
+            </p>
+          </hgroup>
+          <aside class="log-historico__resumo">
+            <p class="log-historico__contagem">
+              <strong><%= total %></strong> registro(s)<%= temFiltro ? ' com o filtro atual' : ' ao todo' %>
+            </p>
+            <label class="log-historico__ordenar campo-admin">
+              <b><i class="fas fa-sort-amount-down" aria-hidden="true"></i>Ordenar por</b>
+              <select name="ordenar" id="log-ordenar" form="log-filtros-form">
+                <% Object.keys(ROTULOS_ORDENACAO).forEach(chave => { %>
+                  <option value="<%= chave %>" <%= ordenar === chave ? 'selected' : '' %>><%= ROTULOS_ORDENACAO[chave] %></option>
+                <% }) %>
+              </select>
+            </label>
+          </aside>
+        </header>
+
+        <% if (erro) { %>
+          <article class="log-erro" role="alert">
+            <p class="log-erro__icone" aria-hidden="true"><i class="fas fa-exclamation-triangle"></i></p>
+            <h3>Não foi possível carregar os logs</h3>
+            <p>Houve uma falha ao consultar o histórico de auditoria. Isso costuma ser passageiro. Tente novamente em instantes.</p>
+            <a class="btn-admin btn-admin--primario" href="/admin/logs"><i class="fas fa-redo" aria-hidden="true"></i>Tentar novamente</a>
+          </article>
+        <% } else if (!logs.length) { %>
+          <article class="log-vazio">
+            <p class="log-vazio__icone" aria-hidden="true"><i class="fas fa-clipboard-list"></i></p>
+            <h3>Nenhum registro encontrado</h3>
+            <p><%= temFiltro ? 'Nenhuma alteração corresponde à pesquisa ou aos filtros aplicados. Tente ampliar o período ou limpar os filtros.' : 'Assim que alguma alteração for feita no sistema, ela aparecerá aqui.' %></p>
+            <% if (temFiltro) { %><a class="btn-admin btn-admin--secundario" href="/admin/logs"><i class="fas fa-eraser" aria-hidden="true"></i>Limpar filtros</a><% } %>
+          </article>
+        <% } else { %>
+          <ul class="log-timeline">
+            <% let diaAtual = null; %>
+            <% logs.forEach(l => {
+                 const mod = moduloDaAcao(l.acao);
+                 const tipo = tipoDaAcao(l.acao);
+                 const dia = chaveDia(l.criado_em);
+                 const abreDia = agrupaPorDia && dia !== diaAtual;
+                 diaAtual = dia;
+            %>
+              <% if (abreDia) { const rotulo = rotuloDia(l.criado_em); %>
+                <li class="log-timeline__dia">
+                  <h3>
+                    <i class="fas fa-calendar-day" aria-hidden="true"></i>
+                    <%= rotulo %>
+                  </h3>
+                  <% if (rotulo === 'Hoje' || rotulo === 'Ontem') { %>
+                    <small><%= fmtDataCurta.format(new Date(l.criado_em)) %></small>
+                  <% } %>
+                </li>
+              <% } %>
+              <li class="log-timeline__item">
+                <i class="log-timeline__marcador <%= 'log-timeline__marcador--' + tipo %>" aria-hidden="true"><i class="fas <%= iconeModulo(mod) %>"></i></i>
+                <article class="log-card">
+                  <header class="log-card__cabecalho">
+                    <figure class="log-card__admin">
+                      <img src="<%= l.foto_perfil || '/imagens/perfil.png' %>" alt="" data-fallback="/imagens/perfil.png">
+                      <figcaption>
+                        <strong><%= l.usuario_nome || 'Conta removida' %></strong>
+                        <small><%= l.usuario_id ? 'Administrador' : 'Usuário removido' %></small>
+                      </figcaption>
+                    </figure>
+                    <time class="log-card__quando" datetime="<%= isoDe(l.criado_em) %>">
+                      <strong><i class="fas fa-clock" aria-hidden="true"></i><%= fmtHora.format(new Date(l.criado_em)) %></strong>
+                      <small><%= fmtDataCurta.format(new Date(l.criado_em)) %></small>
+                    </time>
+                  </header>
+
+                  <p class="log-card__acao">
+                    <b class="badge <%= BADGE_TIPO[tipo] || 'badge--azul' %>"><%= rotuloAcao(l.acao) %></b>
+                    <b class="badge badge--cinza"><i class="fas <%= iconeModulo(mod) %>" aria-hidden="true"></i><%= rotuloModulo(mod) %></b>
+                    <b class="badge badge--verde"><i class="fas fa-check-circle" aria-hidden="true"></i>Concluído</b>
+                  </p>
+
+                  <p class="log-card__descricao"><%= l.detalhes || 'Sem detalhes adicionais.' %></p>
+
+                  <footer class="log-card__rodape">
+                    <p class="log-card__meta">
+                      <b><i class="fas fa-globe" aria-hidden="true"></i><%= l.navegador || '-' %></b>
+                      <b><i class="fas fa-desktop" aria-hidden="true"></i><%= l.sistema_operacional || '-' %></b>
+                      <b><i class="fas fa-mobile-alt" aria-hidden="true"></i><%= l.dispositivo || '-' %></b>
+                    </p>
+                    <button type="button" class="btn-admin btn-admin--secundario btn-admin--pequeno js-ver-comprovante" data-id="<%= l.id %>">
+                      <i class="fas fa-file-contract" aria-hidden="true"></i>Ver Comprovante
+                    </button>
+                  </footer>
+                </article>
+              </li>
+            <% }) %>
+          </ul>
+        <% } %>
+      </section>
+
+      <% if (totalPaginas > 1) { %>
+        <nav class="paginacao" aria-label="Paginação de logs">
+          <% if (pagina > 1) { %><a href="/admin/logs?pagina=<%= pagina - 1 %><%= paramsBase %>">‹</a><% } else { %><b class="desabilitado">‹</b><% } %>
+          <% for (let p = 1; p <= totalPaginas; p++) { %>
+            <% if (p === pagina) { %><b class="atual"><%= p %></b><% } else { %><a href="/admin/logs?pagina=<%= p %><%= paramsBase %>"><%= p %></a><% } %>
+          <% } %>
+          <% if (pagina < totalPaginas) { %><a href="/admin/logs?pagina=<%= pagina + 1 %><%= paramsBase %>">›</a><% } else { %><b class="desabilitado">›</b><% } %>
+        </nav>
+      <% } %>
+    </main>
+  </section>
+
+  <!-- DIALOG — COMPROVANTE DA ALTERAÇÃO -->
+  <dialog class="dialog-admin dialog-admin--largo" id="dialog-comprovante" aria-labelledby="dialog-comprovante-titulo">
+    <header class="dialog-admin__cabecalho">
+      <i class="fas fa-file-contract dialog-admin__icone-titulo" aria-hidden="true"></i>
+      <h2 id="dialog-comprovante-titulo">Comprovante da alteração</h2>
+      <button type="button" class="dialog-admin__fechar" id="dialog-comprovante-fechar" aria-label="Fechar">×</button>
+    </header>
+    <section id="dialog-comprovante-corpo"></section>
+  </dialog>
+
+  <script src="/js/admin/date-picker-br.js" defer></script>
+  <script src="/js/admin/admin-logs.js" defer></script>
+</body>
+</html>

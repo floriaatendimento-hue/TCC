@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Pagamento - Floria</title>
+  <link rel="stylesheet" href="/css/carrinho/pagamento.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/shared/endereco.css">
+  <input type="hidden" id="csrf-token" value="<%= csrfToken %>">
+  <script>
+    window.__ufsEntregaPermitidas = <%- JSON.stringify(ufsEntregaPermitidas || []) %>;
+  </script>
+</head>
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main class="checkout">
+    <header class="checkout__header">
+      <nav class="checkout-stepper" aria-label="Etapas da compra">
+        <ol>
+          <li class="checkout-stepper__item is-concluido">
+            <b class="checkout-stepper__marca" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </b>
+            <b class="checkout-stepper__texto">Carrinho</b>
+          </li>
+          <li class="checkout-stepper__item is-atual" aria-current="step">
+            <b class="checkout-stepper__marca" aria-hidden="true">2</b>
+            <b class="checkout-stepper__texto">Pagamento</b>
+          </li>
+          <li class="checkout-stepper__item">
+            <b class="checkout-stepper__marca" aria-hidden="true">3</b>
+            <b class="checkout-stepper__texto">Confirmação</b>
+          </li>
+        </ol>
+      </nav>
+      <h1>Finalizar compra</h1>
+      <p class="checkout__subtitulo">Escolha a forma de pagamento e revise o resumo do pedido</p>
+    </header>
+
+    <form id="form-pagamento" class="checkout__grid" novalidate>
+
+      <section class="checkout__principal" aria-label="Dados da compra">
+
+        <!-- Endereço de entrega -->
+        <section class="checkout-bloco" id="endereco-checkout" aria-labelledby="endereco-checkout-titulo">
+          <header class="checkout-bloco__header">
+            <h2 id="endereco-checkout-titulo"><b class="checkout-bloco__numero" aria-hidden="true">1</b> Endereço de entrega</h2>
+          </header>
+
+          <p class="checkout-carregando" id="endereco-checkout-carregando" role="status">
+            <svg class="spinner" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke-width="3"/></svg>
+            Carregando endereços…
+          </p>
+
+          <section class="estado-vazio" id="endereco-checkout-vazio" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            <p>Para finalizar sua compra, é necessário cadastrar pelo menos um endereço de entrega.</p>
+            <button type="button" class="btn-endereco-add" id="btn-endereco-checkout-vazio-add">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Adicionar endereço
+            </button>
+          </section>
+
+          <ul class="endereco-checkout-lista" id="endereco-checkout-lista" role="radiogroup" aria-label="Escolha o endereço de entrega" hidden></ul>
+
+          <button type="button" class="btn-link" id="btn-endereco-checkout-outro" data-abrir-modal-endereco hidden>
+            + Adicionar outro endereço
+          </button>
+        </section>
+
+        <section class="estado-vazio estado-vazio--bloqueio" id="pagamento-bloqueado" aria-live="polite" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+          </svg>
+          <p id="pagamento-bloqueado-texto">Cadastre um endereço de entrega para escolher a forma de pagamento.</p>
+        </section>
+
+        <!-- Forma de pagamento -->
+        <fieldset class="checkout-bloco metodos-fieldset" id="metodos-fieldset" hidden>
+          <legend><b class="checkout-bloco__numero" aria-hidden="true">2</b> Forma de pagamento</legend>
+
+          <section class="metodos-grid">
+            <label class="metodo-card" for="metodo-pix">
+              <input type="radio" class="metodo-card__input" id="metodo-pix" name="forma_pagto" value="pix" required>
+              <b class="metodo-card__conteudo">
+                <i class="metodo-card__check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </i>
+                <i class="metodo-card__medalhao" aria-hidden="true">
+                  <svg class="metodo-card__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/>
+                  </svg>
+                </i>
+                <b class="metodo-card__texto">
+                  <strong>Pix</strong>
+                  <small>Aprovação em segundos</small>
+                </b>
+                <b class="metodo-card__badge">Instantâneo</b>
+              </b>
+            </label>
+
+            <label class="metodo-card" for="metodo-credito">
+              <input type="radio" class="metodo-card__input" id="metodo-credito" name="forma_pagto" value="credito">
+              <b class="metodo-card__conteudo">
+                <i class="metodo-card__check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </i>
+                <i class="metodo-card__medalhao" aria-hidden="true">
+                  <svg class="metodo-card__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2.4"/><line x1="2" y1="10" x2="22" y2="10"/>
+                  </svg>
+                </i>
+                <b class="metodo-card__texto">
+                  <strong>Cartão de crédito</strong>
+                  <small>Parcele sua compra</small>
+                </b>
+                <b class="metodo-card__badge">Até 12x</b>
+              </b>
+            </label>
+
+            <label class="metodo-card" for="metodo-debito">
+              <input type="radio" class="metodo-card__input" id="metodo-debito" name="forma_pagto" value="debito">
+              <b class="metodo-card__conteudo">
+                <i class="metodo-card__check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </i>
+                <i class="metodo-card__medalhao" aria-hidden="true">
+                  <svg class="metodo-card__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2.4"/><path d="M2 10h20"/><path d="m8.5 15 1.8 1.8L15 13.4"/>
+                  </svg>
+                </i>
+                <b class="metodo-card__texto">
+                  <strong>Cartão de débito</strong>
+                  <small>Débito à vista na conta</small>
+                </b>
+                <b class="metodo-card__badge">À vista</b>
+              </b>
+            </label>
+
+            <label class="metodo-card" for="metodo-boleto">
+              <input type="radio" class="metodo-card__input" id="metodo-boleto" name="forma_pagto" value="boleto">
+              <b class="metodo-card__conteudo">
+                <i class="metodo-card__check" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </i>
+                <i class="metodo-card__medalhao" aria-hidden="true">
+                  <svg class="metodo-card__icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="16" rx="1.4"/>
+                    <line x1="6.5" y1="7.5" x2="6.5" y2="16.5" stroke-width="1.8"/>
+                    <line x1="9" y1="7.5" x2="9" y2="16.5" stroke-width="1"/>
+                    <line x1="11.5" y1="7.5" x2="11.5" y2="16.5" stroke-width="2.2"/>
+                    <line x1="14.5" y1="7.5" x2="14.5" y2="16.5" stroke-width="1"/>
+                    <line x1="17" y1="7.5" x2="17" y2="16.5" stroke-width="1.8"/>
+                  </svg>
+                </i>
+                <b class="metodo-card__texto">
+                  <strong>Boleto</strong>
+                  <small>Vencimento em 3 dias</small>
+                </b>
+                <b class="metodo-card__badge">Até 3 dias úteis</b>
+              </b>
+            </label>
+          </section>
+        </fieldset>
+
+        <fieldset class="checkout-bloco painel-metodo" id="campos-pix" hidden>
+          <legend>Pagamento via Pix</legend>
+
+          <figure class="pix-vitrine">
+            <i class="pix-vitrine__moldura" aria-hidden="true">
+              <i class="pix-vitrine__canto pix-vitrine__canto--tl"></i>
+              <i class="pix-vitrine__canto pix-vitrine__canto--tr"></i>
+              <i class="pix-vitrine__canto pix-vitrine__canto--bl"></i>
+              <i class="pix-vitrine__canto pix-vitrine__canto--br"></i>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+                <line x1="14" y1="14" x2="14" y2="21"/><line x1="17.5" y1="14" x2="17.5" y2="21"/><line x1="21" y1="14" x2="21" y2="21"/><line x1="14" y1="17.5" x2="21" y2="17.5"/>
+              </svg>
+            </i>
+            <figcaption>O QR Code e o código "copia e cola" aparecem aqui assim que você confirmar o pedido</figcaption>
+          </figure>
+
+          <ol class="passos-metodo">
+            <li><b class="passos-metodo__numero" aria-hidden="true">1</b><p>Confirme o pedido para gerar o Pix</p></li>
+            <li><b class="passos-metodo__numero" aria-hidden="true">2</b><p>Escaneie o QR Code ou copie o código no app do seu banco (válido por 30 minutos)</p></li>
+            <li><b class="passos-metodo__numero" aria-hidden="true">3</b><p>Confirmação automática: a página avisa assim que o pagamento for identificado</p></li>
+          </ol>
+        </fieldset>
+
+        <fieldset class="checkout-bloco painel-metodo" id="campos-cartao" hidden>
+          <legend>Dados do cartão</legend>
+
+          <p class="cartao-tipo-chip" id="cartao-tipo-chip" data-tipo="credito">
+            <i class="fas fa-credit-card" aria-hidden="true"></i>
+            <b>Você está pagando com <strong id="cartao-tipo-chip-nome">Cartão de Crédito</strong></b>
+          </p>
+
+          <section class="cartao-corpo">
+            <figure class="cartao-visual" id="cartao-visual" data-tipo="credito" aria-hidden="true">
+              <b class="cartao-visual__flip">
+                <b class="cartao-visual__face cartao-visual__face--frente">
+                  <b class="cartao-visual__topo">
+                    <b class="cartao-visual__chip"></b>
+                    <b class="cartao-visual__marca" id="cartao-visual-bandeira">Floria</b>
+                  </b>
+                  <strong class="cartao-visual__numero" id="cartao-visual-numero">•••• •••• •••• ••••</strong>
+                  <b class="cartao-visual__base">
+                    <b class="cartao-visual__campo">
+                      <small>Titular</small>
+                      <strong id="cartao-visual-nome">NOME DO TITULAR</strong>
+                    </b>
+                    <b class="cartao-visual__campo cartao-visual__campo--val">
+                      <small>Validade</small>
+                      <strong id="cartao-visual-validade">MM/AA</strong>
+                    </b>
+                  </b>
+                </b>
+                <b class="cartao-visual__face cartao-visual__face--verso">
+                  <b class="cartao-visual__tarja"></b>
+                  <b class="cartao-visual__cvv-bloco">
+                    <small>CVV</small>
+                    <strong id="cartao-visual-cvv">•••</strong>
+                  </b>
+                </b>
+              </b>
+            </figure>
+
+            <section class="cartao-campos-grid">
+              <p class="campo campo--largo">
+                <label for="cartao-numero">Número do cartão</label>
+                <input type="text" id="cartao-numero" name="numero_cartao" inputmode="numeric" autocomplete="cc-number"
+                       maxlength="23" placeholder="0000 0000 0000 0000" aria-describedby="cartao-numero-erro">
+                <output id="cartao-numero-erro" class="erro-campo" role="alert"></output>
+                <strong id="cartao-bandeira" class="cartao-bandeira" aria-live="polite"></strong>
+              </p>
+
+              <p class="campo campo--largo">
+                <label for="cartao-nome">Nome impresso no cartão</label>
+                <input type="text" id="cartao-nome" name="nome_cartao" autocomplete="cc-name"
+                       maxlength="120" placeholder="Como está no cartão" aria-describedby="cartao-nome-erro">
+                <output id="cartao-nome-erro" class="erro-campo" role="alert"></output>
+              </p>
+
+              <p class="campo campo--metade">
+                <label for="cartao-validade">Validade</label>
+                <input type="text" id="cartao-validade" name="validade_cartao" inputmode="numeric" autocomplete="cc-exp"
+                       maxlength="5" placeholder="MM/AA" aria-describedby="cartao-validade-erro">
+                <output id="cartao-validade-erro" class="erro-campo" role="alert"></output>
+              </p>
+
+              <p class="campo campo--metade">
+                <label for="cartao-cvv">CVV</label>
+                <input type="text" id="cartao-cvv" name="cvv_cartao" inputmode="numeric" autocomplete="cc-csc"
+                       maxlength="4" placeholder="000" aria-describedby="cartao-cvv-erro">
+                <output id="cartao-cvv-erro" class="erro-campo" role="alert"></output>
+              </p>
+
+              <p class="campo campo--largo" id="linha-parcelas" hidden>
+                <label for="cartao-parcelas">Parcelas</label>
+                <select id="cartao-parcelas" name="parcelas">
+                  <% for (let i = 1; i <= 12; i++) { %>
+                    <option value="<%= i %>"><%= i %>x <%= i === 1 ? 'à vista' : 'sem juros' %></option>
+                  <% } %>
+                </select>
+              </p>
+
+              <p class="nota-seguranca" id="nota-cartao-teste" hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                <b>Ambiente de testes (sem gateway real): qualquer cartão válido é aprovado, exceto final <strong>0002</strong>, que simula recusa. O número completo e o CVV nunca são armazenados.</b>
+              </p>
+            </section>
+          </section>
+        </fieldset>
+
+        <fieldset class="checkout-bloco painel-metodo" id="campos-boleto" hidden>
+          <legend>Dados do boleto</legend>
+
+          <p class="metodo-info-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+            Vencimento em 3 dias úteis após a geração
+          </p>
+
+          <p class="campo campo--largo">
+            <label for="boleto-cpf">CPF do pagador</label>
+            <input type="text" id="boleto-cpf" name="cpf_boleto" inputmode="numeric" autocomplete="off"
+                   maxlength="14" placeholder="000.000.000-00" aria-describedby="boleto-cpf-erro">
+            <output id="boleto-cpf-erro" class="erro-campo" role="alert"></output>
+          </p>
+
+          <ol class="passos-metodo">
+            <li><b class="passos-metodo__numero" aria-hidden="true">1</b><p>Confirme o pedido para gerar o boleto</p></li>
+            <li><b class="passos-metodo__numero" aria-hidden="true">2</b><p>Pague no banco, lotérica ou app até a data de vencimento</p></li>
+            <li><b class="passos-metodo__numero" aria-hidden="true">3</b><p>Confirmação automática assim que a compensação for identificada</p></li>
+          </ol>
+        </fieldset>
+
+        <fieldset class="checkout-bloco painel-metodo" id="mp-brick-container" hidden></fieldset>
+
+        <!-- Observações do pedido -->
+        <section class="checkout-bloco" aria-labelledby="obs-titulo">
+          <header class="checkout-bloco__header">
+            <h2 id="obs-titulo">Observações <b class="opcional-tag">(opcional)</b></h2>
+          </header>
+          <label for="observacoes-pedido" class="sr-only">Observações do pedido</label>
+          <textarea id="observacoes-pedido" maxlength="500" rows="3"
+            placeholder="Ex.: entregar no período da tarde, deixar com o porteiro…"></textarea>
+        </section>
+
+      </section>
+
+      <!-- Resumo do pedido -->
+      <aside class="checkout__resumo" aria-label="Resumo do pedido">
+        <section class="resumo-checkout" id="resumo-checkout">
+          <h2><b class="checkout-bloco__numero" aria-hidden="true">3</b> Resumo do pedido</h2>
+          <section id="resumo-itens"></section>
+
+          <p class="resumo-item-linha">
+            <b>Subtotal</b>
+            <strong id="resumo-subtotal">R$ 0,00</strong>
+          </p>
+          <p class="resumo-item-linha resumo-desconto-linha" id="resumo-linha-desconto" hidden>
+            <b>Desconto <b class="cupom-tag" id="resumo-cupom-tag"></b></b>
+            <strong id="resumo-desconto">− R$ 0,00</strong>
+          </p>
+
+          <section class="cupom-checkout-wrap" aria-label="Cupom de desconto">
+            <p class="cupom-checkout-form" id="cupom-checkout-form">
+              <label for="input-cupom-checkout" class="sr-only">Código do cupom</label>
+              <input type="text" id="input-cupom-checkout" placeholder="Código do cupom" autocomplete="off" spellcheck="false">
+              <button type="button" id="btn-cupom-checkout">Aplicar</button>
+            </p>
+            <p class="cupom-checkout-aplicado" id="cupom-checkout-aplicado" hidden>
+              <svg class="cupom-checkout-aplicado-icone" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 6 9 17l-5-5"></path>
+              </svg>
+              <b class="cupom-checkout-aplicado-texto">
+                <strong id="cupom-checkout-codigo"></strong>
+                <small>Cupom aplicado · você economiza <output id="cupom-checkout-valor">R$ 0,00</output></small>
+              </b>
+              <button type="button" id="btn-remover-cupom-checkout" class="cupom-remover-btn-checkout" aria-label="Remover cupom aplicado" title="Remover cupom">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </p>
+            <output class="cupom-checkout-msg" id="cupom-checkout-msg" role="alert"></output>
+          </section>
+
+          <p class="resumo-total-linha">
+            <b>Total</b>
+            <strong id="resumo-total">R$ 0,00</strong>
+          </p>
+        </section>
+
+        <output id="msg-pedido" role="alert"></output>
+
+        <button class="botao botao--primario botao--grande" id="btn-confirmar" type="submit">
+          <i class="botao__spinner" aria-hidden="true"></i>
+          <b class="botao__texto">Confirmar pagamento</b>
+        </button>
+
+        <p class="seguranca-nota">
+          <i class="fas fa-lock" aria-hidden="true"></i>
+          Compra protegida: seus dados de cartão nunca ficam armazenados no navegador.
+        </p>
+        <p class="checkout-privacidade-nota">Consulte nossa <a href="/politica-de-privacidade">Política de Privacidade</a>.</p>
+      </aside>
+
+    </form>
+  </main>
+
+  <%- include("../../partials/shared/modal-endereco") %>
+
+  <%- include("../../partials/layout/footer") %>
+
+  <script src="/js/shared/endereco-modal.js"></script>
+  <script src="/js/carrinho/pagamento/validacao.js"></script>
+  <script src="/js/carrinho/pagamento/cartao.js"></script>
+  <script src="/js/carrinho/pagamento/pagamento.js"></script>
+  <script src="/js/carrinho/pagamento/cartao-visual.js"></script>
+</body>
+</html>

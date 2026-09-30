@@ -1,0 +1,10 @@
+<%
+/* Partial: resumo de avaliação exibido junto ao título (comentarios.js
+   sobrescreve o conteúdo assim que calcula a média real).
+   Locais esperados: avaliacaoEstrelas (string com <i class="fas/far fa-star">),
+   avaliacaoTexto (string) */
+%>
+<p class="avaliacao" id="produto-avaliacao-topo" aria-label="Avaliação do produto">
+  <i class="estrelas" id="produto-avaliacao-estrelas" aria-hidden="true"><%- avaliacaoEstrelas %></i>
+  <small class="qtd-avaliacoes" id="produto-avaliacao-qtd"><%= avaliacaoTexto %></small>
+</p>

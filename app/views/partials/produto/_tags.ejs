@@ -1,0 +1,11 @@
+<%
+/* Partial: tags de características.
+   Local esperado: tags — array de { icone, texto } (icone é opcional, classe Font Awesome) */
+%>
+<% if (tags && tags.length) { %>
+<ul class="info-tags" aria-label="Características">
+  <% tags.forEach(function (t) { %>
+    <li class="info-tag"><i class="<%= t.icone || 'fas fa-check' %>" aria-hidden="true"></i> <%= t.texto %></li>
+  <% }); %>
+</ul>
+<% } %>

@@ -1,0 +1,15 @@
+<%
+/* Partial: simulador de frete. Estrutura exigida literalmente por
+   app/public/js/produtos/frete.js — não alterar classes/ids sem atualizar o script.
+   Local esperado: slug */
+%>
+<section class="frete" aria-labelledby="lbl-frete">
+  <h2 id="lbl-frete">Simule seu frete</h2>
+  <form class="frete-row" data-slug="<%= slug %>">
+    <label for="cep" class="sr-only">CEP</label>
+    <input type="text" id="cep" name="cep" inputmode="numeric" autocomplete="postal-code" placeholder="Digite seu CEP" maxlength="9" required />
+    <button type="submit" class="btn-calcular">Calcular</button>
+  </form>
+  <p class="frete-status" role="status" aria-live="polite" hidden></p>
+  <ul class="frete-resultado" hidden></ul>
+</section>

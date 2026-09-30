@@ -1,0 +1,178 @@
+<%
+/* REESTRUTURADO: área de Relatórios — 10 relatórios (abas) sobre uma
+   mesma tela, todos com filtro de período (presets + personalizado),
+   visualização com busca/ordenação/paginação (ver admin-relatorios.js)
+   e exportação em PDF (ver services/relatorios/relatoriosService.js + pdf/relatorioPdf.js).
+   Tudo dirigido por querystring (?tipo=&de=&ate=&preset=) — a troca de
+   aba/período é sempre um link/GET normal, funciona mesmo sem JS. */
+const PRESETS = [
+  { chave: 'hoje', rotulo: 'Hoje' },
+  { chave: '7d',   rotulo: 'Últimos 7 dias' },
+  { chave: '30d',  rotulo: 'Últimos 30 dias' },
+  { chave: '6m',   rotulo: 'Últimos 6 meses' },
+  { chave: '1a',   rotulo: 'Último ano' },
+];
+
+function montarQuery(overrides = {}) {
+  const params = new URLSearchParams();
+  params.set('tipo', overrides.tipo || tipoAtual);
+  params.set('de', overrides.de || de);
+  params.set('ate', overrides.ate || ate);
+  const presetFinal = 'preset' in overrides ? overrides.preset : preset;
+  if (presetFinal && presetFinal !== 'personalizado') params.set('preset', presetFinal);
+  return '?' + params.toString();
+}
+
+const dataFmtBr = (iso) => { const [a, m, d] = String(iso).split('-'); return `${d}/${m}/${a}`; };
+const moedaBr = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Relatórios</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'relatorios' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Relatórios' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Relatórios</h1>
+          <p class="admin-page-header__data">Período: <%= dataFmtBr(de) %> – <%= dataFmtBr(ate) %></p>
+        </hgroup>
+      </header>
+
+      <form class="admin-toolbar relatorios-periodo" method="get" action="/admin/relatorios">
+        <input type="hidden" name="tipo" value="<%= tipoAtual %>">
+        <section class="relatorios-presets" role="group" aria-label="Atalhos de período">
+          <% PRESETS.forEach(p => { %>
+            <a class="chip-periodo <%= preset === p.chave ? 'is-active' : '' %>" href="<%= montarQuery({ preset: p.chave }) %>"><%= p.rotulo %></a>
+          <% }) %>
+        </section>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b style="font-size:11px;">De</b>
+          <input type="date" name="de" value="<%= de %>" data-br-enhance>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b style="font-size:11px;">Até</b>
+          <input type="date" name="ate" value="<%= ate %>" data-br-enhance>
+        </label>
+        <button type="submit" class="btn-admin btn-admin--primario">Período personalizado</button>
+      </form>
+
+      <nav class="tabs-status relatorios-abas" aria-label="Tipo de relatório">
+        <% tipos.forEach(t => { %>
+          <a class="<%= t.chave === tipoAtual ? 'is-active' : '' %>"
+             href="<%= montarQuery({ tipo: t.chave }) %>"
+             <%= t.chave === tipoAtual ? 'aria-current="page"' : '' %>>
+            <i class="fas <%= t.icone %>" aria-hidden="true"></i> <%= t.titulo %>
+          </a>
+        <% }) %>
+      </nav>
+
+      <% if (erro) { %>
+        <p class="tabela-admin__vazia"><%= erro %></p>
+      <% } else { %>
+
+        <% if (relatorio.resumo && relatorio.resumo.length) { %>
+          <section class="stats-grid">
+            <% relatorio.resumo.forEach(r => { %>
+              <article class="stat-card">
+                <p class="stat-card__valor stat-card__valor--texto"><%= r.valor %></p>
+                <p class="stat-card__legenda"><%= r.rotulo %></p>
+              </article>
+            <% }) %>
+          </section>
+        <% } %>
+
+        <% if (tipoAtual === 'faturamento' && relatorio.extra && relatorio.extra.serie && relatorio.extra.serie.length) {
+             const serie = relatorio.extra.serie;
+             const maiorValorDia = Math.max(1, ...serie.map(d => d.total)); %>
+          <article class="painel grafico-faturamento">
+            <header class="painel__cabecalho">
+              <h2 class="painel__titulo">Faturamento diário</h2>
+            </header>
+            <figure>
+              <% const largura = 900, altura = 220, margemBase = 28, margemTopo = 18;
+                 const n = serie.length; const larguraBarra = Math.min(28, (largura / n) * 0.6); const espacoBarra = largura / n; %>
+              <svg viewBox="0 0 <%= largura %> <%= altura %>" role="img" aria-label="Gráfico de faturamento diário do período">
+                <% serie.forEach((dia, i) => {
+                     const alturaUtil = altura - margemBase - margemTopo;
+                     const alturaBarra = maiorValorDia > 0 ? (dia.total / maiorValorDia) * alturaUtil : 0;
+                     const x = i * espacoBarra + (espacoBarra - larguraBarra) / 2;
+                     const y = altura - margemBase - alturaBarra;
+                     const rotulo = new Date(dia.dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                %>
+                  <rect class="barra" x="<%= x.toFixed(1) %>" y="<%= y.toFixed(1) %>" width="<%= larguraBarra.toFixed(1) %>" height="<%= Math.max(alturaBarra, 2).toFixed(1) %>" rx="3">
+                    <title><%= rotulo %>: <%= moedaBr(dia.total) %></title>
+                  </rect>
+                  <% if (n <= 20 || i % Math.ceil(n / 20) === 0) { %>
+                    <text class="eixo-label" x="<%= (x + larguraBarra / 2).toFixed(1) %>" y="<%= altura - 8 %>" text-anchor="middle"><%= rotulo %></text>
+                  <% } %>
+                <% }) %>
+              </svg>
+              <figcaption>Passe o cursor sobre uma barra para ver o valor exato do dia.</figcaption>
+            </figure>
+          </article>
+        <% } %>
+
+        <article class="painel painel--tabela relatorio-painel-tabela">
+          <header class="painel__cabecalho relatorio-cabecalho" style="padding: var(--esp-5) var(--esp-6) 0;">
+            <hgroup>
+              <h2 class="painel__titulo"><%= relatorio.titulo %></h2>
+              <p class="painel__subtitulo"><%= relatorio.subtitulo %></p>
+            </hgroup>
+            <section class="relatorio-toolbar">
+              <search class="admin-toolbar__busca" role="search" aria-label="Pesquisar nesta tabela">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <input type="search" placeholder="Pesquisar..." data-relatorio-busca>
+              </search>
+              <a class="btn-admin btn-admin--secundario" href="/admin/relatorios/pdf<%= montarQuery() %>">
+                <i class="fas fa-file-pdf" aria-hidden="true"></i> Baixar PDF
+              </a>
+            </section>
+          </header>
+
+          <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+            <table class="tabela-admin" data-relatorio-tabela>
+              <thead>
+                <tr>
+                  <% relatorio.colunas.forEach((c, i) => { %>
+                    <th class="<%= c.alinhar === 'num' ? 'num' : '' %> th-ordenavel" data-ordenavel data-col="<%= i %>" data-tipo="<%= c.tipo %>" tabindex="0" role="button">
+                      <%= c.rotulo %><i class="fas fa-sort" aria-hidden="true"></i>
+                    </th>
+                  <% }) %>
+                </tr>
+              </thead>
+              <tbody>
+                <% relatorio.linhas.forEach(linha => { %>
+                  <tr>
+                    <% relatorio.colunas.forEach(c => { const cel = linha[c.chave] || { texto: '-', valor: 0 }; %>
+                      <td class="<%= c.alinhar === 'num' ? 'num' : '' %>" data-valor="<%= cel.valor %>">
+                        <% if (cel.badge) { %><b class="badge badge--<%= cel.badge %>"><%= cel.texto %></b><% } else { %><%= cel.texto %><% } %>
+                      </td>
+                    <% }) %>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+            <% if (!relatorio.linhas.length) { %>
+              <p class="tabela-admin__vazia">Nenhum registro encontrado para o período selecionado.</p>
+            <% } %>
+          </section>
+
+          <nav class="paginacao" data-relatorio-paginacao aria-label="Paginação da tabela"></nav>
+        </article>
+      <% } %>
+    </main>
+  </section>
+  <script src="/js/admin/date-picker-br.js" defer></script>
+  <script src="/js/admin/admin-relatorios.js" defer></script>
+</body>
+</html>

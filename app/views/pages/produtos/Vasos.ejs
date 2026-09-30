@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria - Vasos & Cachepôs</title>
+  <link rel="stylesheet" href="/css/produtos/Vasos.css">
+  <link rel="stylesheet" href="/css/shared/carousel.css">
+  <link rel="stylesheet" href="/css/shared/cards-fix.css">
+</head>
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main>
+    <section class="page-title">
+      <h1>Vasos & Cachepôs</h1>
+      <p>Escolha o vaso perfeito para cada planta</p>
+    </section>
+
+    <%- include("../../partials/shared/subcategorias-filtro", { subcategorias, subcategoriaAtiva }) %>
+
+    <%
+      var subcategoriaSelecionada = subcategoriaAtiva
+        ? (subcategorias || []).find(function (s) { return s.slug === subcategoriaAtiva; })
+        : null;
+      var tituloVasos = subcategoriaSelecionada ? subcategoriaSelecionada.nome : 'Todos os Vasos';
+    %>
+    <section class="cards-section" aria-labelledby="vasos-todos">
+      <header class="section-label">
+        <h2 id="vasos-todos"><%= tituloVasos %></h2>
+      </header>
+      <% if (produtos.length) { %>
+      <nav class="carousel-wrapper">
+        <button class="carousel-btn" onclick="scrollCarousel(this,-1)" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <ul class="cards-container">
+
+          <% produtos.forEach(function (p) {
+               var preco = p.preco_exibido;
+               var precoFmt = 'R$ ' + Number(preco).toFixed(2).replace('.', ',');
+               var href = '/' + (p.slug_pagina || p.slug);
+          %>
+          <li><article class="card card-home">
+            <a href="<%= href %>">
+              <figure>
+                <img
+                  src="/imagens/<%= p.imagem || 'image.png' %>"
+                  alt="<%= p.nome %>"
+                  data-fallback="/imagens/image.png"
+                >
+                <button type="button" class="btn-favorito btn-favorito--card"
+                  data-slug="<%= p.slug_pagina || p.slug %>" data-nome="<%= p.nome %>"
+                  data-imagem="/imagens/<%= p.imagem || 'image.png' %>" data-preco="<%= preco %>"
+                  aria-label="Favoritar" aria-pressed="false">
+                  <i class="far fa-heart" aria-hidden="true"></i>
+                </button>
+              </figure>
+              <section class="card-caption">
+                <h3><%= p.nome %></h3><b class="card-categoria">Vasos</b><output class="card-rating" data-rating-slot="<%= p.slug_pagina || p.slug %>" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price"><%= precoFmt %></p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+          <% }); %>
+
+        </ul>
+        <button class="carousel-btn" onclick="scrollCarousel(this,1)" aria-label="Próximo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+      </nav>
+      <% } else { %>
+      <p class="categoria-produtos-vazio"><%= subcategoriaSelecionada
+            ? 'Nenhum produto ativo em ' + subcategoriaSelecionada.nome + ' no momento.'
+            : 'Nenhum produto ativo nesta categoria no momento.' %></p>
+      <% } %>
+    </section>
+
+    <% (subcategoriasComProdutos || []).forEach(function (grupo) { %>
+      <%- include("../../partials/shared/subcategoria-carousel", {
+            titulo: grupo.subcategoria.nome,
+            produtos: grupo.produtos,
+            categoriaNome: 'Vasos',
+            anchorId: 'subcat-' + grupo.subcategoria.slug,
+          }) %>
+    <% }); %>
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+  <script src="/js/shared/carousel.js"></script>
+</body>
+</html>

@@ -1,0 +1,103 @@
+@import url("shared/tokens.css");
+
+.pagina-erro {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 120px 24px 128px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.pagina-erro-codigo {
+  font-family: var(--fonte-titulo);
+  font-size: clamp(3.6rem, 10vw, 5.5rem);
+  font-weight: 300;
+  line-height: 1;
+  color: var(--dourado);
+  opacity: 0.45;
+  letter-spacing: 0.02em;
+  margin-bottom: var(--esp-3);
+}
+
+.pagina-erro h1 {
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.6rem, 3.4vw, 2.1rem);
+  font-weight: 400;
+  color: var(--verde-escuro);
+  letter-spacing: 0.01em;
+  margin-bottom: var(--esp-3);
+}
+
+.pagina-erro-texto {
+  font-family: var(--fonte-corpo);
+  font-size: var(--texto-md);
+  color: var(--texto-suave);
+  line-height: 1.7;
+  max-width: 400px;
+  margin-bottom: var(--esp-10);
+}
+
+.pagina-erro-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--esp-6);
+  margin-bottom: var(--esp-6);
+}
+
+.pagina-erro-btn-primario {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.pagina-erro-link-secundario {
+  font-family: var(--fonte-corpo);
+  font-size: var(--texto-sm);
+  font-weight: 500;
+  color: var(--verde-medio);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--borda-dourada);
+  transition: color var(--transicao);
+}
+.pagina-erro-link-secundario:hover {
+  color: var(--verde-escuro);
+  text-decoration-color: currentColor;
+}
+
+.pagina-erro-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--esp-2);
+  background: none;
+  border: none;
+  padding: var(--esp-2) var(--esp-2);
+  font-family: var(--fonte-corpo);
+  font-size: var(--texto-sm);
+  color: var(--texto-fraco);
+  cursor: pointer;
+  transition: color var(--transicao);
+}
+.pagina-erro-voltar:hover,
+.pagina-erro-voltar:focus-visible {
+  color: var(--verde-medio);
+}
+
+/* RESPONSIVO */
+@media (max-width: 640px) {
+  .pagina-erro {
+    padding: 80px 20px 88px;
+  }
+  .pagina-erro-acoes {
+    flex-direction: column;
+    gap: var(--esp-4);
+  }
+  .pagina-erro-btn-primario {
+    width: 100%;
+    justify-content: center;
+  }
+}

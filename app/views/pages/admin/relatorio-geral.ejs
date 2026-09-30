@@ -1,0 +1,319 @@
+<%
+/* Relatório Geral da Loja — documento único consolidando os
+   indicadores da loja num período (ver app/services/relatorios/relatorioGeralService.js
+   para como cada seção é calculada). Diferente da tela de abas em
+   /admin/relatorios (um relatório por vez), aqui as 16 seções pedidas
+   aparecem em sequência, prontas para leitura de cima a baixo ou para
+   impressão (Ctrl+P usa o bloco @media print de admin-dashboard.css).
+   `relatorio` vem nulo se a consulta ao banco falhar. */
+const PRESETS = [
+  { chave: 'hoje', rotulo: 'Hoje' },
+  { chave: '7d',   rotulo: 'Últimos 7 dias' },
+  { chave: '30d',  rotulo: 'Últimos 30 dias' },
+  { chave: '6m',   rotulo: 'Últimos 6 meses' },
+  { chave: '1a',   rotulo: 'Último ano' },
+];
+
+function montarQuery(overrides = {}) {
+  const params = new URLSearchParams();
+  params.set('de', overrides.de || de);
+  params.set('ate', overrides.ate || ate);
+  const presetFinal = 'preset' in overrides ? overrides.preset : preset;
+  if (presetFinal && presetFinal !== 'personalizado') params.set('preset', presetFinal);
+  return '?' + params.toString();
+}
+
+const dataFmtBr = (iso) => { const [a, m, d] = String(iso).split('-'); return `${d}/${m}/${a}`; };
+
+const CORES_PIZZA = ['#b8945f', '#154030', '#0E3124', '#2c5896', '#9e7a46'];
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Relatório Geral da Loja</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'relatorio-geral' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Relatório Geral da Loja' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Relatório Geral da Loja</h1>
+          <p class="admin-page-header__data">Período: <%= dataFmtBr(de) %> – <%= dataFmtBr(ate) %></p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas relatorio-geral-acoes" aria-label="Ações do relatório">
+          <a class="btn-admin btn-admin--primario" href="/admin/relatorios/geral/pdf<%= montarQuery() %>">
+            <i class="fas fa-file-pdf" aria-hidden="true"></i> Baixar Relatório em PDF
+          </a>
+        </nav>
+      </header>
+
+      <form class="admin-toolbar relatorios-periodo relatorio-geral-acoes" method="get" action="/admin/relatorios/geral">
+        <section class="relatorios-presets" role="group" aria-label="Atalhos de período">
+          <% PRESETS.forEach(p => { %>
+            <a class="chip-periodo <%= preset === p.chave ? 'is-active' : '' %>" href="<%= montarQuery({ preset: p.chave }) %>"><%= p.rotulo %></a>
+          <% }) %>
+        </section>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b style="font-size:11px;">De</b>
+          <input type="date" name="de" value="<%= de %>" data-br-enhance>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b style="font-size:11px;">Até</b>
+          <input type="date" name="ate" value="<%= ate %>" data-br-enhance>
+        </label>
+        <button type="submit" class="btn-admin btn-admin--secundario">Período personalizado</button>
+      </form>
+
+      <% if (erro) { %>
+        <p class="tabela-admin__vazia"><%= erro %></p>
+      <% } else { %>
+
+        <section class="relatorio-geral-secao">
+          <h2 class="relatorio-geral-secao__titulo">Resumo Executivo</h2>
+          <p class="relatorio-geral-secao__subtitulo">Principais números do período, comparados ao período anterior de mesma duração.</p>
+          <section class="stats-grid" aria-label="Resumo executivo">
+            <% relatorio.resumoExecutivo.indicadores.forEach(ind => { %>
+              <article class="stat-card">
+                <p class="stat-card__valor stat-card__valor--texto"><%= ind.valor %></p>
+                <p class="stat-card__legenda"><%= ind.rotulo %></p>
+                <% if (ind.variacao !== null) { %>
+                  <b class="stat-card__variacao <%= ind.variacao >= 0 ? 'stat-card__variacao--alta' : 'stat-card__variacao--baixa' %>">
+                    <i class="fas fa-arrow-<%= ind.variacao >= 0 ? 'up' : 'down' %>" aria-hidden="true"></i>
+                    <%= Math.abs(ind.variacao).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) %>%
+                  </b>
+                <% } %>
+              </article>
+            <% }) %>
+          </section>
+        </section>
+
+        <section class="relatorio-geral-secao">
+          <h2 class="relatorio-geral-secao__titulo">Indicadores Gerais</h2>
+          <section class="stats-grid" aria-label="Indicadores gerais">
+            <% relatorio.indicadoresGerais.forEach(ind => { %>
+              <article class="stat-card">
+                <p class="stat-card__valor stat-card__valor--texto"><%= ind.valor %></p>
+                <p class="stat-card__legenda"><%= ind.rotulo %></p>
+              </article>
+            <% }) %>
+          </section>
+        </section>
+
+        <article class="painel painel--tabela relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Relatório de Vendas</h2>
+            <p class="painel__subtitulo">Itens vendidos em pedidos com pagamento aprovado no período.</p>
+          </header>
+          <%- include("../../partials/shared/relatorio-geral-tabela", { colunas: relatorio.vendas.colunas, linhas: relatorio.vendas.linhas }) %>
+        </article>
+
+        <article class="painel relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Produtos Mais Vendidos</h2>
+            <p class="painel__subtitulo">Ranking por unidades vendidas em pedidos aprovados no período.</p>
+          </header>
+          <% const maisVendidosGrafico = relatorio.maisVendidos.grafico || []; %>
+          <% if (maisVendidosGrafico.length) {
+               const hbLargura = 640, hbAltura = maisVendidosGrafico.length * 34 + 10, hbMargemEsq = 170, hbMargemDir = 50;
+               const hbMaior = Math.max(1, ...maisVendidosGrafico.map(p => p.valor));
+               const hbLarguraUtil = hbLargura - hbMargemEsq - hbMargemDir;
+          %>
+            <figure class="grafico-horizontal">
+              <svg viewBox="0 0 <%= hbLargura %> <%= hbAltura %>" role="img" aria-label="Gráfico de barras dos produtos mais vendidos">
+                <% maisVendidosGrafico.forEach((p, i) => {
+                     const y = i * 34 + 4;
+                     const larguraBarra = hbMaior > 0 ? (p.valor / hbMaior) * hbLarguraUtil : 0;
+                     const nomeCurto = p.nome.length > 24 ? p.nome.slice(0, 24) + '…' : p.nome;
+                %>
+                  <text class="eixo-label" x="<%= hbMargemEsq - 8 %>" y="<%= y + 15 %>" text-anchor="end"><%= nomeCurto %></text>
+                  <rect class="barra" x="<%= hbMargemEsq %>" y="<%= y %>" width="<%= Math.max(larguraBarra, 2).toFixed(1) %>" height="22" rx="3">
+                    <title><%= p.nome %>: <%= p.valor %> unidades</title>
+                  </rect>
+                  <text class="eixo-label" x="<%= (hbMargemEsq + larguraBarra + 6).toFixed(1) %>" y="<%= y + 15 %>"><%= p.valor %></text>
+                <% }) %>
+              </svg>
+            </figure>
+          <% } %>
+          <%- include("../../partials/shared/relatorio-geral-tabela", { colunas: relatorio.maisVendidos.colunas, linhas: relatorio.maisVendidos.linhas }) %>
+        </article>
+
+        <article class="painel painel--tabela relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Produtos Mais Pesquisados</h2>
+            <p class="painel__subtitulo">Termos digitados na busca do site no período. Termos sem produto correspondente aparecem destacados.</p>
+          </header>
+          <%- include("../../partials/shared/relatorio-geral-tabela", { colunas: relatorio.maisPesquisados.colunas, linhas: relatorio.maisPesquisados.linhas }) %>
+        </article>
+
+        <article class="painel relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Categorias Mais Acessadas</h2>
+            <p class="painel__subtitulo">Visitas às páginas de categoria do site no período.</p>
+          </header>
+          <% const catGrafico = relatorio.categoriasAcessadas.grafico || [];
+             const totalAcessos = catGrafico.reduce((s, c) => s + c.valor, 0) || 1;
+             const raioPizza = 80, circPizza = 2 * Math.PI * raioPizza;
+             let acumuladoPizza = 0;
+          %>
+          <figure class="grafico-pizza">
+            <svg viewBox="0 0 200 200" role="img" aria-label="Gráfico de pizza das categorias mais acessadas">
+              <% if (!catGrafico.length) { %>
+                <circle cx="100" cy="100" r="<%= raioPizza %>" fill="none" stroke="#F2F2F0" stroke-width="40" />
+              <% } else { catGrafico.forEach((c, i) => {
+                     const fracao = c.valor / totalAcessos;
+                     const comprimento = fracao * circPizza;
+                     const offset = -acumuladoPizza;
+              %>
+                <circle class="fatia" cx="100" cy="100" r="<%= raioPizza %>" fill="none"
+                        stroke="<%= CORES_PIZZA[i % CORES_PIZZA.length] %>" stroke-width="40"
+                        stroke-dasharray="<%= comprimento.toFixed(1) %> <%= (circPizza - comprimento).toFixed(1) %>"
+                        stroke-dashoffset="<%= offset.toFixed(1) %>"
+                        transform="rotate(-90 100 100)">
+                  <title><%= c.nome %>: <%= c.valor %> acessos (<%= (fracao * 100).toFixed(1) %>%)</title>
+                </circle>
+                <% acumuladoPizza += comprimento; }); } %>
+            </svg>
+            <ul class="grafico-pizza__legenda">
+              <% catGrafico.forEach((c, i) => { %>
+                <li><i class="grafico-pizza__cor" aria-hidden="true" style="background:<%= CORES_PIZZA[i % CORES_PIZZA.length] %>"></i><%= c.nome %>: <%= c.valor %> acessos</li>
+              <% }) %>
+              <% if (!catGrafico.length) { %><li>Sem acessos registrados no período.</li><% } %>
+            </ul>
+          </figure>
+          <%- include("../../partials/shared/relatorio-geral-tabela", { colunas: relatorio.categoriasAcessadas.colunas, linhas: relatorio.categoriasAcessadas.linhas }) %>
+        </article>
+
+        <article class="painel painel--tabela relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Clientes Cadastrados</h2>
+            <p class="painel__subtitulo">Clientes que se cadastraram na loja durante o período.</p>
+          </header>
+          <%- include("../../partials/shared/relatorio-geral-tabela", { colunas: relatorio.clientes.colunas, linhas: relatorio.clientes.linhas }) %>
+        </article>
+
+        <article class="painel painel--tabela relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Estoque</h2>
+            <p class="painel__subtitulo">Movimentações de estoque (entradas, saídas e ajustes) registradas no período.</p>
+          </header>
+          <%- include("../../partials/shared/relatorio-geral-tabela", { colunas: relatorio.estoque.colunas, linhas: relatorio.estoque.linhas }) %>
+        </article>
+
+        <article class="painel grafico-faturamento relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Faturamento</h2>
+            <p class="painel__subtitulo">Faturamento diário de pedidos com pagamento aprovado no período.</p>
+          </header>
+          <% const serieFat = relatorio.faturamento.serie; %>
+          <% if (serieFat.length) {
+               const fLargura = 900, fAltura = 220, fMargemBase = 28, fMargemTopo = 18;
+               const fN = serieFat.length; const fLarguraBarra = Math.min(28, (fLargura / fN) * 0.6); const fEspaco = fLargura / fN;
+               const fMaior = Math.max(1, ...serieFat.map(d => d.total));
+          %>
+            <figure>
+              <svg viewBox="0 0 <%= fLargura %> <%= fAltura %>" role="img" aria-label="Gráfico de faturamento diário do período">
+                <% serieFat.forEach((dia, i) => {
+                     const alturaUtil = fAltura - fMargemBase - fMargemTopo;
+                     const alturaBarra = fMaior > 0 ? (dia.total / fMaior) * alturaUtil : 0;
+                     const x = i * fEspaco + (fEspaco - fLarguraBarra) / 2;
+                     const y = fAltura - fMargemBase - alturaBarra;
+                     const rotulo = new Date(dia.dia).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                %>
+                  <rect class="barra" x="<%= x.toFixed(1) %>" y="<%= y.toFixed(1) %>" width="<%= fLarguraBarra.toFixed(1) %>" height="<%= Math.max(alturaBarra, 2).toFixed(1) %>" rx="3">
+                    <title><%= rotulo %>: <%= moeda(dia.total) %></title>
+                  </rect>
+                  <% if (fN <= 20 || i % Math.ceil(fN / 20) === 0) { %>
+                    <text class="eixo-label" x="<%= (x + fLarguraBarra / 2).toFixed(1) %>" y="<%= fAltura - 8 %>" text-anchor="middle"><%= rotulo %></text>
+                  <% } %>
+                <% }) %>
+              </svg>
+            </figure>
+          <% } %>
+          <section class="stats-grid" aria-label="Resumo do faturamento">
+            <% relatorio.faturamento.resumo.forEach(r => { %>
+              <article class="stat-card">
+                <p class="stat-card__valor stat-card__valor--texto"><%= r.valor %></p>
+                <p class="stat-card__legenda"><%= r.rotulo %></p>
+              </article>
+            <% }) %>
+          </section>
+        </article>
+
+        <section class="relatorio-geral-secao">
+          <h2 class="relatorio-geral-secao__titulo">Ticket Médio</h2>
+          <section class="stats-grid" aria-label="Ticket médio">
+            <article class="stat-card">
+              <p class="stat-card__valor stat-card__valor--texto"><%= moeda(relatorio.ticketMedio.valor) %></p>
+              <p class="stat-card__legenda">Ticket médio do período</p>
+              <% if (relatorio.ticketMedio.variacao !== null) { %>
+                <b class="stat-card__variacao <%= relatorio.ticketMedio.variacao >= 0 ? 'stat-card__variacao--alta' : 'stat-card__variacao--baixa' %>">
+                  <i class="fas fa-arrow-<%= relatorio.ticketMedio.variacao >= 0 ? 'up' : 'down' %>" aria-hidden="true"></i>
+                  <%= Math.abs(relatorio.ticketMedio.variacao).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) %>%
+                </b>
+              <% } %>
+            </article>
+          </section>
+        </section>
+
+        <article class="painel painel--tabela relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Pedidos Concluídos</h2>
+            <p class="painel__subtitulo">Pedidos entregues, dentre os criados no período.</p>
+          </header>
+          <%- include("../../partials/shared/relatorio-geral-tabela", { colunas: relatorio.pedidosConcluidos.colunas, linhas: relatorio.pedidosConcluidos.linhas }) %>
+        </article>
+
+        <article class="painel painel--tabela relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Pedidos Pendentes</h2>
+            <p class="painel__subtitulo">Pedidos ainda em andamento (preparando, enviado, em trânsito ou saiu para entrega), dentre os criados no período.</p>
+          </header>
+          <%- include("../../partials/shared/relatorio-geral-tabela", { colunas: relatorio.pedidosPendentes.colunas, linhas: relatorio.pedidosPendentes.linhas }) %>
+        </article>
+
+        <article class="painel painel--tabela relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Pedidos Cancelados</h2>
+            <p class="painel__subtitulo">Pedidos cancelados no período, pela data do cancelamento.</p>
+          </header>
+          <%- include("../../partials/shared/relatorio-geral-tabela", { colunas: relatorio.pedidosCancelados.colunas, linhas: relatorio.pedidosCancelados.linhas }) %>
+        </article>
+
+        <article class="painel relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Análise Geral</h2>
+          </header>
+          <ul class="analise-lista">
+            <% relatorio.analiseGeral.forEach(texto => { %><li><%= texto %></li><% }) %>
+          </ul>
+        </article>
+
+        <article class="painel relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Recomendações</h2>
+          </header>
+          <ul class="recomendacoes-lista">
+            <% relatorio.recomendacoes.forEach(texto => { %><li><%= texto %></li><% }) %>
+          </ul>
+        </article>
+
+        <article class="painel relatorio-geral-secao">
+          <header class="painel__cabecalho">
+            <h2 class="painel__titulo">Conclusão</h2>
+          </header>
+          <p class="relatorio-geral-conclusao"><%= relatorio.conclusao %></p>
+        </article>
+
+      <% } %>
+    </main>
+  </section>
+  <script src="/js/admin/date-picker-br.js" defer></script>
+</body>
+</html>

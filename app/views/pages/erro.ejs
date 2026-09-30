@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= titulo %> - Floria</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/erro-pagina.css">
+</head>
+<body>
+  <main>
+    <section class="pagina-erro" aria-labelledby="erro-titulo">
+      <p class="pagina-erro-codigo" aria-hidden="true"><%= status %></p>
+
+      <h1 id="erro-titulo"><%= titulo %></h1>
+      <p class="pagina-erro-texto"><%= mensagem %></p>
+
+      <section class="pagina-erro-acoes">
+        <a href="/" class="btn-ver-mais pagina-erro-btn-primario">Voltar para a página inicial</a>
+        <a href="/plantas" class="pagina-erro-link-secundario">Ir para o catálogo</a>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<%
+/* ADICIONADO: Política de Privacidade (GET /politica-de-privacidade).
+   Conteúdo escrito a partir do funcionamento REAL do sistema (models,
+   rotas de API, app.js, config/db.js, config/socialLinks.js) — não é um
+   texto genérico. Pontos que dependem de uma decisão da própria Floria
+   (encarregado/DPO, prazo formal de retenção) ficam sinalizados no texto
+   em vez de inventados.
+
+   Data de atualização: mude só os 3 números abaixo (ano, mês, dia — mês
+   começa em 1) quando o conteúdo desta página mudar de verdade; é o
+   único lugar que precisa ser editado. Usa ano/mês/dia soltos (em vez de
+   uma string "AAAA-MM-DD") de propósito — uma string ISO de só-data é
+   interpretada como UTC pelo JavaScript e podia exibir o dia anterior
+   dependendo do fuso horário do servidor. */
+const [ANO_ATUALIZACAO, MES_ATUALIZACAO, DIA_ATUALIZACAO] = [2026, 9, 12];
+const ultimaAtualizacao = new Date(ANO_ATUALIZACAO, MES_ATUALIZACAO - 1, DIA_ATUALIZACAO);
+const ultimaAtualizacaoFmt = ultimaAtualizacao.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+const ultimaAtualizacaoISO = `${ANO_ATUALIZACAO}-${String(MES_ATUALIZACAO).padStart(2, '0')}-${String(DIA_ATUALIZACAO).padStart(2, '0')}`;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Privacidade - Floria</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/institucional/politica-privacidade.css">
+</head>
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main id="politica-privacidade">
+
+    <header class="politica-cabecalho">
+      <p class="politica-eyebrow">Privacidade e proteção de dados</p>
+      <h1>Política de Privacidade</h1>
+      <p class="politica-intro">
+        Esta página explica, em linguagem simples, quais dados a Floria coleta de quem usa o site,
+        para que servem, como são guardados e protegidos, e como você pode exercer seus direitos
+        sobre eles, em conformidade com a Lei Geral de Proteção de Dados Pessoais (LGPD, Lei nº 13.709/2018).
+      </p>
+      <p class="politica-atualizacao">
+        Última atualização: <time datetime="<%= ultimaAtualizacaoISO %>"><%= ultimaAtualizacaoFmt %></time>
+      </p>
+    </header>
+
+    <nav class="politica-sumario" aria-label="Sumário desta política">
+      <h2>Nesta página</h2>
+      <ol>
+        <li><a href="#quais-dados">Quais dados coletamos</a></li>
+        <li><a href="#como-usamos">Como usamos os dados</a></li>
+        <li><a href="#por-que-necessarios">Por que pedimos esses dados</a></li>
+        <li><a href="#armazenamento">Como os dados são armazenados</a></li>
+        <li><a href="#compartilhamento">Com quem os dados podem ser compartilhados</a></li>
+        <li><a href="#seguranca">Segurança da informação</a></li>
+        <li><a href="#direitos">Seus direitos sobre os dados</a></li>
+        <li><a href="#como-exercer">Como exercer seus direitos</a></li>
+        <li><a href="#retencao">Por quanto tempo guardamos os dados</a></li>
+        <li><a href="#alteracoes">Alterações desta política</a></li>
+        <li><a href="#contato">Fale conosco sobre privacidade</a></li>
+      </ol>
+    </nav>
+
+    <article class="politica-corpo">
+
+      <section id="quais-dados" aria-labelledby="quais-dados-titulo">
+        <h2 id="quais-dados-titulo">1. Quais dados coletamos</h2>
+        <p>Coletamos apenas os dados necessários para o funcionamento da loja. Eles chegam até nós porque você mesmo os informa, ao criar uma conta, cadastrar um endereço ou fazer um pedido.</p>
+
+        <h3>Dados de cadastro</h3>
+        <p>Ao criar uma conta, pedimos: nome completo, e-mail, CPF, telefone e, opcionalmente, uma foto de perfil. O CPF é usado para identificar o cliente de forma única e evitar contas duplicadas.</p>
+
+        <h3>Dados de contato</h3>
+        <p>Usamos o e-mail e o telefone informados no cadastro para comunicações relacionadas à sua conta e aos seus pedidos (por exemplo, confirmações e envio de comprovante de compra).</p>
+
+        <h3>Dados de endereço</h3>
+        <p>Ao cadastrar um endereço de entrega, guardamos: identificação do endereço (ex.: "Casa", "Trabalho"), nome de quem recebe a entrega, telefone de contato, CEP, logradouro, número, complemento, bairro, cidade, estado e, se você informar, um ponto de referência. Você pode ter mais de um endereço salvo e marcar um deles como principal.</p>
+
+        <h3>Informações relacionadas aos pedidos</h3>
+        <p>Cada pedido guarda: os produtos comprados (nome, imagem, categoria, quantidade e variação escolhida), os valores (subtotal, frete, desconto, cupom aplicado e total), a forma de pagamento escolhida e o número de parcelas, o status do pedido e do pagamento, uma cópia do endereço de entrega usado naquela compra, e, quando aplicável, transportadora, código de rastreio e observações que você adicionar.</p>
+
+        <h3>Informações de pagamento</h3>
+        <p>Ao pagar com cartão, os dados do cartão (número, nome impresso, validade e código de segurança) são recebidos apenas para processar aquela compra. Veja a seção <a href="#por-que-necessarios">"Por que pedimos esses dados"</a> e, com mais detalhe, a explicação completa sobre pagamento logo abaixo.</p>
+
+        <h3>Dados utilizados para autenticação</h3>
+        <p>Para login, usamos o e-mail e a senha que você cria. A senha nunca é guardada como texto puro, apenas como um hash (uma versão criptografada e irreversível dela). Enquanto você está logado, um cookie de sessão identifica sua conta no navegador. Por segurança, também registramos tentativas de login malsucedidas (e-mail e endereço IP), de forma temporária, para bloquear tentativas repetidas de acesso indevido.</p>
+
+        <h3>Cookies e tecnologias semelhantes</h3>
+        <p>O site utiliza um único cookie, estritamente necessário para manter você conectado à sua conta (cookie de sessão). Ele não é usado para publicidade, rastreamento entre sites ou análise de comportamento, e não compartilhamos esse identificador com terceiros. O carrinho de compras e o cupom de desconto aplicado ficam salvos no armazenamento local do seu próprio navegador (localStorage), não em um cookie nem no nosso servidor, até você finalizar a compra. Hoje o site não utiliza cookies ou ferramentas de publicidade, análise de tráfego (analytics) ou rastreamento de terceiros. Você pode ver a lista completa de cookies utilizados, e alterar suas preferências a qualquer momento, na nossa <a href="/politica-de-cookies">Política de Cookies</a>.</p>
+
+        <h3>Outras informações que você pode optar por compartilhar</h3>
+        <p>Se você avaliar um produto, o seu nome, a nota e o comentário ficam visíveis publicamente na página daquele produto (junto de fotos ou vídeos, caso você anexe algum). Também guardamos a lista de produtos que você marca como favoritos, para exibi-la na sua conta.</p>
+      </section>
+
+      <section id="como-usamos" aria-labelledby="como-usamos-titulo">
+        <h2 id="como-usamos-titulo">2. Como os dados são utilizados</h2>
+        <ul>
+          <li>Criar e manter sua conta, e permitir o login de forma segura.</li>
+          <li>Processar pedidos: calcular valores, aplicar cupons e frete, processar o pagamento escolhido e acompanhar o status da compra.</li>
+          <li>Realizar a entrega, usando o endereço informado.</li>
+          <li>Mostrar seu histórico de pedidos, endereços salvos e favoritos dentro da sua conta.</li>
+          <li>Enviar o comprovante da compra por e-mail, quando você solicitar.</li>
+          <li>Prestar suporte quando você entra em contato com dúvidas sobre pedidos, pagamentos ou sua conta.</li>
+          <li>Proteger a loja e os usuários contra fraude e tentativas de acesso indevido.</li>
+          <li>Gerar estatísticas internas e agregadas (por exemplo, produtos ou categorias mais buscados), usadas apenas para melhorar o catálogo e a loja, sem identificar você individualmente nesses relatórios.</li>
+        </ul>
+      </section>
+
+      <section id="por-que-necessarios" aria-labelledby="por-que-necessarios-titulo">
+        <h2 id="por-que-necessarios-titulo">3. Por que pedimos esses dados</h2>
+        <p>Cada dado solicitado está ligado a uma necessidade real de funcionamento da loja:</p>
+        <ul>
+          <li><b>Nome, e-mail e senha</b>: necessários para criar e proteger sua conta.</li>
+          <li><b>CPF</b>: usado para identificar o cliente de forma única e evitar cadastros duplicados.</li>
+          <li><b>Telefone</b>: usado como canal alternativo de contato sobre sua conta e seus pedidos.</li>
+          <li><b>Endereço</b>: indispensável para calcular o frete e entregar o pedido no lugar certo.</li>
+          <li><b>Dados do pedido e do pagamento</b>: necessários para processar a compra, confirmar o pagamento e manter um histórico que você e o suporte possam consultar depois.</li>
+        </ul>
+        <p>Não pedimos nenhum dado que não seja usado para alguma dessas finalidades.</p>
+      </section>
+
+      <section id="armazenamento" aria-labelledby="armazenamento-titulo">
+        <h2 id="armazenamento-titulo">4. Como os dados são armazenados</h2>
+        <p>Os dados ficam em um banco de dados próprio da aplicação (MySQL), operado pela própria Floria. Sua senha nunca é armazenada em texto puro, apenas um hash criptográfico dela (bcrypt), que não pode ser revertido para descobrir a senha original. A sessão de login é controlada por um cookie que fica apenas no seu navegador, associado a um registro de sessão no nosso servidor.</p>
+        <p>Alguns dados são guardados como uma "cópia" (registro histórico) no momento em que uma ação acontece: por exemplo, o endereço de entrega e os itens de um pedido ficam gravados exatamente como estavam na hora da compra, mesmo que você depois edite ou exclua o endereço original, ou que um produto mude de nome ou preço. Isso preserva a exatidão do seu histórico de compras.</p>
+      </section>
+
+      <section id="compartilhamento" aria-labelledby="compartilhamento-titulo">
+        <h2 id="compartilhamento-titulo">5. Com quem os dados podem ser compartilhados</h2>
+        <p>A Floria não vende, aluga nem compartilha seus dados pessoais para fins de marketing de terceiros. O compartilhamento que existe hoje está limitado ao necessário para o funcionamento do site:</p>
+        <ul>
+          <li><b>Busca automática de endereço por CEP</b>: quando você digita um CEP no cadastro de endereço, o seu próprio navegador consulta diretamente o serviço público ViaCEP para preencher rua, bairro, cidade e estado. Apenas o CEP é enviado, sem nenhum outro dado pessoal, e essa consulta não passa pelo nosso servidor.</li>
+          <li><b>Envio de e-mail</b>: quando o envio de e-mail estiver configurado pela Floria, ele é usado exclusivamente para enviar o comprovante de compra em PDF ao endereço de e-mail que você pedir, a seu próprio pedido.</li>
+          <li><b>Fontes e ícones do site</b>: a tipografia (Google Fonts) e os ícones (Font Awesome) usados no visual do site são carregados de servidores externos diretamente pelo seu navegador. Essa conexão pode registrar informações técnicas básicas (como o endereço IP) segundo as políticas desses provedores, mas nenhum dado da sua conta ou dos seus pedidos é enviado a eles.</li>
+          <li><b>Obrigação legal</b>: podemos divulgar dados quando exigido por lei, ordem judicial ou autoridade competente.</li>
+        </ul>
+        <p>Hoje o site não utiliza ferramentas de publicidade, análise de tráfego (analytics) de terceiros, nem gateways externos de pagamento. Veja detalhes na seção sobre dados de pagamento, abaixo.</p>
+
+        <h3>Sobre os dados de pagamento</h3>
+        <p>O processamento de pagamento é feito por um sistema próprio e interno da Floria (um "modo de preparação", usado para fins de demonstração), sem integração com uma processadora ou gateway de pagamento externo real. O número completo do cartão e o código de segurança (CVV) <b>não são armazenados</b> em nosso banco de dados: eles são usados apenas no momento do envio para validar e simular a aprovação do pagamento. Do cartão, guardamos somente os últimos dígitos e a bandeira, para exibir de forma resumida no seu histórico de pedidos (por exemplo, "cartão terminado em 1234"). Nos pagamentos via Pix ou boleto, nenhum dado bancário adicional é coletado além das informações do próprio pedido.</p>
+
+        <h3>Sobre os dados de endereço</h3>
+        <p>Os dados de endereço cadastrados são utilizados exclusivamente para: processar o pedido, calcular o frete, realizar a entrega, identificar corretamente o endereço escolhido por você no checkout e cumprir as obrigações relacionadas à sua compra. Não usamos seu endereço para nenhuma outra finalidade.</p>
+
+        <h3>Sobre os dados de pedidos</h3>
+        <p>As informações de cada pedido (produtos comprados, valores, status, endereço de entrega vinculado e observações) são mantidas para que você possa acompanhar sua compra, solicitar suporte sobre ela e consultar seu histórico. Essas informações também são usadas internamente para dar andamento à entrega e ao atendimento.</p>
+      </section>
+
+      <section id="seguranca" aria-labelledby="seguranca-titulo">
+        <h2 id="seguranca-titulo">6. Segurança da informação</h2>
+        <p>Adotamos medidas técnicas e organizacionais apropriadas para proteger seus dados, entre elas:</p>
+        <ul>
+          <li>Senhas armazenadas apenas como hash criptográfico (bcrypt), nunca em texto puro.</li>
+          <li>Proteção contra CSRF (falsificação de solicitação entre sites) em toda ação que altera dados.</li>
+          <li>Cookie de sessão configurado como HttpOnly (inacessível a scripts) e SameSite=Strict.</li>
+          <li>Cabeçalhos de segurança HTTP aplicados a todas as respostas do servidor.</li>
+          <li>Verificação de propriedade em cada operação: você só consegue ver, editar ou excluir os endereços e pedidos da sua própria conta.</li>
+          <li>Bloqueio temporário após tentativas repetidas de login malsucedidas.</li>
+        </ul>
+        <p>Nenhum sistema é totalmente livre de falhas, e não prometemos segurança absoluta, mas trabalhamos de forma responsável para reduzir riscos e proteger suas informações.</p>
+      </section>
+
+      <section id="direitos" aria-labelledby="direitos-titulo">
+        <h2 id="direitos-titulo">7. Seus direitos sobre os dados</h2>
+        <p>De acordo com a LGPD, você tem direito a:</p>
+        <ul>
+          <li>Confirmar se tratamos algum dado seu, e ter acesso a ele.</li>
+          <li>Corrigir dados incompletos, desatualizados ou incorretos.</li>
+          <li>Solicitar a anonimização, o bloqueio ou a eliminação de dados desnecessários ou tratados fora do que esta política descreve.</li>
+          <li>Solicitar a portabilidade dos seus dados a outro fornecedor, quando aplicável.</li>
+          <li>Solicitar a eliminação dos dados tratados com o seu consentimento.</li>
+          <li>Ser informado sobre com quem seus dados são compartilhados.</li>
+          <li>Revogar o consentimento a qualquer momento, quando o tratamento depender dele.</li>
+        </ul>
+      </section>
+
+      <section id="como-exercer" aria-labelledby="como-exercer-titulo">
+        <h2 id="como-exercer-titulo">8. Como exercer seus direitos</h2>
+        <p>Parte dos seus dados você já consegue consultar e atualizar diretamente na sua conta: sua foto de perfil e sua senha, na área "Meus dados", além dos seus endereços de entrega, que podem ser adicionados, editados ou removidos a qualquer momento em "Endereços".</p>
+        <p>Na seção "Privacidade e meus dados", dentro de "Meus dados", você encontra dois recursos de autoatendimento:</p>
+        <ul>
+          <li><b>Baixar meus dados</b>: gera na hora um arquivo com os dados cadastrais, endereços, favoritos, pedidos, avaliações e sessões ativas vinculados à sua conta (direito de acesso e portabilidade, art. 9º/18 da LGPD).</li>
+          <li><b>Excluir minha conta</b>: remove permanentemente seus dados de identificação (nome, e-mail, CPF, telefone, foto), endereços e favoritos, e desativa o login, mediante confirmação da sua senha atual. Pedidos já realizados são mantidos apenas de forma anônima (sem nenhum dado que identifique você), pelo tempo exigido por obrigação legal; veja a seção seguinte.</li>
+        </ul>
+        <p>Para as demais solicitações (como corrigir seu nome, e-mail, CPF ou telefone), entre em contato pelo canal abaixo. Precisa de ajuda relacionada aos seus dados? <a href="/suporte">Entre em contato com nosso suporte</a>, que vai encaminhar seu pedido corretamente.</p>
+      </section>
+
+      <section id="retencao" aria-labelledby="retencao-titulo">
+        <h2 id="retencao-titulo">9. Por quanto tempo guardamos os dados</h2>
+        <p>Mantemos os dados da sua conta enquanto ela estiver ativa. O histórico de pedidos é preservado mesmo que você edite ou exclua um endereço usado em uma compra anterior, pois cada pedido guarda sua própria cópia dessas informações no momento da compra.</p>
+        <p>Alguns registros técnicos têm prazo de guarda automático e limitado: sessões de acesso encerradas, chaves de controle de finalização de pedido e o link de redefinição de senha são apagados alguns dias após deixarem de ser úteis. Registros de auditoria administrativa (ações realizadas por administradores da loja) ficam guardados por até 18 meses, para permitir investigar problemas de segurança e prestar contas sobre o uso do painel.</p>
+        <p><b>Ponto em aberto:</b> o prazo exato de retenção de dados cadastrais e de pedidos após o encerramento de uma conta (quando não há exclusão solicitada pelo titular) ainda depende de uma definição formal da Floria, que deve considerar as obrigações legais e fiscais aplicáveis ao negócio (por exemplo, prazos de guarda de documentos fiscais) antes de publicar um prazo definitivo aqui. Recomendamos validação com um profissional de contabilidade/jurídico.</p>
+      </section>
+
+      <section id="alteracoes" aria-labelledby="alteracoes-titulo">
+        <h2 id="alteracoes-titulo">10. Alterações desta política</h2>
+        <p>Esta política pode ser atualizada sempre que o funcionamento do site mudar de forma relevante para a privacidade dos usuários. Toda vez que isso acontecer, a data em "Última atualização", no topo desta página, será revisada. Recomendamos consultar esta página de tempos em tempos, especialmente antes de fazer uma nova compra.</p>
+      </section>
+
+      <section id="contato" aria-labelledby="contato-titulo">
+        <h2 id="contato-titulo">11. Fale conosco sobre privacidade</h2>
+        <p>Para dúvidas sobre esta política ou sobre como seus dados são tratados, fale com a gente por e-mail: <a href="<%= socialLinks.email.href %>"><%= socialLinks.email.valor %></a>, ou visite nossa <a href="/suporte">Central de Suporte</a>.</p>
+        <p><b>Ponto em aberto:</b> a Floria ainda precisa designar formalmente um encarregado de proteção de dados (DPO), conforme previsto na LGPD, e publicar esse contato específico nesta página.</p>
+      </section>
+
+    </article>
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

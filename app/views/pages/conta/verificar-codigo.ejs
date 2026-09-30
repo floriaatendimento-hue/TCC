@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verifique seu e-mail - Floria</title>
+  <link rel="stylesheet" href="/css/conta/login2.css" />
+  <link rel="stylesheet" href="/css/conta/redefinir-senha.css" />
+  <link rel="stylesheet" href="/css/conta/verificar-codigo.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main class="page-wrapper">
+    <section class="cartao-redefinir">
+      <h1 class="title title-second">Verifique seu e-mail</h1>
+      <p class="description description-second">
+        Enviamos um código de verificação de <%= digitos %> dígitos para
+        <strong><%= emailMascarado %></strong>. Ele vale por <%= expiraMinutos %> minutos.
+      </p>
+
+      <section class="form" id="otp-form-wrapper"
+        data-digitos="<%= digitos %>" data-segundos="<%= segundosRestantes %>">
+        <input type="hidden" id="csrf-otp" value="<%= csrfToken %>" />
+
+        <fieldset class="otp-grupo">
+          <legend class="otp-legenda" id="otp-legenda">Digite o código abaixo:</legend>
+          <section class="otp-campos" id="otp-campos">
+            <% for (let i = 0; i < digitos; i++) { %>
+              <input type="text" class="otp-digito" inputmode="numeric" pattern="[0-9]*"
+                autocomplete="<%= i === 0 ? 'one-time-code' : 'off' %>" autocapitalize="off" spellcheck="false"
+                aria-label="Dígito <%= i + 1 %> de <%= digitos %>" aria-describedby="otp-msg-geral"
+                data-indice="<%= i %>" placeholder="0" />
+            <% } %>
+          </section>
+        </fieldset>
+
+        <output id="otp-msg-geral" role="alert"></output>
+
+        <button type="button" id="btn-verificar-otp" class="btn btn-second">Verificar código</button>
+
+        <section class="otp-reenvio">
+          <p class="otp-reenvio-texto">Não recebeu o código?</p>
+          <p class="otp-timer" id="otp-timer"></p>
+          <button type="button" id="btn-reenviar-otp" class="otp-reenviar" disabled>Reenviar código</button>
+        </section>
+
+        <a href="/login" class="otp-voltar">Voltar ao login</a>
+      </section>
+    </section>
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+
+  <script src="/js/conta/verificar-codigo.js"></script>
+</body>
+</html>

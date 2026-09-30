@@ -1,0 +1,239 @@
+<%
+/* ADICIONADO (reimaginação do admin de Banners): página exclusiva de
+   Criar/Editar Banner, substituindo o antigo <dialog id="dialog-banner">
+   apertado de admin-banners.ejs (mesmo princípio já usado em
+   /admin/produtos/novo e /admin/promocoes/nova). Um único template serve
+   os dois modos — `banner` vem `null` na criação (rota GET
+   /admin/banners/novo) ou populado na edição (rota GET
+   /admin/banners/:id/editar, via Banner.findById). A criação/edição em
+   si continua batendo nos mesmos POST/PUT /api/admin/banners de sempre
+   (ver admin-banner-form.js) — nenhuma regra de negócio, validação ou
+   coluna de banco mudou por causa desta página.
+
+   Decisão (confirmada com o usuário): não existe "nome interno"
+   separado do "título" — o mesmo campo `titulo` do banco já serve tanto
+   para localizar o banner na listagem quanto como texto exibido sobre a
+   imagem na Home; o formulário deixa isso explícito numa dica. Também
+   não existem múltiplos locais de exibição — só o carrossel da Home —
+   por isso "Local" aparece como informação fixa, não como escolha. */
+const modoEdicao = !!banner;
+const tituloPagina = modoEdicao ? 'Editar Banner' : 'Criar novo banner';
+const dataFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(d)) : '-';
+const urlImg = (imagem) => (imagem && imagem.startsWith('/')) ? imagem : '/imagens/' + imagem;
+const LOCAL_BANNER = 'Home - Carrossel principal';
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - <%= tituloPagina %></title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/admin-banners.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'banners' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina }) %>
+
+    <main class="admin-main">
+      <nav class="admin-breadcrumb admin-breadcrumb--pagina" aria-label="Trilha de navegação">
+        <a href="/admin/banners">Banners</a>
+        <b aria-hidden="true">/</b>
+        <b class="atual"><%= modoEdicao ? ('Editar: ' + banner.titulo) : 'Novo banner' %></b>
+      </nav>
+
+      <header class="admin-page-header">
+        <hgroup>
+          <h1><%= tituloPagina %></h1>
+          <p class="admin-page-header__data">Configure a imagem, conteúdo, destino e período de exibição do banner.</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--secundario" href="/admin/banners"><i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar para banners</a>
+        </nav>
+      </header>
+
+      <form id="form-banner" class="produto-form-layout" data-modo="<%= modoEdicao ? 'editar' : 'novo' %>" data-id="<%= modoEdicao ? banner.id : '' %>">
+        <article class="produto-form-principal">
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-id-card" aria-hidden="true"></i>Informações básicas</legend>
+            <label class="campo-admin">
+              <b>Título *</b>
+              <input type="text" id="f-titulo" maxlength="120" placeholder="ex: Promoção de Primavera" value="<%= modoEdicao ? banner.titulo : '' %>" required>
+              <small class="campo-admin__ajuda">Usado para localizar o banner nesta lista e como texto exibido sobre a imagem na Home.</small>
+            </label>
+            <label class="campo-admin">
+              <b>Subtítulo (opcional)</b>
+              <input type="text" id="f-subtitulo" maxlength="200" placeholder="ex: Encontre tudo para deixar seu jardim ainda mais bonito." value="<%= modoEdicao ? (banner.subtitulo || '') : '' %>">
+            </label>
+            <section class="form-admin__linha">
+              <label class="campo-admin">
+                <b>Texto do botão (opcional)</b>
+                <input type="text" id="f-texto-botao" maxlength="60" placeholder="ex: Comprar agora" value="<%= modoEdicao ? (banner.texto_botao || '') : '' %>">
+              </label>
+              <label class="campo-admin">
+                <b>Link de destino</b>
+                <input type="text" id="f-link" maxlength="255" placeholder="ex: /categoria/plantas" value="<%= modoEdicao ? (banner.link || '') : '' %>">
+              </label>
+            </section>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-image" aria-hidden="true"></i>Imagem</legend>
+            <p class="form-secao__ajuda">Formatos aceitos: JPG, PNG ou WEBP · até 5 MB · dimensão recomendada 1920×600px (a mesma proporção do carrossel da Home). A imagem é exibida por inteiro, sem cortes.</p>
+            <label class="campo-admin banner-upload" id="banner-upload">
+              <b class="sr-only">Selecionar imagem do banner</b>
+              <input type="file" id="f-imagem" accept="image/jpeg,image/jpg,image/png,image/webp" hidden <%= modoEdicao ? '' : 'required' %>>
+              <figure class="banner-upload__preview" id="f-imagem-preview-wrap" <%= (modoEdicao && banner.imagem) ? '' : 'hidden' %>>
+                <img id="f-imagem-preview" alt="Prévia da imagem do banner" src="<%= modoEdicao && banner.imagem ? urlImg(banner.imagem) : '' %>">
+                <figcaption>
+                  <button type="button" class="btn-admin btn-admin--secundario btn-admin--pequeno" id="f-imagem-substituir"><i class="fas fa-sync-alt" aria-hidden="true"></i>Substituir</button>
+                  <button type="button" class="btn-admin btn-admin--secundario btn-admin--pequeno" id="f-imagem-remover"><i class="fas fa-times" aria-hidden="true"></i>Remover</button>
+                </figcaption>
+              </figure>
+              <b class="banner-upload__zona" id="f-imagem-zona" <%= (modoEdicao && banner.imagem) ? 'hidden' : '' %>>
+                <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
+                <strong>Arraste a imagem aqui ou clique para selecionar</strong>
+                <small>JPG, PNG ou WEBP · até 5 MB</small>
+              </b>
+            </label>
+            <p class="campo-admin__ajuda">Todo banner precisa de uma imagem: para remover definitivamente, exclua o banner na lista.</p>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-calendar-alt" aria-hidden="true"></i>Período de exibição</legend>
+            <p class="form-secao__ajuda">Defina quando o banner deve aparecer na loja. O status (Ativo, Agendado, Pausado ou Expirado) é calculado automaticamente a partir dessas datas.</p>
+
+            <label class="campo-admin campo-admin--linha">
+              <input type="checkbox" id="f-exibir-imediatamente" <%= (!modoEdicao || !banner.data_inicio) ? 'checked' : '' %>>
+              <b>Exibir imediatamente</b>
+            </label>
+            <section class="form-admin__linha" id="f-campo-inicio">
+              <label class="campo-admin">
+                <b>Data de início</b>
+                <input type="date" id="f-data-inicio" data-br-enhance>
+              </label>
+              <label class="campo-admin">
+                <b>Horário de início</b>
+                <input type="time" id="f-hora-inicio">
+              </label>
+            </section>
+
+            <label class="campo-admin campo-admin--linha">
+              <input type="checkbox" id="f-sem-data-fim" <%= (!modoEdicao || !banner.data_fim) ? 'checked' : '' %>>
+              <b>Sem data de término</b>
+            </label>
+            <section class="form-admin__linha" id="f-campo-fim">
+              <label class="campo-admin">
+                <b>Data de término</b>
+                <input type="date" id="f-data-fim" data-br-enhance>
+              </label>
+              <label class="campo-admin">
+                <b>Horário de término</b>
+                <input type="time" id="f-hora-fim">
+              </label>
+            </section>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-sort-numeric-down" aria-hidden="true"></i>Ordem e status</legend>
+            <label class="campo-admin">
+              <b>Ordem de exibição</b>
+              <input type="number" id="f-ordem" min="0" step="1" placeholder="Deixe em branco para adicionar por último" value="<%= modoEdicao ? banner.ordem : '' %>">
+              <small class="campo-admin__ajuda">Você também pode reorganizar arrastando os cards na lista de banners.</small>
+            </label>
+            <ul class="lista-status-produto">
+              <li>
+                <label class="lista-status-produto__rotulo" for="f-ativo">
+                  <strong>Banner ativo</strong>
+                  <small>Desmarque para deixar pausado sem perder a configuração.</small>
+                </label>
+                <label class="toggle">
+                  <input type="checkbox" id="f-ativo" <%= (!modoEdicao || banner.ativo) ? 'checked' : '' %>>
+                  <i class="toggle__trilho" aria-hidden="true"></i>
+                </label>
+              </li>
+            </ul>
+          </fieldset>
+
+          <output class="form-admin__mensagem" id="form-banner-msg" role="alert"></output>
+        </article>
+
+        <aside class="produto-form-painel" aria-label="Pré-visualização do banner em tempo real">
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-eye" aria-hidden="true"></i>Pré-visualização</legend>
+            <p class="form-secao__ajuda">Atualizada automaticamente conforme você preenche o formulário.</p>
+            <nav class="banner-preview-dispositivos" aria-label="Alternar tamanho da prévia">
+              <button type="button" class="is-ativo" data-dispositivo="desktop" aria-label="Prévia em desktop" title="Desktop"><i class="fas fa-desktop" aria-hidden="true"></i></button>
+              <button type="button" data-dispositivo="tablet" aria-label="Prévia em tablet" title="Tablet"><i class="fas fa-tablet-alt" aria-hidden="true"></i></button>
+              <button type="button" data-dispositivo="mobile" aria-label="Prévia em celular" title="Celular"><i class="fas fa-mobile-alt" aria-hidden="true"></i></button>
+            </nav>
+            <figure class="banner-preview-frame is-desktop" id="banner-preview-frame">
+              <img class="banner-preview-frame__img" id="pv-imagem" alt="" hidden>
+              <figcaption class="banner-preview-frame__vazio" id="pv-vazio"><i class="fas fa-image" aria-hidden="true"></i><b>A prévia aparece aqui após enviar uma imagem</b></figcaption>
+              <i class="banner-preview-frame__veu" id="pv-veu" hidden aria-hidden="true"></i>
+              <hgroup class="banner-preview-frame__legenda" id="pv-legenda" hidden>
+                <h2 id="pv-titulo"></h2>
+                <p id="pv-subtitulo"></p>
+              </hgroup>
+              <b class="banner-preview-frame__botao" id="pv-botao" hidden></b>
+            </figure>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-info-circle" aria-hidden="true"></i>Status</legend>
+            <p class="banner-status-preview"><b class="badge badge--verde" id="pv-status-badge">Ativo</b></p>
+            <p class="form-secao__ajuda" id="pv-status-explicacao">Fica visível na loja assim que publicado.</p>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-clipboard-list" aria-hidden="true"></i>Resumo</legend>
+            <ul class="resumo-movimentacao">
+              <li><small>Local</small><strong><%= LOCAL_BANNER %></strong></li>
+              <li><small>Ordem</small><strong id="pv-ordem"><%= modoEdicao ? ('#' + banner.ordem) : 'Último' %></strong></li>
+            </ul>
+          </fieldset>
+
+          <% if (modoEdicao) { %>
+            <fieldset class="form-secao">
+              <legend><i class="fas fa-history" aria-hidden="true"></i>Publicação</legend>
+              <ul class="resumo-movimentacao">
+                <li><small>Criado em</small><strong><%= dataFmt(banner.criado_em) %></strong></li>
+                <li><small>Última atualização</small><strong><%= dataFmt(banner.atualizado_em) %></strong></li>
+              </ul>
+            </fieldset>
+          <% } %>
+        </aside>
+
+        <footer class="produto-form-acoes">
+          <a class="btn-admin btn-admin--secundario" href="/admin/banners"><i class="fas fa-times" aria-hidden="true"></i>Cancelar</a>
+          <button type="submit" class="btn-admin btn-admin--secundario" id="btn-rascunho"><i class="fas fa-save" aria-hidden="true"></i>Salvar como rascunho</button>
+          <button type="submit" class="btn-admin btn-admin--primario" id="btn-publicar"><i class="fas fa-check" aria-hidden="true"></i>Publicar Banner</button>
+        </footer>
+      </form>
+    </main>
+  </section>
+
+  <% const dadosIniciais = JSON.stringify(modoEdicao ? {
+       id: banner.id,
+       titulo: banner.titulo,
+       subtitulo: banner.subtitulo || '',
+       texto_botao: banner.texto_botao || '',
+       link: banner.link || '',
+       imagem: urlImg(banner.imagem),
+       ordem: banner.ordem,
+       ativo: !!banner.ativo,
+       data_inicio: banner.data_inicio ? new Date(banner.data_inicio).toISOString() : null,
+       data_fim: banner.data_fim ? new Date(banner.data_fim).toISOString() : null,
+     } : null);
+     const escapeAbreTag = String.fromCharCode(92) + 'u003c';
+     const dadosIniciaisSeguro = dadosIniciais.split('<').join(escapeAbreTag);
+  %>
+  <script type="application/json" id="banner-dados-json"><%- dadosIniciaisSeguro %></script>
+  <script src="/js/admin/date-picker-br.js" defer></script>
+  <script src="/js/admin/admin-toast.js" defer></script>
+  <script src="/js/admin/admin-banner-form.js" defer></script>
+</body>
+</html>

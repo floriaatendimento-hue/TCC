@@ -1,0 +1,54 @@
+<%
+/* Partial-mestre da página de produto — usado por TODAS as páginas de
+   produto (estáticas e ProdutoDinamico.ejs) para garantir estrutura e
+   comportamento idênticos. Local esperado: pv (view-model completo).
+
+   Contrato de pv:
+   {
+     slug, nome, sku, marca,
+     categoriaNome, categoriaSlug, subcategoriaNome,
+     imagens: [{src,alt}, {src,alt}, {src,alt}],   // sempre 3
+     precoAtual, precoAntigo, parcelasTexto,
+     estoque, estoqueMinimo,
+     avaliacaoEstrelas, avaliacaoTexto,
+     variacoes: [{ tipo, rotulo, opcoes:[{id,rotulo,corHex,preco,imagem,disponivel,selecionada}] }],
+     tags: [{ icone, texto }],
+     descricao, beneficios, comoUtilizar, recomendacoes,
+     ficha: [{ rotulo, valor }],
+     cuidados: [{ icone, titulo, texto }]
+   }
+*/
+var descontoPct = null;
+if (pv.precoAntigo && pv.precoAntigo > pv.precoAtual) {
+  descontoPct = Math.round((pv.precoAntigo - pv.precoAtual) / pv.precoAntigo * 100);
+}
+%>
+<nav class="breadcrumb" aria-label="Você está em">
+  <a href="/">Início</a>
+  <% if (pv.categoriaSlug) { %>
+    <b class="sep">/</b>
+    <a href="/<%= pv.categoriaSlug %>"><%= pv.categoriaNome %></a>
+  <% } %>
+  <b class="sep">/</b>
+  <b class="atual"><%= pv.nome %></b>
+</nav>
+
+<main class="container-detalhes">
+  <%- include('./_galeria', { imagens: pv.imagens, nome: pv.nome, descontoPct: descontoPct }) %>
+  <%- include('./_info', { pv: pv, descontoPct: descontoPct }) %>
+
+  <%- include('./_descricao', {
+    descricao: pv.descricao, beneficios: pv.beneficios,
+    comoUtilizar: pv.comoUtilizar, recomendacoes: pv.recomendacoes, ficha: pv.ficha
+  }) %>
+
+  <%- include('./_cuidados', { cuidados: pv.cuidados }) %>
+
+  <%- include('../shared/comentarios') %>
+
+  <%- include('../shared/relacionados', { slugAtual: pv.slug, categoria: pv.categoriaSlug || '' }) %>
+</main>
+
+<script src="/js/produtos/galeria-produto.js" defer></script>
+<script src="/js/produtos/frete.js" defer></script>
+<script src="/js/shared/carousel.js"></script>

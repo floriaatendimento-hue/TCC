@@ -1,0 +1,23 @@
+<dialog id="modal-contato" class="modal-contato" aria-labelledby="modal-contato-titulo">
+  <header class="modal-contato-cabecalho">
+    <i class="modal-contato-icone" id="modal-contato-icone" aria-hidden="true"></i>
+    <h3 id="modal-contato-titulo">Contato</h3>
+    <button type="button" id="fechar-modal-contato" class="modal-contato-fechar" aria-label="Fechar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </header>
+
+  <section class="modal-contato-corpo">
+    <p class="modal-contato-rotulo" id="modal-contato-rotulo">Telefone</p>
+    <output class="modal-contato-valor" id="modal-contato-valor"></output>
+
+    <button type="button" class="modal-contato-copiar" id="modal-contato-copiar">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+      <b id="modal-contato-copiar-texto">Copiar</b>
+    </button>
+  </section>
+</dialog>

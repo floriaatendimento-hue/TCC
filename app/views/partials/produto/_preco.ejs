@@ -1,0 +1,26 @@
+<%
+/* Partial: card premium de preço.
+   Locais esperados: precoAtual (number), precoAntigo (number|null),
+   parcelasTexto (string|null), estoque (number|null), estoqueMinimo (number|null),
+   descontoPct (number|null) — calculado uma vez em _pagina.ejs */
+function formatarReal(v) { return 'R$ ' + Number(v).toFixed(2).replace('.', ','); }
+var precoAtualFmt  = formatarReal(precoAtual);
+var precoAntigoFmt = (precoAntigo != null && precoAntigo > precoAtual) ? formatarReal(precoAntigo) : null;
+var esgotado = estoque === 0;
+%>
+<section class="preco-bloco" aria-label="Preço e disponibilidade">
+  <% if (precoAntigoFmt) { %><s class="preco-antigo"><%= precoAntigoFmt %></s><% } %>
+  <section class="preco-principal">
+    <strong class="preco-novo"><%= precoAtualFmt %></strong>
+    <% if (descontoPct) { %><b class="economia">-<%= descontoPct %>%</b><% } %>
+  </section>
+  <% if (parcelasTexto) { %><small class="preco-parcelado"><%= parcelasTexto %></small><% } %>
+  <strong class="preco-disponibilidade<%= esgotado ? ' preco-disponibilidade--esgotado' : '' %>">
+    <%= esgotado ? 'Produto esgotado' : 'Em estoque' %>
+  </strong>
+  <% if (!esgotado && estoque != null) { %>
+    <small class="preco-estoque">
+      <%= (estoqueMinimo && estoque <= estoqueMinimo) ? ('Últimas unidades: restam ' + estoque + '.') : (estoque + ' unidades disponíveis') %>
+    </small>
+  <% } %>
+</section>

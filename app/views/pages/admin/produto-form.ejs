@@ -1,0 +1,326 @@
+<%
+/* ADICIONADO: página exclusiva de Criar/Editar Produto, substituindo o
+   antigo <dialog id="dialog-produto"> em admin-produtos.ejs (mesmo
+   princípio já usado em /admin/estoque/movimentacao/nova). Um único
+   template serve os dois modos — `produto` vem `null` na criação (rota
+   GET /admin/produtos/novo) ou populado na edição (rota GET
+   /admin/produtos/:id/editar, via Produto.findByIdAdmin). `categorias`
+   vem de Categoria.findAll(); subcategorias da categoria escolhida
+   continuam sendo buscadas no cliente (mesmo fetch que o modal já
+   fazia). `historico` (só na edição) vem de LogAdmin.historicoPorProduto
+   — quantidade de alterações + quem/quando foi a última.
+
+   A criação/edição em si continua batendo nos mesmos POST/PUT
+   /api/produtos de sempre (ver admin-produto-form.js) — nenhuma regra
+   de negócio, validação ou coluna de banco mudou aqui. */
+const modoEdicao = !!produto;
+const tituloPagina = modoEdicao ? 'Editar Produto' : 'Novo Produto';
+const dataFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(d)) : '-';
+const urlProduto = modoEdicao ? '/produto/' + (produto.slug_pagina || produto.slug) : '';
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Floria Admin - <%= tituloPagina %></title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'produtos' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina }) %>
+
+    <main class="admin-main">
+      <nav class="admin-breadcrumb admin-breadcrumb--pagina" aria-label="Trilha de navegação">
+        <a href="/admin/produtos">Produtos</a>
+        <b aria-hidden="true">/</b>
+        <b class="atual"><%= modoEdicao ? ('Editar: ' + produto.nome) : 'Novo produto' %></b>
+      </nav>
+
+      <header class="admin-page-header">
+        <hgroup>
+          <h1><%= tituloPagina %></h1>
+          <p class="admin-page-header__data">
+            <%= modoEdicao
+              ? 'Atualize as informações deste produto. As alterações refletem imediatamente no catálogo e na loja.'
+              : 'Preencha os dados abaixo para publicar um novo produto no catálogo.' %>
+          </p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--secundario" href="/admin/produtos"><i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar</a>
+        </nav>
+      </header>
+
+      <form id="form-produto" class="produto-form-layout" data-modo="<%= modoEdicao ? 'editar' : 'novo' %>" data-id="<%= modoEdicao ? produto.id : '' %>">
+        <article class="produto-form-principal">
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-id-card" aria-hidden="true"></i>Informações Gerais</legend>
+            <p class="form-secao__ajuda">Nome e códigos usados para localizar o produto no catálogo e no estoque.</p>
+            <label class="campo-admin">
+              <b>Nome *</b>
+              <input type="text" id="f-nome" maxlength="120" value="<%= modoEdicao ? produto.nome : '' %>" required>
+            </label>
+            <label class="campo-admin">
+              <b>Slug (URL)</b>
+              <input type="text" id="f-slug" maxlength="120" placeholder="ex: pa-jardinagem-manual" value="<%= modoEdicao ? (produto.slug || '') : '' %>">
+              <small class="campo-admin__ajuda">Opcional: gerado automaticamente a partir do nome quando deixado em branco.</small>
+            </label>
+            <section class="form-admin__linha">
+              <label class="campo-admin">
+                <b>SKU *</b>
+                <input type="text" id="f-sku" maxlength="40" placeholder="ex: FLO-00123" value="<%= modoEdicao ? (produto.sku || '') : '' %>" required>
+              </label>
+              <label class="campo-admin">
+                <b>Marca</b>
+                <input type="text" id="f-marca" maxlength="80" placeholder="quando existir" value="<%= modoEdicao ? (produto.marca || '') : '' %>">
+              </label>
+            </section>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-layer-group" aria-hidden="true"></i>Categoria e Subcategoria</legend>
+            <p class="form-secao__ajuda">Define em qual menu e filtro da loja o produto aparece.</p>
+            <section class="form-admin__linha">
+              <label class="campo-admin">
+                <b>Categoria *</b>
+                <select id="f-categoria" required>
+                  <option value="">Selecione...</option>
+                  <% categorias.forEach(c => { %>
+                    <option value="<%= c.id %>" data-slug="<%= c.slug %>" <%= (modoEdicao && Number(produto.categoria_id) === c.id) ? 'selected' : '' %>><%= c.nome %></option>
+                  <% }) %>
+                </select>
+              </label>
+              <label class="campo-admin">
+                <b>Subcategoria *</b>
+                <select id="f-subcategoria" required><option value="">Selecione...</option></select>
+              </label>
+            </section>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-tag" aria-hidden="true"></i>Preços</legend>
+            <section class="form-admin__linha">
+              <label class="campo-admin">
+                <b>Preço regular (R$) *</b>
+                <input type="number" id="f-preco" min="0.01" step="0.01" value="<%= modoEdicao && produto.preco != null ? produto.preco : '' %>" required>
+              </label>
+              <label class="campo-admin">
+                <b>Preço promocional (R$)</b>
+                <input type="number" id="f-preco-promo" min="0.01" step="0.01" value="<%= modoEdicao && produto.preco_promo != null ? produto.preco_promo : '' %>">
+                <small class="campo-admin__ajuda">Deixe em branco quando não houver promoção.</small>
+              </label>
+            </section>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-boxes" aria-hidden="true"></i>Estoque</legend>
+            <section class="form-admin__linha">
+              <label class="campo-admin">
+                <b>Estoque inicial *</b>
+                <input type="number" id="f-estoque" min="0" step="1" value="<%= modoEdicao && produto.estoque != null ? produto.estoque : 50 %>" required>
+              </label>
+              <label class="campo-admin">
+                <b>Estoque mínimo (alerta)</b>
+                <input type="number" id="f-estoque-minimo" min="0" step="1" value="<%= modoEdicao && produto.estoque_minimo != null ? produto.estoque_minimo : 5 %>">
+                <small class="campo-admin__ajuda">Abaixo deste valor, o Dashboard avisa que o estoque está baixo.</small>
+              </label>
+            </section>
+            <p class="form-admin__dica">
+              Para repor ou dar baixa depois de criado, use a tela <strong>Estoque</strong>, assim fica registrado no histórico de movimentações.
+            </p>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-images" aria-hidden="true"></i>Imagens</legend>
+            <p class="form-secao__ajuda">3 fotos obrigatórias, recortadas em quadrado; a primeira é a capa do produto na loja.</p>
+            <section class="form-admin__linha form-admin__linha--imagens">
+              <label class="campo-admin campo-admin--imagem">
+                <b>Imagem 1 (capa) *</b>
+                <img class="preview-upload" id="f-imagem-1-preview" alt="Pré-visualização da imagem 1" <%= (modoEdicao && produto.imagem) ? '' : 'hidden' %> src="<%= modoEdicao && produto.imagem ? (String(produto.imagem).indexOf('/') === 0 ? produto.imagem : '/imagens/' + produto.imagem) : '' %>">
+                <b class="upload-zona" aria-hidden="true"><i class="fas fa-cloud-upload-alt" aria-hidden="true"></i><b>Clique para enviar</b></b>
+                <input type="file" id="f-imagem-1" accept="image/jpeg,image/png,image/webp" <%= modoEdicao ? "" : "required" %>>
+                <button type="button" class="imagem-remover" id="f-imagem-1-remover" hidden><i class="fas fa-undo" aria-hidden="true"></i>Desfazer seleção</button>
+              </label>
+              <label class="campo-admin campo-admin--imagem">
+                <b>Imagem 2 *</b>
+                <img class="preview-upload" id="f-imagem-2-preview" alt="Pré-visualização da imagem 2" <%= (modoEdicao && produto.imagem_2) ? '' : 'hidden' %> src="<%= modoEdicao && produto.imagem_2 ? (String(produto.imagem_2).indexOf('/') === 0 ? produto.imagem_2 : '/imagens/' + produto.imagem_2) : '' %>">
+                <b class="upload-zona" aria-hidden="true"><i class="fas fa-cloud-upload-alt" aria-hidden="true"></i><b>Clique para enviar</b></b>
+                <input type="file" id="f-imagem-2" accept="image/jpeg,image/png,image/webp" <%= modoEdicao ? "" : "required" %>>
+                <button type="button" class="imagem-remover" id="f-imagem-2-remover" hidden><i class="fas fa-undo" aria-hidden="true"></i>Desfazer seleção</button>
+              </label>
+              <label class="campo-admin campo-admin--imagem">
+                <b>Imagem 3 *</b>
+                <img class="preview-upload" id="f-imagem-3-preview" alt="Pré-visualização da imagem 3" <%= (modoEdicao && produto.imagem_3) ? '' : 'hidden' %> src="<%= modoEdicao && produto.imagem_3 ? (String(produto.imagem_3).indexOf('/') === 0 ? produto.imagem_3 : '/imagens/' + produto.imagem_3) : '' %>">
+                <b class="upload-zona" aria-hidden="true"><i class="fas fa-cloud-upload-alt" aria-hidden="true"></i><b>Clique para enviar</b></b>
+                <input type="file" id="f-imagem-3" accept="image/jpeg,image/png,image/webp" <%= modoEdicao ? "" : "required" %>>
+                <button type="button" class="imagem-remover" id="f-imagem-3-remover" hidden><i class="fas fa-undo" aria-hidden="true"></i>Desfazer seleção</button>
+              </label>
+            </section>
+            <p class="form-admin__dica">Na edição, envie apenas as imagens que quiser substituir: as demais permanecem como estão.</p>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-align-left" aria-hidden="true"></i>Descrição</legend>
+            <label class="campo-admin">
+              <b>Descrição do produto *</b>
+              <textarea id="f-descricao" rows="4" maxlength="5000" required><%= modoEdicao ? (produto.descricao || '') : '' %></textarea>
+              <small class="campo-admin__ajuda">Exibida na página do produto. Mínimo de 30 caracteres.</small>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-heart" aria-hidden="true"></i>Benefícios</legend>
+            <label class="campo-admin">
+              <b>Benefícios</b>
+              <textarea id="f-beneficios" rows="2" maxlength="5000"><%= modoEdicao ? (produto.beneficios || '') : '' %></textarea>
+            </label>
+            <label class="campo-admin">
+              <b>Como utilizar</b>
+              <textarea id="f-como-utilizar" rows="2" maxlength="5000"><%= modoEdicao ? (produto.como_utilizar || '') : '' %></textarea>
+            </label>
+            <label class="campo-admin">
+              <b>Recomendações</b>
+              <textarea id="f-recomendacoes" rows="2" maxlength="5000"><%= modoEdicao ? (produto.recomendacoes || '') : '' %></textarea>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-clipboard-check" aria-hidden="true"></i>Ficha técnica<b class="form-secao__obrigatorio">*</b></legend>
+            <p class="form-secao__ajuda">Especificações em pares (ex.: Material: Aço inox), exibidas na aba de detalhes técnicos da página do produto.</p>
+            <section id="f-especificacoes-lista" class="specs-lista"></section>
+            <button type="button" class="btn-admin btn-admin--secundario" id="f-add-spec"><i class="fas fa-plus" aria-hidden="true"></i>Adicionar especificação</button>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-hand-holding-heart" aria-hidden="true"></i>Guia de cuidados<b class="form-secao__obrigatorio">*</b></legend>
+            <p class="form-secao__ajuda">Pré-preenchido conforme a categoria escolhida; ajuste o texto se quiser. Mínimo de 3 cuidados.</p>
+            <section id="f-cuidados-lista" class="specs-lista"></section>
+            <button type="button" class="btn-admin btn-admin--secundario" id="f-add-cuidado"><i class="fas fa-plus" aria-hidden="true"></i>Adicionar cuidado</button>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-shapes" aria-hidden="true"></i>Variações<b class="form-secao__opcional">(opcional)</b></legend>
+            <section class="form-admin__linha">
+              <label class="campo-admin">
+                <b>Tipo</b>
+                <select id="f-variacao-tipo">
+                  <option value="">Nenhuma</option>
+                  <option value="cor">Cor</option>
+                  <option value="tamanho">Tamanho</option>
+                  <option value="modelo">Modelo</option>
+                  <option value="volume">Volume</option>
+                </select>
+              </label>
+              <label class="campo-admin">
+                <b>Rótulo do grupo</b>
+                <input type="text" id="f-variacao-rotulo" maxlength="40" placeholder="ex: Cor">
+              </label>
+            </section>
+            <section id="f-variacoes-lista" class="specs-lista"></section>
+            <button type="button" class="btn-admin btn-admin--secundario" id="f-add-variacao"><i class="fas fa-plus" aria-hidden="true"></i>Adicionar opção</button>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-search" aria-hidden="true"></i>SEO e busca</legend>
+            <label class="campo-admin">
+              <b>Tags de busca</b>
+              <input type="text" id="f-tags" maxlength="255" placeholder="ex: organico, adubo" value="<%= modoEdicao ? (produto.tags || '') : '' %>">
+              <small class="campo-admin__ajuda">Separadas por vírgula: sinônimos que ajudam o cliente a encontrar o produto.</small>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-toggle-on" aria-hidden="true"></i>Status</legend>
+            <p class="form-secao__ajuda">Configure a visibilidade do produto na loja.</p>
+            <ul class="lista-status-produto">
+              <li>
+                <label class="lista-status-produto__rotulo" for="f-ativo">
+                  <strong>Ativo</strong>
+                  <small>Visível para os clientes na loja.</small>
+                </label>
+                <label class="toggle">
+                  <input type="checkbox" id="f-ativo" <%= (!modoEdicao || produto.ativo) ? 'checked' : '' %>>
+                  <i class="toggle__trilho" aria-hidden="true"></i>
+                </label>
+              </li>
+              <li>
+                <label class="lista-status-produto__rotulo" for="f-destaque">
+                  <strong>Em destaque</strong>
+                  <small>Aparece na vitrine de mais vendidos da home.</small>
+                </label>
+                <label class="toggle">
+                  <input type="checkbox" id="f-destaque" <%= (modoEdicao && produto.destaque) ? 'checked' : '' %>>
+                  <i class="toggle__trilho" aria-hidden="true"></i>
+                </label>
+              </li>
+            </ul>
+          </fieldset>
+
+          <output class="form-admin__mensagem" id="produtos-form-msg" role="alert"></output>
+        </article>
+
+        <aside class="produto-form-painel" aria-label="Resumo do produto em tempo real">
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-eye" aria-hidden="true"></i>Resumo do produto</legend>
+            <p class="form-secao__ajuda">Atualizado automaticamente conforme você preenche o formulário.</p>
+
+            <figure class="produto-resumo produto-resumo--grande" id="pr-imagem-principal">
+              <img id="pr-imagem-principal-img" src="<%= modoEdicao && produto.imagem ? (String(produto.imagem).indexOf('/') === 0 ? produto.imagem : '/imagens/' + produto.imagem) : '/imagens/image.png' %>" alt="" data-fallback="/imagens/image.png">
+              <figcaption>
+                <strong id="pr-nome"><%= modoEdicao ? produto.nome : 'Nome do produto' %></strong>
+                <small id="pr-categoria"><%= modoEdicao ? (produto.categoria_nome || '-') : 'Categoria não selecionada' %></small>
+              </figcaption>
+            </figure>
+
+            <ul class="resumo-movimentacao">
+              <li><small>Preço</small><strong id="pr-preco">-</strong></li>
+              <li><small>Estoque</small><strong id="pr-estoque">-</strong></li>
+              <li><small>Status</small><strong id="pr-status">-</strong></li>
+              <li><small>Imagens enviadas</small><strong id="pr-imagens">0 de 3</strong></li>
+            </ul>
+          </fieldset>
+
+          <% if (modoEdicao) { %>
+            <fieldset class="form-secao">
+              <legend><i class="fas fa-history" aria-hidden="true"></i>Histórico</legend>
+              <ul class="resumo-movimentacao">
+                <li><small>Criado em</small><strong><%= dataFmt(produto.criado_em) %></strong></li>
+                <li><small>Última atualização</small><strong><%= dataFmt(produto.atualizado_em) %></strong></li>
+                <li><small>Última edição por</small><strong><%= (historico && historico.ultimaEdicao) ? historico.ultimaEdicao.usuario_nome : '-' %></strong></li>
+                <li><small>Alterações registradas</small><strong><%= historico ? historico.total : 0 %></strong></li>
+              </ul>
+              <a class="btn-admin btn-admin--secundario btn-admin--pequeno produto-form-painel__historico" href="/admin/logs?busca=<%= encodeURIComponent(produto.nome) %>">
+                <i class="fas fa-history" aria-hidden="true"></i>Ver histórico completo
+              </a>
+            </fieldset>
+          <% } %>
+        </aside>
+
+        <footer class="produto-form-acoes">
+          <a class="btn-admin btn-admin--secundario" href="/admin/produtos"><i class="fas fa-times" aria-hidden="true"></i>Cancelar</a>
+          <% if (modoEdicao) { %>
+            <a class="btn-admin btn-admin--secundario" href="<%= urlProduto %>" target="_blank" rel="noopener"><i class="fas fa-external-link-alt" aria-hidden="true"></i>Visualizar Produto</a>
+          <% } %>
+          <button type="submit" class="btn-admin btn-admin--intermedio" id="btn-salvar-continuar" data-continuar="true"><i class="fas fa-redo" aria-hidden="true"></i>Salvar e Continuar Editando</button>
+          <button type="submit" class="btn-admin btn-admin--primario" id="btn-salvar"><i class="fas fa-save" aria-hidden="true"></i>Salvar</button>
+        </footer>
+      </form>
+    </main>
+  </section>
+
+  <% const dadosIniciais = JSON.stringify(modoEdicao ? {
+       subcategoria_id: produto.subcategoria_id || null,
+       subcategoria_nome: produto.subcategoria_nome || null,
+       especificacoes: produto.especificacoes || null,
+       cuidados: produto.cuidados || null,
+       variacoes: produto.variacoes || null,
+     } : null);
+     const escapeAbreTag = String.fromCharCode(92) + 'u003c';
+     const dadosIniciaisSeguro = dadosIniciais.split('<').join(escapeAbreTag);
+  %>
+  <script type="application/json" id="produto-dados-json"><%- dadosIniciaisSeguro %></script>
+  <script src="/js/admin/admin-produto-form.js" defer></script>
+</body>
+</html>

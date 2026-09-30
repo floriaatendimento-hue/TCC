@@ -1,0 +1,178 @@
+<%
+const modoEdicao = !!fornecedor;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - <%= modoEdicao ? 'Editar' : 'Novo' %> Fornecedor</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'fornecedores' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: modoEdicao ? 'Editar Fornecedor' : 'Novo Fornecedor' }) %>
+
+    <main class="admin-main">
+      <nav class="admin-breadcrumb admin-breadcrumb--pagina" aria-label="Trilha de navegação">
+        <a href="/admin/fornecedores">Fornecedores</a>
+        <b aria-hidden="true">/</b>
+        <b class="atual"><%= modoEdicao ? 'Editar' : 'Novo' %></b>
+      </nav>
+
+      <header class="admin-page-header">
+        <hgroup>
+          <h1><%= modoEdicao ? 'Editar Fornecedor' : 'Novo Fornecedor' %></h1>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--secundario" href="/admin/fornecedores"><i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar</a>
+        </nav>
+      </header>
+
+      <form id="form-fornecedor" class="form-admin" data-modo="<%= modoEdicao ? 'editar' : 'novo' %>" data-id="<%= modoEdicao ? fornecedor.id : '' %>">
+        <fieldset class="form-secao">
+          <legend><i class="fas fa-truck" aria-hidden="true"></i>Dados do fornecedor</legend>
+
+          <label class="campo-admin">
+            <b>Razão social *</b>
+            <input type="text" id="f-razao-social" maxlength="150" minlength="2" required
+                   value="<%= modoEdicao ? fornecedor.razao_social : '' %>" title="Informe a razão social do fornecedor.">
+          </label>
+
+          <label class="campo-admin">
+            <b>Nome fantasia</b>
+            <input type="text" id="f-nome-fantasia" maxlength="150" value="<%= (modoEdicao && fornecedor.nome_fantasia) || '' %>">
+          </label>
+
+          <section class="form-admin__linha">
+            <label class="campo-admin">
+              <b>Documento (CNPJ/CPF)</b>
+              <input type="text" id="f-documento" inputmode="numeric" autocomplete="off" maxlength="18"
+                     value="<%= (modoEdicao && fornecedor.documento) || '' %>"
+                     title="Digite um CPF (11 dígitos) ou CNPJ (14 dígitos) válido — a formatação é aplicada automaticamente.">
+              <small class="campo-admin__ajuda" id="f-documento-ajuda">Opcional. Aceita CPF (000.000.000-00) ou CNPJ (00.000.000/0000-00) — o dígito verificador é conferido.</small>
+            </label>
+
+            <label class="campo-admin">
+              <b>Telefone</b>
+              <input type="text" id="f-telefone" inputmode="numeric" autocomplete="off" maxlength="15"
+                     pattern="\(\d{2}\)\s\d{4,5}-\d{4}" title="Use o formato (11) 91234-5678 (celular) ou (11) 1234-5678 (fixo)."
+                     value="<%= (modoEdicao && fornecedor.telefone) || '' %>">
+              <small class="campo-admin__ajuda">Opcional. DDD + número — fixo ou celular.</small>
+            </label>
+          </section>
+
+          <label class="campo-admin">
+            <b>E-mail</b>
+            <input type="email" id="f-email" maxlength="190" title="Digite um e-mail válido."
+                   value="<%= (modoEdicao && fornecedor.email) || '' %>">
+          </label>
+
+          <label class="campo-admin">
+            <b>Observações</b>
+            <textarea id="f-observacoes" maxlength="500" rows="3"><%= (modoEdicao && fornecedor.observacoes) || '' %></textarea>
+          </label>
+        </fieldset>
+
+        <%
+          // Endereço estruturado (seção 1.8 da especificação) — todo
+          // opcional; se o fornecedor tiver um endereço antigo em texto
+          // livre (campo legado `endereco`, de antes desta seção
+          // existir) e nenhum campo estruturado, mostra como referência
+          // só-leitura — evita perder a informação sem forçar o admin a
+          // re-digitar tudo na primeira edição depois desta mudança.
+          const temEnderecoEstruturado = modoEdicao && (fornecedor.cep || fornecedor.logradouro);
+          const temApenasEnderecoLegado = modoEdicao && !temEnderecoEstruturado && fornecedor.endereco;
+        %>
+        <fieldset class="form-secao">
+          <legend><i class="fas fa-map-marker-alt" aria-hidden="true"></i>Endereço <span class="form-secao__opcional">(opcional)</span></legend>
+          <% if (temApenasEnderecoLegado) { %>
+            <p class="form-secao__ajuda">Endereço cadastrado antes deste formulário ter campos estruturados: <strong><%= fornecedor.endereco %></strong>. Preencha os campos abaixo para atualizar.</p>
+          <% } %>
+
+          <label class="campo-admin">
+            <b>CEP</b>
+            <input type="text" id="f-cep" inputmode="numeric" maxlength="9" placeholder="00000-000" autocomplete="postal-code"
+                   value="<%= (modoEdicao && fornecedor.cep) || '' %>">
+            <small class="campo-admin__ajuda" id="f-cep-status"></small>
+          </label>
+
+          <label class="campo-admin">
+            <b>Logradouro</b>
+            <input type="text" id="f-logradouro" maxlength="180" autocomplete="address-line1" value="<%= (modoEdicao && fornecedor.logradouro) || '' %>">
+          </label>
+
+          <section class="form-admin__linha">
+            <label class="campo-admin">
+              <b>Número</b>
+              <input type="text" id="f-numero" maxlength="20" value="<%= (modoEdicao && fornecedor.numero) || '' %>">
+            </label>
+            <label class="campo-admin">
+              <b>Complemento</b>
+              <input type="text" id="f-complemento" maxlength="80" autocomplete="address-line2" value="<%= (modoEdicao && fornecedor.complemento) || '' %>">
+            </label>
+          </section>
+
+          <section class="form-admin__linha">
+            <label class="campo-admin">
+              <b>Bairro</b>
+              <input type="text" id="f-bairro" maxlength="100" value="<%= (modoEdicao && fornecedor.bairro) || '' %>">
+            </label>
+            <label class="campo-admin">
+              <b>Cidade</b>
+              <input type="text" id="f-cidade" maxlength="100" autocomplete="address-level2" value="<%= (modoEdicao && fornecedor.cidade) || '' %>">
+            </label>
+            <label class="campo-admin">
+              <b>Estado</b>
+              <select id="f-uf" autocomplete="address-level1">
+                <option value="">Selecione…</option>
+                <option value="AC">AC - Acre</option>
+                <option value="AL">AL - Alagoas</option>
+                <option value="AP">AP - Amapá</option>
+                <option value="AM">AM - Amazonas</option>
+                <option value="BA">BA - Bahia</option>
+                <option value="CE">CE - Ceará</option>
+                <option value="DF">DF - Distrito Federal</option>
+                <option value="ES">ES - Espírito Santo</option>
+                <option value="GO">GO - Goiás</option>
+                <option value="MA">MA - Maranhão</option>
+                <option value="MT">MT - Mato Grosso</option>
+                <option value="MS">MS - Mato Grosso do Sul</option>
+                <option value="MG">MG - Minas Gerais</option>
+                <option value="PA">PA - Pará</option>
+                <option value="PB">PB - Paraíba</option>
+                <option value="PR">PR - Paraná</option>
+                <option value="PE">PE - Pernambuco</option>
+                <option value="PI">PI - Piauí</option>
+                <option value="RJ">RJ - Rio de Janeiro</option>
+                <option value="RN">RN - Rio Grande do Norte</option>
+                <option value="RS">RS - Rio Grande do Sul</option>
+                <option value="RO">RO - Rondônia</option>
+                <option value="RR">RR - Roraima</option>
+                <option value="SC">SC - Santa Catarina</option>
+                <option value="SP">SP - São Paulo</option>
+                <option value="SE">SE - Sergipe</option>
+                <option value="TO">TO - Tocantins</option>
+              </select>
+            </label>
+          </section>
+          <small class="campo-admin__ajuda">Preencha o CEP para autocompletar rua/bairro/cidade/estado — a existência do endereço é conferida ao salvar.</small>
+        </fieldset>
+
+        <output class="form-admin__mensagem" id="form-fornecedor-msg" role="alert"></output>
+
+        <footer class="form-admin__acoes">
+          <a class="btn-admin btn-admin--secundario" href="/admin/fornecedores">Cancelar</a>
+          <button type="submit" class="btn-admin btn-admin--primario" id="btn-salvar-fornecedor">
+            <i class="fas fa-check" aria-hidden="true"></i><%= modoEdicao ? 'Salvar alterações' : 'Cadastrar fornecedor' %>
+          </button>
+        </footer>
+      </form>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-toast.js" defer></script>
+  <script src="/js/admin/admin-fornecedor-form.js" defer></script>
+</body>
+</html>

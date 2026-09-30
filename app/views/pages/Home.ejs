@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria - Plantas & Vasos</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/shared/carousel.css">
+  <link rel="stylesheet" href="/css/shared/cards-fix.css">
+</head>
+<body>
+  <%- include("../partials/layout/header") %>
+  <%- include("../partials/layout/nav") %>
+
+  <main>
+    <h1 class="sr-only">Floria: Plantas e vasos para reverdecer sua casa</h1>
+
+    <%- include("../partials/shared/carrosel", { banners: typeof banners !== 'undefined' ? banners : [] }) %>
+
+    <!-- Faixa promocional -->
+    <aside class="home-hero-strip" aria-label="Promoção de frete">
+      <p>
+        <i class="leaf-icon" aria-hidden="true"><i class="fas fa-leaf" aria-hidden="true"></i></i>
+        Frete grátis para SP capital em compras acima de R$ 150
+        <i class="leaf-icon" aria-hidden="true"><i class="fas fa-leaf" aria-hidden="true"></i></i>
+      </p>
+    </aside>
+
+    <% if ((typeof maisVendidos !== 'undefined' ? maisVendidos : []).length) { %>
+    <section class="cards-section" aria-labelledby="titulo-mais-vendidos">
+      <header class="section-label">
+        <h2 id="titulo-mais-vendidos">Mais Vendidos</h2>
+      </header>
+      <nav class="carousel-wrapper" aria-labelledby="titulo-mais-vendidos">
+        <button class="carousel-btn" onclick="scrollCarousel(this,-1)" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <ul class="cards-container">
+          <% maisVendidos.forEach(function (p, idx) {
+               var preco = p.preco_exibido;
+               var precoFmt = 'R$ ' + Number(preco).toFixed(2).replace('.', ',');
+               var precoAntigo = p.preco_riscado
+                 ? 'R$ ' + Number(p.preco_riscado).toFixed(2).replace('.', ',')
+                 : null;
+               var slugPagina = p.slug_pagina || p.slug;
+               var href = '/' + slugPagina;
+          %>
+          <li><article class="card card-home">
+            <a href="<%= href %>">
+              <figure>
+                <b class="card-rank" aria-hidden="true"><%= idx + 1 %></b>
+                <img
+                  src="/imagens/<%= p.imagem || 'image.png' %>"
+                  alt="<%= p.nome %>"
+                  loading="lazy"
+                  data-fallback="/imagens/image.png"
+                >
+                <button type="button" class="btn-favorito btn-favorito--card"
+                  data-slug="<%= slugPagina %>" data-nome="<%= p.nome %>"
+                  data-imagem="/imagens/<%= p.imagem || 'image.png' %>" data-preco="<%= preco %>"
+                  aria-label="Favoritar" aria-pressed="false">
+                  <i class="far fa-heart" aria-hidden="true"></i>
+                </button>
+              </figure>
+              <section class="card-caption">
+                <h3><%= p.nome %></h3><b class="card-categoria"><%= p.categoria_nome %></b><output class="card-rating" data-rating-slot="<%= slugPagina %>" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <% if (precoAntigo) { %><p class="price-old"><%= precoAntigo %></p><% } %>
+                <p class="price"><%= precoFmt %></p>
+              </section>
+            </a>
+            <footer class="card-footer"><button type="button" class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+          <% }); %>
+        </ul>
+        <button class="carousel-btn" onclick="scrollCarousel(this,1)" aria-label="Próximo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+      </nav>
+      <p class="section-ver-mais">
+        <a href="/maisvendidos" class="btn-ver-mais">Ver todos os mais vendidos</a>
+      </p>
+    </section>
+    <% } %>
+
+    <!-- Banner intermediário -->
+    <section class="home-banner-middle" aria-label="Nossa missão">
+      <section class="home-banner-middle-content">
+        <h2>Cuide do planeta.<br>Comece em casa.</h2>
+        <p>Cada planta que você cultiva é um passo para um mundo mais verde.</p>
+        <a href="/sobre-nos" class="btn-banner">Nossa história</a>
+      </section>
+    </section>
+
+    <!-- PLANTAS -->
+    <section class="cards-section" aria-labelledby="titulo-plantas">
+      <header class="section-label">
+        <h2 id="titulo-plantas">Plantas</h2>
+      </header>
+      <nav class="carousel-wrapper" aria-labelledby="titulo-plantas">
+        <button class="carousel-btn" onclick="scrollCarousel(this,-1)" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <ul class="cards-container">
+
+          <li><article class="card card-home">
+            <a href="/detalhes">
+              <figure><img src="/imagens/Muda.png" alt="Comigo Ninguém Pode"><button type="button" class="btn-favorito btn-favorito--card" data-slug="detalhes" data-nome="Comigo Ninguém Pode" data-imagem="/imagens/Muda.png" data-preco="150.0" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Comigo Ninguém Pode</h3><b class="card-categoria">Plantas</b><output class="card-rating" data-rating-slot="detalhes" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 150,00</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/singonio">
+              <figure><img src="/imagens/produtos-fotos/singonio-1.webp" alt="Singônio (Syngonium)"><button type="button" class="btn-favorito btn-favorito--card" data-slug="singonio" data-nome="Singônio (Syngonium)" data-imagem="/imagens/produtos-fotos/singonio-1.webp" data-preco="45.0" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Singônio (Syngonium)</h3><b class="card-categoria">Plantas</b><output class="card-rating" data-rating-slot="singonio" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 45,00</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/espadadesaojorge">
+              <figure><img src="/imagens/produtos-fotos/espadadesaojorge-1.webp" alt="Espada-de-São-Jorge"><button type="button" class="btn-favorito btn-favorito--card" data-slug="espadadesaojorge" data-nome="Espada-de-São-Jorge" data-imagem="/imagens/produtos-fotos/espadadesaojorge-1.webp" data-preco="35.0" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Espada-de-São-Jorge</h3><b class="card-categoria">Plantas</b><output class="card-rating" data-rating-slot="espadadesaojorge" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 35,00</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/costeladeadao">
+              <figure><img src="/imagens/monstera-deliciosa.png" alt="Monstera deliciosa"><button type="button" class="btn-favorito btn-favorito--card" data-slug="costeladeadao" data-nome="Monstera deliciosa" data-imagem="/imagens/monstera-deliciosa.png" data-preco="120.0" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Monstera deliciosa</h3><b class="card-categoria">Plantas</b><output class="card-rating" data-rating-slot="costeladeadao" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 120,00</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/orquidea">
+              <figure><img src="/imagens/orquidea.jpg" alt="Orquídea"><button type="button" class="btn-favorito btn-favorito--card" data-slug="orquidea" data-nome="Orquídea" data-imagem="/imagens/orquidea.jpg" data-preco="99.99" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Orquídea</h3><b class="card-categoria">Plantas</b><output class="card-rating" data-rating-slot="orquidea" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 99,99</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/lavanda">
+              <figure><img src="/imagens/lavanda.jpg" alt="Lavanda"><button type="button" class="btn-favorito btn-favorito--card" data-slug="lavanda" data-nome="Lavanda" data-imagem="/imagens/lavanda.jpg" data-preco="42.0" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Lavanda</h3><b class="card-categoria">Plantas</b><output class="card-rating" data-rating-slot="lavanda" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 42,00</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+        </ul>
+        <button class="carousel-btn" onclick="scrollCarousel(this,1)" aria-label="Próximo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+      </nav>
+      <p class="section-ver-mais">
+        <a href="/plantas" class="btn-ver-mais">Ver todas as plantas</a>
+      </p>
+    </section>
+
+    <!-- VASOS -->
+    <section class="cards-section cards-section--faixa" aria-labelledby="titulo-vasos">
+      <header class="section-label">
+        <h2 id="titulo-vasos">Vasos</h2>
+      </header>
+      <nav class="carousel-wrapper" aria-labelledby="titulo-vasos">
+        <button class="carousel-btn" onclick="scrollCarousel(this,-1)" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <ul class="cards-container2">
+
+          <li><article class="card card-home">
+            <a href="/detalhesv">
+              <figure><img src="/imagens/produtos-fotos/vaso-autoirrigavel-transparente-1.webp" alt="Vaso Autoirrigável"><button type="button" class="btn-favorito btn-favorito--card" data-slug="detalhesv" data-nome="Vaso Autoirrigável" data-imagem="/imagens/produtos-fotos/vaso-autoirrigavel-transparente-1.webp" data-preco="90.0" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Vaso Autoirrigável</h3><b class="card-categoria">Vasos</b><output class="card-rating" data-rating-slot="detalhesv" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 90,00</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/vaso-ceramica-rosa">
+              <figure><img src="/imagens/produtos-fotos/vaso-ceramica-rosa-1.webp" alt="Vaso de Cerâmica Rosa"><button type="button" class="btn-favorito btn-favorito--card" data-slug="vaso-ceramica-rosa" data-nome="Vaso de Cerâmica Rosa" data-imagem="/imagens/produtos-fotos/vaso-ceramica-rosa-1.webp" data-preco="65.0" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Vaso de Cerâmica Rosa</h3><b class="card-categoria">Vasos</b><output class="card-rating" data-rating-slot="vaso-ceramica-rosa" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 65,00</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/vaso-cimento-rustico">
+              <figure><img src="/imagens/produtos-fotos/vaso-cimento-rustico-1.webp" alt="Vaso de Cimento Rústico"><button type="button" class="btn-favorito btn-favorito--card" data-slug="vaso-cimento-rustico" data-nome="Vaso de Cimento Rústico" data-imagem="/imagens/produtos-fotos/vaso-cimento-rustico-1.webp" data-preco="50.0" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Vaso de Cimento Rústico</h3><b class="card-categoria">Vasos</b><output class="card-rating" data-rating-slot="vaso-cimento-rustico" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 50,00</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/vaso-suspenso-macrame">
+              <figure><img src="/imagens/produtos-fotos/vaso-suspenso-macrame-1.webp" alt="Vaso Suspenso Macramê"><button type="button" class="btn-favorito btn-favorito--card" data-slug="vaso-suspenso-macrame" data-nome="Vaso Suspenso Macramê" data-imagem="/imagens/produtos-fotos/vaso-suspenso-macrame-1.webp" data-preco="80.0" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Vaso Suspenso Macramê</h3><b class="card-categoria">Vasos</b><output class="card-rating" data-rating-slot="vaso-suspenso-macrame" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 80,00</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/vaso-vidro-transparente">
+              <figure><img src="/imagens/produtos-fotos/vaso-vidro-transparente-1.webp" alt="Vaso de Vidro Transparente"><button type="button" class="btn-favorito btn-favorito--card" data-slug="vaso-vidro-transparente" data-nome="Vaso de Vidro Transparente" data-imagem="/imagens/produtos-fotos/vaso-vidro-transparente-1.webp" data-preco="45.0" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Vaso de Vidro Transparente</h3><b class="card-categoria">Vasos</b><output class="card-rating" data-rating-slot="vaso-vidro-transparente" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 45,00</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/vaso-concreto-geometrico">
+              <figure><img src="/imagens/produtos-fotos/vaso-concreto-geometrico-1.webp" alt="Vaso Concreto Geométrico"><button type="button" class="btn-favorito btn-favorito--card" data-slug="vaso-concreto-geometrico" data-nome="Vaso Concreto Geométrico" data-imagem="/imagens/produtos-fotos/vaso-concreto-geometrico-1.webp" data-preco="68.0" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Vaso Concreto Geométrico</h3><b class="card-categoria">Vasos</b><output class="card-rating" data-rating-slot="vaso-concreto-geometrico" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 68,00</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+        </ul>
+        <button class="carousel-btn" onclick="scrollCarousel(this,1)" aria-label="Próximo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+      </nav>
+      <p class="section-ver-mais">
+        <a href="/vasos" class="btn-ver-mais">Ver todos os vasos</a>
+      </p>
+    </section>
+
+    <!-- FERRAMENTAS DE JARDINAGEM -->
+    <section class="cards-section" aria-labelledby="titulo-ferramentas">
+      <header class="section-label">
+        <h2 id="titulo-ferramentas">Ferramentas de Jardinagem</h2>
+      </header>
+      <nav class="carousel-wrapper" aria-labelledby="titulo-ferramentas">
+        <button class="carousel-btn" onclick="scrollCarousel(this,-1)" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <ul class="cards-container">
+
+          <li><article class="card card-home">
+            <a href="/pa-jardinagem-manual">
+              <figure><img src="/imagens/produtos-fotos/pa-jardinagem-manual-1.webp" alt="Pá de Jardinagem Manual"><button type="button" class="btn-favorito btn-favorito--card" data-slug="pa-jardinagem-manual" data-nome="Pá de Jardinagem Manual" data-imagem="/imagens/produtos-fotos/pa-jardinagem-manual-1.webp" data-preco="39.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Pá de Jardinagem Manual</h3><b class="card-categoria">Ferramentas</b><output class="card-rating" data-rating-slot="pa-jardinagem-manual" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 39,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/tesoura-poda-profissional">
+              <figure><img src="/imagens/produtos-fotos/tesoura-poda-profissional-1.webp" alt="Tesoura de Poda Profissional"><button type="button" class="btn-favorito btn-favorito--card" data-slug="tesoura-poda-profissional" data-nome="Tesoura de Poda Profissional" data-imagem="/imagens/produtos-fotos/tesoura-poda-profissional-1.webp" data-preco="64.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Tesoura de Poda Profissional</h3><b class="card-categoria">Ferramentas</b><output class="card-rating" data-rating-slot="tesoura-poda-profissional" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 64,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/kit-ferramentas-jardim">
+              <figure><img src="/imagens/produtos-fotos/kit-ferramentas-jardim-1.png" alt="Kit de Ferramentas de Jardim"><button type="button" class="btn-favorito btn-favorito--card" data-slug="kit-ferramentas-jardim" data-nome="Kit de Ferramentas de Jardim" data-imagem="/imagens/produtos-fotos/kit-ferramentas-jardim-1.png" data-preco="129.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Kit de Ferramentas de Jardim</h3><b class="card-categoria">Ferramentas</b><output class="card-rating" data-rating-slot="kit-ferramentas-jardim" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 129,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/regador-metal-5l">
+              <figure><img src="/imagens/produtos-fotos/regador-metal-5l-1.webp" alt="Regador de Metal 5L"><button type="button" class="btn-favorito btn-favorito--card" data-slug="regador-metal-5l" data-nome="Regador de Metal 5L" data-imagem="/imagens/produtos-fotos/regador-metal-5l-1.webp" data-preco="89.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Regador de Metal 5L</h3><b class="card-categoria">Ferramentas</b><output class="card-rating" data-rating-slot="regador-metal-5l" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 89,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+        </ul>
+        <button class="carousel-btn" onclick="scrollCarousel(this,1)" aria-label="Próximo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+      </nav>
+      <p class="section-ver-mais">
+        <a href="/ferramentas" class="btn-ver-mais">Ver todas as ferramentas</a>
+      </p>
+    </section>
+
+    <!-- ADUBOS E FERTILIZANTES -->
+    <section class="cards-section cards-section--faixa" aria-labelledby="titulo-adubos">
+      <header class="section-label">
+        <h2 id="titulo-adubos">Adubos e Fertilizantes</h2>
+      </header>
+      <nav class="carousel-wrapper" aria-labelledby="titulo-adubos">
+        <button class="carousel-btn" onclick="scrollCarousel(this,-1)" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <ul class="cards-container">
+
+          <li><article class="card card-home">
+            <a href="/adubo-organico-composto-5kg">
+              <figure><img src="/imagens/produtos-fotos/adubo-organico-composto-5kg-1.webp" alt="Adubo Orgânico Composto 5kg"><button type="button" class="btn-favorito btn-favorito--card" data-slug="adubo-organico-composto-5kg" data-nome="Adubo Orgânico Composto 5kg" data-imagem="/imagens/produtos-fotos/adubo-organico-composto-5kg-1.webp" data-preco="34.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Adubo Orgânico Composto 5kg</h3><b class="card-categoria">Adubos</b><output class="card-rating" data-rating-slot="adubo-organico-composto-5kg" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 34,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/fertilizante-npk-10-10-10">
+              <figure><img src="/imagens/produtos-fotos/fertilizante-npk-10-10-10-1.webp" alt="Fertilizante NPK 10-10-10"><button type="button" class="btn-favorito btn-favorito--card" data-slug="fertilizante-npk-10-10-10" data-nome="Fertilizante NPK 10-10-10" data-imagem="/imagens/produtos-fotos/fertilizante-npk-10-10-10-1.webp" data-preco="27.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Fertilizante NPK 10-10-10</h3><b class="card-categoria">Adubos</b><output class="card-rating" data-rating-slot="fertilizante-npk-10-10-10" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 27,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/fertilizante-liquido-multiuso">
+              <figure><img src="/imagens/produtos-fotos/fertilizante-liquido-multiuso-1.webp" alt="Fertilizante Líquido Multiuso"><button type="button" class="btn-favorito btn-favorito--card" data-slug="fertilizante-liquido-multiuso" data-nome="Fertilizante Líquido Multiuso" data-imagem="/imagens/produtos-fotos/fertilizante-liquido-multiuso-1.webp" data-preco="32.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Fertilizante Líquido Multiuso</h3><b class="card-categoria">Adubos</b><output class="card-rating" data-rating-slot="fertilizante-liquido-multiuso" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 32,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/humus-minhoca-2kg">
+              <figure><img src="/imagens/produtos-fotos/humus-minhoca-2kg-1.webp" alt="Húmus de Minhoca 2kg"><button type="button" class="btn-favorito btn-favorito--card" data-slug="humus-minhoca-2kg" data-nome="Húmus de Minhoca 2kg" data-imagem="/imagens/produtos-fotos/humus-minhoca-2kg-1.webp" data-preco="22.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Húmus de Minhoca 2kg</h3><b class="card-categoria">Adubos</b><output class="card-rating" data-rating-slot="humus-minhoca-2kg" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 22,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+        </ul>
+        <button class="carousel-btn" onclick="scrollCarousel(this,1)" aria-label="Próximo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+      </nav>
+      <p class="section-ver-mais">
+        <a href="/adubos" class="btn-ver-mais">Ver todos os adubos</a>
+      </p>
+    </section>
+
+    <!-- CONTROLE DE PRAGAS -->
+    <section class="cards-section" aria-labelledby="titulo-pragas">
+      <header class="section-label">
+        <h2 id="titulo-pragas">Controle de Pragas</h2>
+      </header>
+      <nav class="carousel-wrapper" aria-labelledby="titulo-pragas">
+        <button class="carousel-btn" onclick="scrollCarousel(this,-1)" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <ul class="cards-container">
+
+          <li><article class="card card-home">
+            <a href="/oleo-de-neem-concentrado">
+              <figure><img src="/imagens/produtos-fotos/oleo-de-neem-concentrado-1.webp" alt="Óleo de Neem Concentrado"><button type="button" class="btn-favorito btn-favorito--card" data-slug="oleo-de-neem-concentrado" data-nome="Óleo de Neem Concentrado" data-imagem="/imagens/produtos-fotos/oleo-de-neem-concentrado-1.webp" data-preco="38.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Óleo de Neem Concentrado</h3><b class="card-categoria">Controle de Pragas</b><output class="card-rating" data-rating-slot="oleo-de-neem-concentrado" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 38,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/sabao-inseticida-natural">
+              <figure><img src="/imagens/produtos-fotos/sabao-inseticida-natural-1.webp" alt="Sabão Inseticida Natural"><button type="button" class="btn-favorito btn-favorito--card" data-slug="sabao-inseticida-natural" data-nome="Sabão Inseticida Natural" data-imagem="/imagens/produtos-fotos/sabao-inseticida-natural-1.webp" data-preco="26.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Sabão Inseticida Natural</h3><b class="card-categoria">Controle de Pragas</b><output class="card-rating" data-rating-slot="sabao-inseticida-natural" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 26,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/spray-fungicida-organico">
+              <figure><img src="/imagens/produtos-fotos/spray-fungicida-organico-1.webp" alt="Spray Fungicida Orgânico"><button type="button" class="btn-favorito btn-favorito--card" data-slug="spray-fungicida-organico" data-nome="Spray Fungicida Orgânico" data-imagem="/imagens/produtos-fotos/spray-fungicida-organico-1.webp" data-preco="29.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Spray Fungicida Orgânico</h3><b class="card-categoria">Controle de Pragas</b><output class="card-rating" data-rating-slot="spray-fungicida-organico" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 29,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+          <li><article class="card card-home">
+            <a href="/armadilha-adesiva-insetos">
+              <figure><img src="/imagens/produtos-fotos/armadilha-adesiva-insetos-1.webp" alt="Armadilha Adesiva para Insetos"><button type="button" class="btn-favorito btn-favorito--card" data-slug="armadilha-adesiva-insetos" data-nome="Armadilha Adesiva para Insetos" data-imagem="/imagens/produtos-fotos/armadilha-adesiva-insetos-1.webp" data-preco="18.90" aria-label="Favoritar" aria-pressed="false"><i class="far fa-heart" aria-hidden="true"></i></button></figure>
+              <section class="card-caption">
+                <h3>Armadilha Adesiva para Insetos</h3><b class="card-categoria">Controle de Pragas</b><output class="card-rating" data-rating-slot="armadilha-adesiva-insetos" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <p class="price">R$ 18,90</p>
+              </section>
+            </a>
+            <footer class="card-footer"><button class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+
+        </ul>
+        <button class="carousel-btn" onclick="scrollCarousel(this,1)" aria-label="Próximo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+      </nav>
+      <p class="section-ver-mais">
+        <a href="/controle-pragas" class="btn-ver-mais">Ver todo o controle de pragas</a>
+      </p>
+    </section>
+
+  </main>
+
+  <%- include("../partials/layout/footer") %>
+  <script src="/js/shared/carousel.js"></script>
+</body>
+</html>

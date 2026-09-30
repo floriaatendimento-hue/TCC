@@ -1,0 +1,160 @@
+<%
+/* ATUALIZADO: página única de Categorias e Subcategorias (antes eram duas
+   páginas separadas — admin-categorias.ejs e admin-subcategorias.ejs).
+   `categorias` vem de Categoria.findAllAdmin(); `subcategorias` vem de
+   Subcategoria.findAllAgrupadas() (join com categorias) e é reorganizada
+   abaixo em `porCategoria` para renderizar a tabela de subcategorias
+   dentro do card de cada categoria — assim o vínculo categoria/subcategoria
+   fica visualmente explícito. CRUD continua via /api/admin/categorias e
+   /api/admin/subcategorias (fetch, em admin-categorias.js); a tabela é
+   re-renderizada no cliente (reload) após cada ação, como antes. */
+const porCategoria = {};
+subcategorias.forEach(s => {
+  const chave = s.categoria_id;
+  if (!porCategoria[chave]) porCategoria[chave] = [];
+  porCategoria[chave].push(s);
+});
+const totalSubcategorias = subcategorias.length;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Categorias e Subcategorias</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'categorias' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Categorias e Subcategorias' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Categorias e Subcategorias</h1>
+          <p class="admin-page-header__data" id="categorias-contagem"><%= categorias.length %> categoria(s) · <%= totalSubcategorias %> subcategoria(s)</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <% if (categorias.length) { %>
+            <a class="btn-admin btn-admin--secundario" href="/admin/subcategorias/novo">
+              <i class="fas fa-plus" aria-hidden="true"></i>Nova Subcategoria
+            </a>
+          <% } else { %>
+            <button type="button" class="btn-admin btn-admin--secundario" disabled>
+              <i class="fas fa-plus" aria-hidden="true"></i>Nova Subcategoria
+            </button>
+          <% } %>
+          <a class="btn-admin btn-admin--primario" href="/admin/categorias/novo">
+            <i class="fas fa-plus" aria-hidden="true"></i>Nova Categoria
+          </a>
+        </nav>
+      </header>
+
+      <form class="admin-toolbar">
+        <search class="admin-toolbar__busca" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <input id="cat-busca" type="search" placeholder="Buscar categorias e subcategorias...">
+        </search>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Filtrar por status</b>
+          <select id="cat-filtro-status">
+            <option value="">Todos os status</option>
+            <option value="ativo">Ativo</option>
+            <option value="inativo">Inativo</option>
+          </select>
+        </label>
+      </form>
+
+      <% if (!categorias.length) { %>
+        <article class="painel"><p class="tabela-admin__vazia">Nenhuma categoria cadastrada ainda.</p></article>
+      <% } %>
+
+      <% categorias.forEach(c => { const subs = porCategoria[c.id] || []; %>
+        <article class="painel painel--tabela js-categoria-card" style="margin-bottom: var(--esp-5);"
+          data-id="<%= c.id %>"
+          data-busca="<%= (c.nome + ' ' + c.slug).toLowerCase() %>"
+          data-status="<%= c.ativa ? 'ativo' : 'inativo' %>">
+          <header class="painel__cabecalho" style="padding: var(--esp-5) var(--esp-6) 0; flex-wrap: wrap; gap: var(--esp-3);">
+            <hgroup>
+              <h2 class="painel__titulo"><%= c.nome %></h2>
+              <p class="painel__subtitulo"><%= c.slug %> · <%= c.total_produtos %> produto(s) · <%= subs.length %> subcategoria(s)</p>
+            </hgroup>
+            <section class="acoes-tabela" aria-label="Ações da categoria" style="flex-wrap: wrap; row-gap: var(--esp-2);">
+              <label class="toggle" title="Categoria ativa">
+                <input type="checkbox" class="js-toggle-ativa-categoria" <%= c.ativa ? 'checked' : '' %> aria-label="Categoria ativa">
+                <i class="toggle__trilho" aria-hidden="true"></i>
+              </label>
+              <button type="button" class="mover js-mover-categoria" data-direcao="cima" aria-label="Mover categoria para cima"><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
+              <button type="button" class="mover js-mover-categoria" data-direcao="baixo" aria-label="Mover categoria para baixo"><i class="fas fa-arrow-down" aria-hidden="true"></i></button>
+              <a href="/admin/categorias/<%= c.id %>/editar">Editar</a>
+              <a href="/admin/subcategorias/novo?categoria_id=<%= c.id %>">+ Subcategoria</a>
+              <button type="button" class="excluir js-excluir-categoria" data-id="<%= c.id %>" data-nome="<%= c.nome %>">Excluir</button>
+            </section>
+          </header>
+          <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+            <table class="tabela-admin">
+              <thead>
+                <tr>
+                  <th>Subcategoria</th>
+                  <th>Slug</th>
+                  <th class="num">Produtos</th>
+                  <th>Status</th>
+                  <th>Ordem</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody class="js-tbody-subcategorias" data-categoria-id="<%= c.id %>">
+                <% subs.forEach(s => { %>
+                  <tr class="js-subcategoria-row" data-id="<%= s.id %>"
+                    data-busca="<%= (s.nome + ' ' + s.slug).toLowerCase() %>"
+                    data-status="<%= s.ativa ? 'ativo' : 'inativo' %>">
+                    <td><strong><%= s.nome %></strong></td>
+                    <td><%= s.slug %></td>
+                    <td class="num"><%= s.total_produtos %></td>
+                    <td>
+                      <label class="toggle">
+                        <input type="checkbox" class="js-toggle-ativa" <%= s.ativa ? 'checked' : '' %> aria-label="Subcategoria ativa">
+                        <i class="toggle__trilho" aria-hidden="true"></i>
+                      </label>
+                    </td>
+                    <td class="acoes-tabela">
+                      <button type="button" class="mover js-mover" data-direcao="cima" aria-label="Mover para cima"><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
+                      <button type="button" class="mover js-mover" data-direcao="baixo" aria-label="Mover para baixo"><i class="fas fa-arrow-down" aria-hidden="true"></i></button>
+                    </td>
+                    <td class="acoes-tabela">
+                      <a href="/admin/subcategorias/<%= s.id %>/editar">Editar</a>
+                      <button type="button" class="excluir js-excluir" data-id="<%= s.id %>" data-nome="<%= s.nome %>">Excluir</button>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+            <% if (!subs.length) { %>
+              <p class="tabela-admin__vazia js-sem-subcategorias">Nenhuma subcategoria cadastrada nesta categoria.</p>
+            <% } %>
+          </section>
+        </article>
+      <% }) %>
+
+      <p class="tabela-admin__vazia" id="categorias-sem-resultado" hidden>Nenhum resultado para os filtros aplicados.</p>
+    </main>
+  </section>
+
+  <dialog class="dialog-admin" id="dialog-confirmar-exclusao" aria-labelledby="confirmar-exclusao-titulo">
+    <header class="dialog-admin__cabecalho">
+      <h2 id="confirmar-exclusao-titulo">Confirmar exclusão</h2>
+      <button type="button" class="dialog-admin__fechar" id="confirmar-exclusao-fechar" aria-label="Fechar">×</button>
+    </header>
+    <section class="form-admin">
+      <p class="dialog-admin__texto" id="confirmar-exclusao-texto"></p>
+      <footer class="form-admin__acoes">
+        <button type="button" class="btn-admin btn-admin--secundario" id="btn-cancelar-exclusao">Cancelar</button>
+        <button type="button" class="btn-admin btn-admin--perigo" id="btn-confirmar-exclusao">Excluir</button>
+      </footer>
+    </section>
+  </dialog>
+
+  <script src="/js/admin/admin-categorias.js" defer></script>
+</body>
+</html>

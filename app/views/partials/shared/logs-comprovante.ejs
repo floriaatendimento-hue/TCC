@@ -1,0 +1,67 @@
+<%
+/* ADICIONADO — Comprovante da Alteração (módulo de auditoria).
+   Fragmento HTML puro (sem <html>/<head>), injetado via fetch dentro de
+   #dialog-comprovante em admin-logs.ejs — mesmo padrão já usado por
+   #dialog-pedidos-cupom em admin-cupons.ejs. `log` vem de LogAdmin.buscarPorId
+   (já traz foto_perfil/papel do administrador via LEFT JOIN usuarios).
+   `rotuloModulo`/`iconeModulo`/`moduloDaAcao`/`rotuloAcao`/
+   `compararDadosAlteracao` vêm prontos de app/helpers/logsRotulos.js,
+   passados como local pela rota (EJS não tem acesso a `require` dentro
+   do template — só o que a rota manda em res.render). */
+const quando = new Date(log.criado_em);
+const dataFmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(quando);
+const horaFmt = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(quando);
+const modulo = moduloDaAcao(log.acao);
+const comparacoes = compararDadosAlteracao(log.dados_antes, log.dados_depois);
+%>
+<header class="comprovante-cabecalho">
+  <figure class="comprovante-admin">
+    <img src="<%= log.foto_perfil || '/imagens/perfil.png' %>" alt="" data-fallback="/imagens/perfil.png">
+    <figcaption>
+      <strong><%= log.usuario_nome || 'Conta removida' %></strong>
+      <small><%= log.usuario_id ? (log.papel === 'admin' ? 'Administrador' : 'Administrador') : 'Conta administrativa removida' %></small>
+    </figcaption>
+  </figure>
+  <p class="comprovante-id-selo"><i class="fas fa-shield-alt" aria-hidden="true"></i>Comprovante #<%= log.id %></p>
+</header>
+
+<section class="comprovante-secao">
+  <h3 class="comprovante-secao__titulo"><i class="fas fa-info-circle" aria-hidden="true"></i>Informações gerais</h3>
+  <ul class="comprovante-info-grid">
+    <li><small>ID da alteração</small><strong>#<%= log.id %></strong></li>
+    <li><small>Data</small><strong><%= dataFmt %></strong></li>
+    <li><small>Hora</small><strong><%= horaFmt %></strong></li>
+    <li><small>Administrador</small><strong><%= log.usuario_nome || '-' %></strong></li>
+    <li><small>Cargo</small><strong><%= log.usuario_id ? 'Administrador' : '-' %></strong></li>
+    <li><small>Endereço IP</small><strong><%= log.ip || '-' %></strong></li>
+    <li><small>Navegador</small><strong><%= log.navegador || '-' %></strong></li>
+    <li><small>Sistema Operacional</small><strong><%= log.sistema_operacional || '-' %></strong></li>
+    <li><small>Dispositivo</small><strong><%= log.dispositivo || '-' %></strong></li>
+  </ul>
+</section>
+
+<section class="comprovante-secao">
+  <h3 class="comprovante-secao__titulo"><i class="fas fa-history" aria-hidden="true"></i>Alteração realizada</h3>
+  <p class="comprovante-modulo-selo"><i class="fas <%= iconeModulo(modulo) %>" aria-hidden="true"></i><%= rotuloModulo(modulo) %></p>
+  <p class="comprovante-descricao"><strong><%= rotuloAcao(log.acao) %></strong>: <%= log.detalhes || 'Sem detalhes adicionais.' %></p>
+
+  <% if (comparacoes.length) { %>
+    <ul class="comprovante-diff-lista">
+      <% comparacoes.forEach(c => { %>
+        <li class="comprovante-diff-item<%= c.ehDiff ? '' : ' comprovante-diff-item--contexto' %>">
+          <strong class="comprovante-diff-campo"><%= c.rotulo %></strong>
+          <% if (c.ehDiff) { %>
+            <b class="comprovante-diff-valor comprovante-diff-valor--antes"><%= c.antes %></b>
+            <i class="fas fa-arrow-down comprovante-diff-seta" aria-hidden="true"></i>
+            <b class="comprovante-diff-valor comprovante-diff-valor--depois"><%= c.depois %></b>
+            <% if (c.diferenca) { %><b class="comprovante-diff-delta"><%= c.diferenca %></b><% } %>
+          <% } else { %>
+            <b class="comprovante-diff-valor comprovante-diff-valor--contexto"><%= c.depois %></b>
+          <% } %>
+        </li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <p class="comprovante-sem-diff">Esta ação não tem um comparativo estruturado de valores. Veja a descrição acima.</p>
+  <% } %>
+</section>

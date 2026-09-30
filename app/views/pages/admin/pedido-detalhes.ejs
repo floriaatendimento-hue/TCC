@@ -1,0 +1,298 @@
+<%
+/* ADICIONADO: página completa de detalhes do pedido para o admin —
+   substitui o antigo <dialog id="dialog-pedido"> de Pedidos.ejs, que
+   comprimia cliente, endereço, itens, financeiro e histórico dentro de
+   uma janela pequena com scroll interno. `pedido` já vem pronto de
+   Pedido.detalhesCompletos (itens + timeline inclusos); este template só
+   formata e organiza em seções — nenhuma regra de negócio nova. Os
+   mesmos endpoints que o modal antigo usava (PATCH /api/pedidos/:id/status
+   e PATCH /api/admin/pedidos/:id/pagamento) continuam sendo os únicos
+   pontos de escrita, agora chamados por admin-pedido-detalhes.js.
+   Nenhuma <div> — só HTML semântico, seguindo o padrão do resto do
+   painel admin (ver admin-cliente-detalhes.ejs). */
+const dataFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR').format(new Date(d)) : '-';
+const dataLongaFmt = (d) => {
+  if (!d) return '-';
+  const dt = new Date(d);
+  const data = dt.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+  const hora = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return `${data} às ${hora}`;
+};
+const moeda = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+const capitalizar = (s) => { s = String(s || ''); return s ? s.charAt(0).toUpperCase() + s.slice(1) : '-'; };
+
+const BADGE_STATUS_PEDIDO = {
+  preparando: 'badge--dourado', enviado: 'badge--azul', em_transporte: 'badge--azul',
+  saiu_entrega: 'badge--azul', entregue: 'badge--verde', cancelado: 'badge--vermelho',
+};
+/* Mesmo mapeamento de ícone usado em Pedidos.ejs/admin-pedidos.js —
+   um único componente visual de status (badge colorido + ícone) para
+   toda alteração de status, manual ou não. */
+const ICONE_STATUS_PEDIDO = {
+  preparando: 'fa-box', enviado: 'fa-truck', em_transporte: 'fa-route',
+  saiu_entrega: 'fa-shipping-fast', entregue: 'fa-check-circle', cancelado: 'fa-ban',
+};
+const BADGE_STATUS_PAGAMENTO = {
+  pendente: 'badge--dourado', processando: 'badge--azul', aprovado: 'badge--verde',
+  recusado: 'badge--vermelho', expirado: 'badge--cinza', estornado: 'badge--cinza',
+};
+
+const enderecoTexto = [
+  pedido.end_logradouro && (pedido.end_logradouro + (pedido.end_numero ? ', ' + pedido.end_numero : '')),
+  pedido.end_complemento, pedido.end_bairro,
+  (pedido.end_cidade && pedido.end_uf) ? (pedido.end_cidade + ' - ' + pedido.end_uf) : (pedido.end_cidade || pedido.end_uf),
+  pedido.end_cep,
+].filter(Boolean).join(', ');
+const mapaHref = enderecoTexto ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(enderecoTexto) : '';
+
+const itens = pedido.itens || [];
+const qtdTotalItens = itens.reduce((s, i) => s + Number(i.quantidade || 0), 0);
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Pedido #<%= pedido.id %></title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'pedidos' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Pedido #' + pedido.id }) %>
+
+    <main class="admin-main pedido-admin-detalhes" data-pedido-id="<%= pedido.id %>">
+
+      <header class="cliente-topo">
+        <nav class="admin-breadcrumb-secundaria" aria-label="Trilha de navegação">
+          <a href="/pedidos">Pedidos</a><b aria-hidden="true">/</b><b class="atual">Pedido #<%= pedido.id %></b>
+        </nav>
+        <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/pedidos">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar para pedidos
+        </a>
+      </header>
+
+      <!-- CABEÇALHO DO PEDIDO -->
+      <article class="pedido-hero" aria-label="Resumo do pedido">
+        <hgroup class="pedido-hero__titulo">
+          <h1>Pedido #<%= pedido.id %></h1>
+          <p class="pedido-hero__data"><time datetime="<%= new Date(pedido.criado_em).toISOString() %>"><%= dataLongaFmt(pedido.criado_em) %></time></p>
+        </hgroup>
+
+        <p class="pedido-hero__selos">
+          <b class="badge <%= BADGE_STATUS_PEDIDO[pedido.status] || 'badge--cinza' %>">
+            <i class="fas <%= ICONE_STATUS_PEDIDO[pedido.status] || 'fa-circle' %>" aria-hidden="true"></i>
+            <%= rotulosEtapa[pedido.status] || pedido.status %>
+          </b>
+          <b class="badge <%= BADGE_STATUS_PAGAMENTO[pedido.status_pagamento] || 'badge--cinza' %>"><%= rotulosStatusPagamento[pedido.status_pagamento] || pedido.status_pagamento %></b>
+        </p>
+
+        <nav class="pedido-hero__acoes" aria-label="Ações do pedido">
+          <button type="button" class="btn-admin btn-admin--secundario btn-admin--pequeno js-copiar" data-copiar="<%= pedido.id %>">
+            <i class="fas fa-copy" aria-hidden="true"></i>Copiar nº do pedido
+          </button>
+          <% if (pedido.codigo_rastreio) { %>
+            <button type="button" class="btn-admin btn-admin--secundario btn-admin--pequeno js-copiar" data-copiar="<%= pedido.codigo_rastreio %>">
+              <i class="fas fa-truck" aria-hidden="true"></i>Copiar rastreio (<%= pedido.codigo_rastreio %>)
+            </button>
+          <% } %>
+          <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/pedido/<%= pedido.id %>/comprovante/pdf?baixar=1" target="_blank" rel="noopener">
+            <i class="fas fa-file-download" aria-hidden="true"></i>Baixar comprovante
+          </a>
+          <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/pedido/<%= pedido.id %>/comprovante?imprimir=1" target="_blank" rel="noopener">
+            <i class="fas fa-print" aria-hidden="true"></i>Imprimir pedido
+          </a>
+          <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/pedido/<%= pedido.id %>" target="_blank" rel="noopener">
+            <i class="fas fa-external-link-alt" aria-hidden="true"></i>Ver como cliente
+          </a>
+        </nav>
+      </article>
+
+      <section class="cliente-layout">
+
+        <!-- COLUNA LATERAL -->
+        <aside class="cliente-lateral" aria-label="Status, cliente e pagamento">
+
+          <!-- STATUS DO PEDIDO -->
+          <article class="painel" aria-label="Status do pedido">
+            <header class="painel__cabecalho"><p class="painel__titulo">Status do pedido</p></header>
+            <p>
+              <b class="badge <%= BADGE_STATUS_PEDIDO[pedido.status] || 'badge--cinza' %>">
+                <i class="fas <%= ICONE_STATUS_PEDIDO[pedido.status] || 'fa-circle' %>" aria-hidden="true"></i>
+                <%= rotulosEtapa[pedido.status] || pedido.status %>
+              </b>
+            </p>
+            <form class="form-admin__linha pedido-form-inline" id="form-status-pedido">
+              <label class="campo-admin"><b class="sr-only">Novo status</b>
+                <select id="pedido-status-select" name="status">
+                  <% statusValidos.forEach(s => { %>
+                    <option value="<%= s %>" <%= s === pedido.status ? 'selected' : '' %>><%= rotulosEtapa[s] || s %></option>
+                  <% }) %>
+                </select>
+              </label>
+              <button type="submit" class="btn-admin btn-admin--primario btn-admin--pequeno">Salvar status</button>
+            </form>
+            <output class="form-admin__mensagem" id="status-pedido-msg" role="alert"></output>
+          </article>
+
+          <!-- SITUAÇÃO DO PAGAMENTO -->
+          <article class="painel" aria-label="Situação do pagamento">
+            <header class="painel__cabecalho"><p class="painel__titulo">Situação do pagamento</p></header>
+            <p><b class="badge <%= BADGE_STATUS_PAGAMENTO[pedido.status_pagamento] || 'badge--cinza' %>"><%= rotulosStatusPagamento[pedido.status_pagamento] || pedido.status_pagamento %></b></p>
+            <form class="form-admin__linha pedido-form-inline" id="form-pagamento-pedido">
+              <label class="campo-admin"><b class="sr-only">Nova situação de pagamento</b>
+                <select id="pedido-pagamento-select" name="status_pagamento">
+                  <% statusPagamentoValidos.forEach(s => { %>
+                    <option value="<%= s %>" <%= s === pedido.status_pagamento ? 'selected' : '' %>><%= rotulosStatusPagamento[s] || s %></option>
+                  <% }) %>
+                </select>
+              </label>
+              <button type="submit" class="btn-admin btn-admin--secundario btn-admin--pequeno">Salvar pagamento</button>
+            </form>
+            <output class="form-admin__mensagem" id="pagamento-pedido-msg" role="alert"></output>
+          </article>
+
+          <!-- CLIENTE -->
+          <article class="painel" aria-label="Cliente">
+            <header class="painel__cabecalho"><p class="painel__titulo">Cliente</p></header>
+            <p class="pedido-detalhe-cliente">
+              <% if (pedido.cliente_foto) { %><img class="pedido-detalhe-avatar" src="<%= pedido.cliente_foto %>" alt=""><% } %>
+              <strong><%= pedido.cliente_nome %></strong>
+            </p>
+            <dl class="lista-def">
+              <dt>E-mail</dt><dd><%= pedido.cliente_email %></dd>
+              <dt>Telefone</dt><dd><%= pedido.cliente_telefone || '-' %></dd>
+              <dt>ID do cliente</dt><dd>#<%= pedido.usuario_id %></dd>
+            </dl>
+            <a class="btn-admin btn-admin--secundario btn-admin--pequeno pedido-lateral-acao" href="/admin/clientes/<%= pedido.usuario_id %>">
+              <i class="fas fa-user" aria-hidden="true"></i>Ver perfil completo do cliente
+            </a>
+          </article>
+
+          <!-- ENDEREÇO DE ENTREGA -->
+          <article class="painel" aria-label="Endereço de entrega">
+            <header class="painel__cabecalho"><p class="painel__titulo">Endereço de entrega</p></header>
+            <% if (!enderecoTexto) { %>
+              <p class="tabela-admin__vazia">Endereço não informado.</p>
+            <% } else { %>
+              <address class="pedido-detalhe-endereco">
+                <% if (pedido.end_destinatario) { %><%= pedido.end_destinatario %><br><% } %>
+                <%= pedido.end_logradouro %><% if (pedido.end_numero) { %>, <%= pedido.end_numero %><% } %><br>
+                <% if (pedido.end_complemento) { %><%= pedido.end_complemento %><br><% } %>
+                <% if (pedido.end_bairro) { %><%= pedido.end_bairro %><br><% } %>
+                <%= pedido.end_cidade %><% if (pedido.end_uf) { %> - <%= pedido.end_uf %><% } %><br>
+                CEP <%= pedido.end_cep %>
+                <% if (mapaHref) { %><br><a href="<%= mapaHref %>" target="_blank" rel="noopener">Abrir endereço no mapa</a><% } %>
+              </address>
+            <% } %>
+          </article>
+
+          <!-- PAGAMENTO -->
+          <article class="painel" aria-label="Pagamento">
+            <header class="painel__cabecalho"><p class="painel__titulo">Pagamento</p></header>
+            <dl class="lista-def">
+              <dt>Método</dt><dd><%= capitalizar(pedido.forma_pagto) %></dd>
+              <% if (pedido.parcelas > 1) { %><dt>Parcelas</dt><dd><%= pedido.parcelas %>x de <%= moeda(pedido.total / pedido.parcelas) %></dd><% } %>
+              <% if (pedido.cartao_final) { %><dt>Cartão</dt><dd><%= pedido.cartao_bandeira ? capitalizar(pedido.cartao_bandeira) + ' ' : '' %>final <%= pedido.cartao_final %></dd><% } %>
+              <dt>Situação</dt><dd><b class="badge <%= BADGE_STATUS_PAGAMENTO[pedido.status_pagamento] || 'badge--cinza' %>"><%= rotulosStatusPagamento[pedido.status_pagamento] || pedido.status_pagamento %></b></dd>
+              <% if (pedido.pagamento_confirmado_em) { %><dt>Confirmado em</dt><dd><%= dataLongaFmt(pedido.pagamento_confirmado_em) %></dd><% } %>
+              <dt>Valor pago</dt><dd><strong><%= moeda(pedido.total) %></strong></dd>
+            </dl>
+          </article>
+
+        </aside>
+
+        <!-- COLUNA PRINCIPAL -->
+        <section class="cliente-principal">
+
+          <!-- PRODUTOS DO PEDIDO -->
+          <article class="painel" aria-label="Produtos do pedido">
+            <header class="painel__cabecalho">
+              <p class="painel__titulo">Produtos do pedido</p>
+              <p class="painel__subtitulo"><%= qtdTotalItens %> <%= qtdTotalItens === 1 ? 'item' : 'itens' %></p>
+            </header>
+            <% if (!itens.length) { %>
+              <p class="tabela-admin__vazia">Nenhum item registrado neste pedido.</p>
+            <% } else { %>
+              <ul class="produto-pedido-lista">
+                <% itens.forEach(i => {
+                     const subtotal = Number(i.quantidade) * Number(i.preco_unit);
+                     const sku = i.produto_id ? 'PROD-' + String(i.produto_id).padStart(4, '0') : '-';
+                %>
+                  <li class="produto-pedido-item">
+                    <img class="produto-pedido-item__img" src="<%= i.produto_imagem || '/imagens/image.png' %>" alt="" data-fallback="/imagens/image.png">
+                    <hgroup class="produto-pedido-item__info">
+                      <h3><%= i.produto_nome || 'Produto removido' %></h3>
+                      <p><%= i.categoria_nome || '-' %> · SKU <%= sku %><% if (i.cor) { %> · <%= i.cor %><% } %></p>
+                      <% if (i.promocao_nome) { %><p class="produto-pedido-item__promocao">Promoção: <%= i.promocao_nome %></p><% } %>
+                    </hgroup>
+                    <dl class="produto-pedido-item__valores">
+                      <dt>Quantidade</dt><dd><%= Number(i.quantidade) %></dd>
+                      <dt>Preço unitário</dt><dd><%= moeda(i.preco_unit) %></dd>
+                      <dt>Subtotal</dt><dd class="produto-pedido-item__subtotal"><%= moeda(subtotal) %></dd>
+                    </dl>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } %>
+          </article>
+
+          <!-- RESUMO DO PEDIDO -->
+          <article class="painel resumo-financeiro-pedido" aria-label="Resumo do pedido">
+            <header class="painel__cabecalho"><p class="painel__titulo">Resumo do pedido</p></header>
+            <dl class="lista-def resumo-financeiro-pedido__linhas">
+              <dt>Subtotal</dt><dd><%= moeda(pedido.subtotal) %></dd>
+              <% if (Number(pedido.desconto) > 0) { %><dt>Desconto</dt><dd class="resumo-financeiro-pedido__desconto">− <%= moeda(pedido.desconto) %></dd><% } %>
+              <% if (pedido.cupom) { %><dt>Cupom aplicado</dt><dd><%= pedido.cupom %></dd><% } %>
+              <% if (pedido.promocao_carrinho_nome) { %>
+                <dt>Promoção aplicada</dt>
+                <dd><%= pedido.promocao_carrinho_nome %> (− <%= moeda(pedido.desconto_promocao_carrinho) %>)</dd>
+              <% } %>
+              <dt>Frete</dt><dd><%= Number(pedido.frete) > 0 ? moeda(pedido.frete) : 'Grátis' %></dd>
+            </dl>
+            <p class="resumo-financeiro-pedido__total"><b>Total</b><strong><%= moeda(pedido.total) %></strong></p>
+          </article>
+
+          <!-- HISTÓRICO -->
+          <article class="painel" aria-label="Histórico do pedido">
+            <header class="painel__cabecalho"><p class="painel__titulo">Histórico</p></header>
+            <% if (!pedido.timeline || !pedido.timeline.length) { %>
+              <p class="tabela-admin__vazia">Sem histórico registrado.</p>
+            <% } else { %>
+              <ol class="pedido-timeline">
+                <% pedido.timeline.forEach(t => { %>
+                  <li class="<%= t.etapa === 'cancelado' ? 'is-cancelado' : '' %>">
+                    <strong class="pedido-timeline-etapa"><%= rotulosEtapa[t.etapa] || t.etapa %></strong>
+                    <time class="pedido-timeline-quando" datetime="<%= new Date(t.criado_em).toISOString() %>">
+                      <%= dataLongaFmt(t.criado_em) %><% if (t.usuario_admin_nome) { %> · por <%= t.usuario_admin_nome %><% } %>
+                    </time>
+                    <% if (t.observacao) { %><p class="pedido-timeline-obs"><%= t.observacao %></p><% } %>
+                  </li>
+                <% }) %>
+              </ol>
+            <% } %>
+          </article>
+
+        </section>
+      </section>
+
+    </main>
+  </section>
+
+  <dialog class="dialog-admin" id="dialog-confirmar-alteracao" aria-labelledby="confirmar-alteracao-titulo">
+    <header class="dialog-admin__cabecalho">
+      <h2 id="confirmar-alteracao-titulo">Confirmar alteração</h2>
+      <button type="button" class="dialog-admin__fechar" id="confirmar-alteracao-fechar" aria-label="Fechar">×</button>
+    </header>
+    <section class="form-admin">
+      <p class="dialog-admin__texto" id="confirmar-alteracao-texto"></p>
+      <footer class="form-admin__acoes">
+        <button type="button" class="btn-admin btn-admin--secundario" id="btn-cancelar-alteracao">Cancelar</button>
+        <button type="button" class="btn-admin btn-admin--primario" id="btn-confirmar-alteracao">Confirmar</button>
+      </footer>
+    </section>
+  </dialog>
+
+  <script src="/js/admin/admin-pedido-detalhes.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jasmim - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'jasmim',
+      nome: 'Jasmim',
+      sku: 'FLO-JASMIM',
+      marca: null,
+      categoriaNome: 'Plantas',
+      categoriaSlug: 'plantas',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/jasmim.png', alt: 'Jasmim - vista frontal' },
+        { src: '/imagens/belo.png', alt: 'Jasmim - flor em detalhe' },
+        { src: '/imagens/jasmim.png', alt: 'Jasmim - ramagem' }
+      ],
+      precoAtual: 75.00,
+      precoAntigo: 90.00,
+      parcelasTexto: 'em até 2x sem juros',
+      estoque: 20,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(38 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-sun', texto: 'Sol pleno ou meia sombra' },
+        { icone: 'fas fa-tint', texto: 'Rega regular' },
+        { icone: 'fas fa-star', texto: 'Flor perfumada' }
+      ],
+      descricao: 'O Jasmim (Jasminum sambac) é uma trepadeira de flores brancas intensamente perfumadas, considerado um dos aromas mais marcantes do reino vegetal. Floresce principalmente na primavera e no verão, liberando seu perfume inebriante no entardecer e à noite. Atrai polinizadores como abelhas e borboletas, contribuindo para o equilíbrio do ecossistema do jardim. Ótimo para treliças, grades e varandas.',
+      beneficios: 'Perfuma o ambiente naturalmente durante a floração e atrai polinizadores benéficos para o jardim.',
+      comoUtilizar: 'Plante próximo a uma treliça ou grade para guiar o crescimento e garanta ao menos 4 horas de sol direto por dia.',
+      recomendacoes: 'Pode ser podado logo após a floração para estimular novos brotos e manter o formato desejado.',
+      ficha: [
+        { rotulo: 'Nome científico', valor: 'Jasminum sp.' },
+        { rotulo: 'Família', valor: 'Oleaceae' },
+        { rotulo: 'Porte (muda vendida)', valor: '40 – 70 cm' },
+        { rotulo: 'Luminosidade', valor: 'Sol pleno (mínimo 4h de sol direto)' },
+        { rotulo: 'Toxicidade', valor: 'Não tóxica: a maioria das espécies verdadeiras de jasmim é segura para cães e gatos' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-sun', titulo: 'Luz', texto: 'Sol pleno para garantir floração abundante.' },
+        { icone: 'fas fa-tint', titulo: 'Rega', texto: '2 vezes por semana, mantendo o solo levemente úmido, sem encharcar.' },
+        { icone: 'fas fa-thermometer-half', titulo: 'Temperatura', texto: '15°C – 28°C.' },
+        { icone: 'fas fa-exclamation-triangle', titulo: 'Atenção', texto: 'Precisa de suporte para trepar. Pode ser podado após a floração.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

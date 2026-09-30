@@ -1,0 +1,266 @@
+<%
+/* ADICIONADO (Fornecedores — Fase 2): página de detalhes do fornecedor
+   (seção 1.10 da especificação) — mirror estrutural de
+   cliente-detalhes.ejs (mesmas classes: .cliente-perfil-card→variante
+   fornecedor, .painel/.painel__cabecalho, .lista-def, .log-timeline),
+   pra manter o mesmo design system do resto do admin. */
+const dataFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR').format(new Date(d)) : '-';
+const dataHoraFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(d)) : '-';
+const moeda = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+
+const ROTULOS_STATUS_FORN = { ativo: 'Ativo', inativo: 'Inativo', bloqueado: 'Bloqueado' };
+const CLASSE_BADGE_FORN = { ativo: 'badge--verde', inativo: 'badge--cinza', bloqueado: 'badge--vermelho' };
+const ROTULOS_CONTA = { pendente: 'Pendente', parcialmente_paga: 'Parcial', paga: 'Paga', vencida: 'Vencida', cancelada: 'Cancelada' };
+const CLASSE_CONTA = { pendente: 'badge--dourado', parcialmente_paga: 'badge--azul', paga: 'badge--verde', vencida: 'badge--vermelho', cancelada: 'badge--cinza' };
+
+const ICONE_ACAO = {
+  'fornecedor.criar': 'fa-user-plus', 'fornecedor.editar': 'fa-pen', 'fornecedor.status': 'fa-toggle-on',
+  'compra.criar': 'fa-shopping-cart', 'compra.cancelar': 'fa-times-circle',
+  'conta_pagar.pagamento': 'fa-hand-holding-usd', 'conta_pagar.criar_avulsa': 'fa-file-invoice-dollar',
+  'pagamento_fornecedor.estornar': 'fa-undo',
+};
+const temEnderecoEstruturado = fornecedor.cep || fornecedor.logradouro;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - <%= fornecedor.razao_social %></title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'fornecedores' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: fornecedor.razao_social }) %>
+
+    <main class="admin-main" data-fornecedor-id="<%= fornecedor.id %>">
+
+      <header class="cliente-topo">
+        <nav class="admin-breadcrumb-secundaria" aria-label="Trilha de navegação">
+          <a href="/admin/fornecedores">Fornecedores</a><b aria-hidden="true">/</b><b class="atual"><%= fornecedor.razao_social %></b>
+        </nav>
+        <a class="btn-admin btn-admin--secundario btn-admin--pequeno cliente-topo__voltar" href="/admin/fornecedores">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar para fornecedores
+        </a>
+      </header>
+
+      <!-- PERFIL DO FORNECEDOR -->
+      <article class="cliente-perfil-card" aria-label="Perfil do fornecedor">
+        <figure class="cliente-perfil-avatar">
+          <i class="fas fa-truck" aria-hidden="true" style="font-size: 28px; color: var(--dourado);"></i>
+        </figure>
+
+        <hgroup class="cliente-perfil-id">
+          <h1><%= fornecedor.razao_social %></h1>
+          <p class="cliente-perfil-selos">
+            <b class="badge <%= CLASSE_BADGE_FORN[fornecedor.status] %>"><%= ROTULOS_STATUS_FORN[fornecedor.status] %></b>
+            <% if (fornecedor.nome_fantasia) { %><b class="badge badge--cinza"><%= fornecedor.nome_fantasia %></b><% } %>
+            <b class="cliente-perfil-desde">Fornecedor desde <%= dataFmt(fornecedor.criado_em) %></b>
+          </p>
+        </hgroup>
+
+        <dl class="cliente-perfil-contato">
+          <dt><i class="fas fa-envelope" aria-hidden="true"></i><b class="sr-only">E-mail</b></dt>
+          <dd><% if (fornecedor.email) { %><a href="mailto:<%= fornecedor.email %>"><%= fornecedor.email %></a><% } else { %>Não informado<% } %></dd>
+          <dt><i class="fas fa-phone" aria-hidden="true"></i><b class="sr-only">Telefone</b></dt>
+          <dd><%= fornecedor.telefone || 'Não informado' %></dd>
+        </dl>
+
+        <nav class="cliente-perfil-acoes" aria-label="Ações do fornecedor">
+          <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/admin/fornecedores/<%= fornecedor.id %>/editar">
+            <i class="fas fa-pen" aria-hidden="true"></i>Editar
+          </a>
+          <% if (fornecedor.status === 'ativo') { %>
+            <a href="#" class="btn-admin btn-admin--secundario btn-admin--pequeno js-status" data-id="<%= fornecedor.id %>" data-status="bloqueado">
+              <i class="fas fa-ban" aria-hidden="true"></i>Bloquear
+            </a>
+          <% } else { %>
+            <a href="#" class="btn-admin btn-admin--primario btn-admin--pequeno js-status" data-id="<%= fornecedor.id %>" data-status="ativo">
+              <i class="fas fa-check" aria-hidden="true"></i>Reativar
+            </a>
+          <% } %>
+        </nav>
+      </article>
+
+      <!-- ATALHOS -->
+      <nav class="cliente-atalhos" aria-label="Atalhos">
+        <a class="cliente-atalho" href="#resumo"><i class="fas fa-chart-pie" aria-hidden="true"></i>Resumo financeiro</a>
+        <a class="cliente-atalho" href="#compras"><i class="fas fa-shopping-cart" aria-hidden="true"></i>Compras</a>
+        <a class="cliente-atalho" href="#contas"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i>Contas a pagar</a>
+        <a class="cliente-atalho" href="#historico"><i class="fas fa-history" aria-hidden="true"></i>Histórico</a>
+        <a class="cliente-atalho" href="/admin/compras/nova?fornecedor_id=<%= fornecedor.id %>"><i class="fas fa-plus" aria-hidden="true"></i>Nova compra</a>
+      </nav>
+
+      <!-- RESUMO FINANCEIRO -->
+      <section id="resumo" class="stats-grid" style="margin-bottom: var(--esp-5);">
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-shopping-cart"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.totalComprado) %></p>
+          <p class="stat-card__legenda">Total comprado</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--verde" aria-hidden="true"><i class="fas fa-hand-holding-usd"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.totalPago) %></p>
+          <p class="stat-card__legenda">Total pago</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-hourglass-half"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.totalEmAberto) %></p>
+          <p class="stat-card__legenda">Em aberto</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--cinza" aria-hidden="true"><i class="fas fa-boxes"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= resumo.qtdCompras %></p>
+          <p class="stat-card__legenda">Compras</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--cinza" aria-hidden="true"><i class="fas fa-file-invoice"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= resumo.qtdContas %></p>
+          <p class="stat-card__legenda">Contas a pagar</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--erro" aria-hidden="true"><i class="fas fa-exclamation-triangle"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= resumo.qtdContasVencidas %></p>
+          <p class="stat-card__legenda">Contas vencidas</p>
+        </article>
+      </section>
+
+      <section class="cliente-layout">
+
+        <!-- COLUNA LATERAL -->
+        <aside class="cliente-lateral" aria-label="Informações do fornecedor">
+          <article class="painel" aria-label="Dados cadastrais">
+            <header class="painel__cabecalho"><p class="painel__titulo">Dados cadastrais</p></header>
+            <dl class="lista-def">
+              <dt>Razão social</dt><dd><%= fornecedor.razao_social %></dd>
+              <% if (fornecedor.nome_fantasia) { %><dt>Nome fantasia</dt><dd><%= fornecedor.nome_fantasia %></dd><% } %>
+              <dt>Documento</dt><dd><%= fornecedor.documento || 'Não informado' %></dd>
+              <dt>Telefone</dt><dd><%= fornecedor.telefone || 'Não informado' %></dd>
+              <dt>E-mail</dt><dd><%= fornecedor.email || 'Não informado' %></dd>
+              <dt>Cadastro</dt><dd><%= dataHoraFmt(fornecedor.criado_em) %></dd>
+              <dt>Status</dt><dd><b class="badge <%= CLASSE_BADGE_FORN[fornecedor.status] %>"><%= ROTULOS_STATUS_FORN[fornecedor.status] %></b></dd>
+            </dl>
+            <% if (fornecedor.observacoes) { %>
+              <p class="painel__subtitulo" style="margin-top: var(--esp-3);"><%= fornecedor.observacoes %></p>
+            <% } %>
+          </article>
+
+          <article class="painel" aria-label="Endereço">
+            <header class="painel__cabecalho"><p class="painel__titulo">Endereço</p></header>
+            <% if (!temEnderecoEstruturado && !fornecedor.endereco) { %>
+              <p class="tabela-admin__vazia">Nenhum endereço cadastrado.</p>
+            <% } else if (temEnderecoEstruturado) { %>
+              <address class="cliente-endereco-principal">
+                <%= fornecedor.logradouro %>, <%= fornecedor.numero %><% if (fornecedor.complemento) { %>, <%= fornecedor.complemento %><% } %><br>
+                <%= fornecedor.bairro %>, <%= fornecedor.cidade %>/<%= fornecedor.uf %><br>
+                CEP <%= fornecedor.cep %>
+              </address>
+              <% if (fornecedor.validacao_status && fornecedor.validacao_status !== 'nao_validado') { %>
+                <p class="painel__subtitulo" style="margin-top: var(--esp-2);">
+                  <i class="fas <%= fornecedor.validacao_status === 'valid' ? 'fa-check-circle' : 'fa-info-circle' %>" aria-hidden="true"></i>
+                  Endereço <%= fornecedor.validacao_status === 'valid' ? 'confirmado' : 'parcialmente confirmado' %> via ViaCEP/OpenStreetMap.
+                </p>
+              <% } %>
+            <% } else { %>
+              <address class="cliente-endereco-principal"><%= fornecedor.endereco %></address>
+              <p class="painel__subtitulo" style="margin-top: var(--esp-2);">Endereço em formato livre (cadastrado antes dos campos estruturados) — edite o fornecedor para atualizar.</p>
+            <% } %>
+          </article>
+        </aside>
+
+        <!-- COLUNA PRINCIPAL -->
+        <section class="cliente-principal">
+
+          <!-- COMPRAS -->
+          <article class="painel" id="compras" aria-label="Compras">
+            <header class="painel__cabecalho">
+              <p class="painel__titulo">Compras (<%= compras.length %>)</p>
+              <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/admin/compras?fornecedor_id=<%= fornecedor.id %>">Ver todas</a>
+            </header>
+            <% if (!compras.length) { %>
+              <p class="tabela-admin__vazia">Nenhuma compra registrada com este fornecedor ainda.</p>
+            <% } else { %>
+              <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+                <table class="tabela-admin">
+                  <thead><tr><th>Compra</th><th>Data</th><th class="num">Total</th><th>Status</th><th class="num">Saldo</th><th>Ações</th></tr></thead>
+                  <tbody>
+                    <% compras.forEach(c => { %>
+                      <tr>
+                        <td><strong>#<%= c.id %></strong><% if (c.qtd_parcelas > 1) { %> <small>(<%= c.qtd_parcelas %>x)</small><% } %></td>
+                        <td><%= dataFmt(c.data_compra) %></td>
+                        <td class="num"><%= moeda(c.total) %></td>
+                        <td>
+                          <% if (c.status === 'cancelada') { %><b class="badge badge--cinza">Cancelada</b>
+                          <% } else { %><b class="badge <%= CLASSE_CONTA[c.conta_status] || 'badge--cinza' %>"><%= ROTULOS_CONTA[c.conta_status] || c.conta_status %></b><% } %>
+                        </td>
+                        <td class="num"><%= moeda(c.saldo) %></td>
+                        <td class="acoes-tabela"><a href="/admin/compras/<%= c.id %>">Detalhes</a></td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              </section>
+            <% } %>
+          </article>
+
+          <!-- CONTAS A PAGAR -->
+          <article class="painel" id="contas" aria-label="Contas a pagar">
+            <header class="painel__cabecalho">
+              <p class="painel__titulo">Contas a Pagar (<%= contas.length %>)</p>
+              <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/admin/contas-pagar?fornecedor_id=<%= fornecedor.id %>">Ver todas</a>
+            </header>
+            <% if (!contas.length) { %>
+              <p class="tabela-admin__vazia">Nenhuma conta a pagar para este fornecedor ainda.</p>
+            <% } else { %>
+              <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+                <table class="tabela-admin">
+                  <thead><tr><th>Descrição</th><th>Vencimento</th><th class="num">Valor</th><th>Status</th><th class="num">Saldo</th></tr></thead>
+                  <tbody>
+                    <% contas.forEach(c => { %>
+                      <tr>
+                        <td>
+                          <% if (c.compra_id) { %>Compra #<%= c.compra_numero %><% if (c.parcela_total > 1) { %> — parcela <%= c.parcela_numero %>/<%= c.parcela_total %><% } %>
+                          <% } else { %><%= c.descricao %><% } %>
+                        </td>
+                        <td><%= dataFmt(c.vencimento) %></td>
+                        <td class="num"><%= moeda(c.valor_original) %></td>
+                        <td><b class="badge <%= CLASSE_CONTA[c.status_exibicao] || 'badge--cinza' %>"><%= ROTULOS_CONTA[c.status_exibicao] || c.status_exibicao %></b></td>
+                        <td class="num"><%= moeda(c.saldo) %></td>
+                      </tr>
+                    <% }) %>
+                  </tbody>
+                </table>
+              </section>
+            <% } %>
+          </article>
+
+          <!-- HISTÓRICO -->
+          <article class="painel" id="historico" aria-label="Histórico de alterações">
+            <header class="painel__cabecalho"><p class="painel__titulo">Histórico</p></header>
+            <% if (!historico.length) { %>
+              <p class="tabela-admin__vazia">Nenhum evento registrado ainda.</p>
+            <% } else { %>
+              <ul class="log-timeline">
+                <% historico.forEach(ev => { %>
+                  <li class="log-timeline__item">
+                    <i class="log-timeline__marcador" aria-hidden="true"><i class="fas <%= ICONE_ACAO[ev.acao] || 'fa-circle' %>"></i></i>
+                    <article class="log-card">
+                      <header class="log-card__cabecalho"><p class="log-card__quando"><%= dataHoraFmt(ev.criado_em) %></p></header>
+                      <p class="log-card__acao"><strong><%= ev.usuario_nome || 'Sistema' %></strong> — <%= ev.detalhes %></p>
+                    </article>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } %>
+          </article>
+
+        </section>
+      </section>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-toast.js" defer></script>
+  <script src="/js/admin/admin-fornecedores.js" defer></script>
+</body>
+</html>

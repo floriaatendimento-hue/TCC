@@ -1,0 +1,152 @@
+/* Tamanho da fonte */
+html[data-a11y-fonte="grande"] {
+  --texto-xs:   14px;
+  --texto-sm:   16px;
+  --texto-base: 17.5px;
+  --texto-md:   21px;
+  --titulo-sm:  1.7rem;
+  --titulo-md:  2.3rem;
+  --titulo-lg:  3.1rem;
+  font-size: 112.5%;
+}
+
+html[data-a11y-fonte="muito_grande"] {
+  --texto-xs:   16px;
+  --texto-sm:   18.5px;
+  --texto-base: 20px;
+  --texto-md:   24px;
+  --titulo-sm:  2rem;
+  --titulo-md:  2.7rem;
+  --titulo-lg:  3.5rem;
+  font-size: 125%;
+}
+
+/* Espaçamento de texto */
+html[data-a11y-espacamento="aumentado"] body :is(p, li, dd, dt, td, th, label, a, b, i, small, strong, span, figcaption, legend, summary) {
+  line-height: 1.7 !important;
+  letter-spacing: 0.02em !important;
+  word-spacing: 0.06em !important;
+}
+
+html[data-a11y-espacamento="muito_aumentado"] body :is(p, li, dd, dt, td, th, label, a, b, i, small, strong, span, figcaption, legend, summary) {
+  line-height: 2 !important;
+  letter-spacing: 0.045em !important;
+  word-spacing: 0.12em !important;
+}
+
+html[data-a11y-espacamento="aumentado"] body :is(p, li, dd, td),
+html[data-a11y-espacamento="muito_aumentado"] body :is(p, li, dd, td) {
+  margin-bottom: 0.6em;
+}
+
+/* Alto contraste */
+html[data-a11y-contraste="1"] {
+  --verde-escuro:   #000000;
+  --verde-medio:    #001a10;
+  --verde-sidebar:  #000000;
+  --verde-claro:    #d8e8de;
+  --dourado:        #7a5a1e;
+  --dourado-claro:  #5c4315;
+  --dourado-hover:  #4a3610;
+  --terracota:        #7a2f12;
+  --terracota-claro:  #5c220d;
+  --terracota-escuro: #401606;
+  --creme:          #ffffff;
+  --creme-escuro:   #ffffff;
+  --cinza-bg:       #ffffff;
+  --texto:          #000000;
+  --texto-suave:    #1a1a1a;
+  --texto-fraco:    #2b2b2b;
+  --borda:          rgba(0,0,0,0.55);
+  --borda-dourada:  rgba(0,0,0,0.4);
+  --sucesso:        #0b5c34;
+  --erro:           #8a0e0e;
+  --aviso-texto:    #5c3d00;
+}
+
+html[data-a11y-contraste="1"] body {
+  background: #ffffff !important;
+}
+
+html[data-a11y-contraste="1"] :is(button, a, input, select, textarea, [role="button"]):not(.skip-link) {
+  border-color: currentColor !important;
+}
+
+html[data-a11y-contraste="1"] img {
+  filter: contrast(1.05) saturate(0.9);
+}
+
+html[data-a11y-movimento="1"] *,
+html[data-a11y-movimento="1"] *::before,
+html[data-a11y-movimento="1"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Destacar links */
+html[data-a11y-links="1"] :is(main, article, section, aside, header, footer, nav) a:not(.skip-link):not([class*="btn"]) {
+  text-decoration: underline !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 3px !important;
+  font-weight: 600 !important;
+}
+
+/* Destacar foco */
+html[data-a11y-foco="1"] :is(a, button, input, select, textarea, [tabindex], summary, [role="button"], [role="tab"], [role="menuitem"]):focus-visible {
+  outline: 3px solid #d4600e !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgba(212,96,14,0.28) !important;
+  border-radius: 2px;
+}
+
+/* Interface simplificada */
+html[data-a11y-simples="1"] * {
+  box-shadow: none !important;
+}
+
+html[data-a11y-simples="1"] :is(section, article, figure, header, footer, aside) {
+  border-radius: 6px !important;
+}
+
+html[data-a11y-leitor="1"] .skip-link {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  clip: auto !important;
+  clip-path: none !important;
+  overflow: visible !important;
+  margin: 0 !important;
+}
+
+a.skip-link {
+  position: absolute;
+  left: 8px;
+  top: -48px;
+  z-index: 9999;
+  background: #0E3124;
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+
+a.skip-link:focus {
+  top: 8px;
+}
+
+html[data-a11y-libras="1"] #mini-cart-panel,
+html[data-a11y-libras="1"] #cookie-banner {
+  margin-bottom: 64px;
+}
+
+html:not([data-a11y-libras="1"]) #vlibras-access-wrapper {
+  display: none !important;
+}

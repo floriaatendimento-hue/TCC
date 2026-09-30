@@ -1,0 +1,29 @@
+<%
+/* Partial: seção "Você também pode gostar" — usada em todas as páginas de
+   produto. Os cards são carregados dinamicamente (ver /js/relacionados.js)
+   a partir de GET /api/produtos/:slug/relacionados, reaproveitando
+   exatamente o mesmo componente de card (.card.card-home) usado na Home,
+   nas categorias e na busca.
+   Parâmetros esperados:
+     - slugAtual: slug de rota do produto atual (ex: "alecrim", "detalhesv")
+     - categoria: slug da categoria ("plantas" ou "vasos"), usado como
+       fallback caso o produto atual ainda não tenha linha no banco.
+*/
+%>
+<link rel="stylesheet" href="/css/shared/cards-fix.css">
+<section class="relacionados" data-slug-atual="<%= slugAtual %>" data-categoria="<%= categoria %>">
+  <h2 id="lbl-relacionados-dinamico">Você também pode gostar</h2>
+  <nav class="carousel-wrapper">
+    <button class="carousel-btn" type="button" aria-label="Anterior">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <ul class="cards-container" id="relacionados-cards" aria-busy="true" aria-live="polite">
+      <li class="relacionados-skeleton" aria-hidden="true"></li>
+      <li class="relacionados-skeleton" aria-hidden="true"></li>
+      <li class="relacionados-skeleton" aria-hidden="true"></li>
+    </ul>
+    <button class="carousel-btn" type="button" aria-label="Próximo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+    </button>
+  </nav>
+</section>

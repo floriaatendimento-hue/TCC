@@ -1,0 +1,132 @@
+<%
+/* ADICIONADO (Fase 2): página administrativa de Clientes.
+   ATUALIZADO (CRM de Clientes): `clientes` agora vem de
+   Usuario.findClientesAdmin() com cidade/UF (endereço padrão), valor
+   total gasto e última compra, além da contagem de pedidos — tudo por
+   LEFT JOIN, sem N+1. Busca, filtro de status, ordenação e paginação são
+   feitos via querystring (?q=&status=&ordenar=&direcao=&pagina=), sem
+   depender de JS para funcionar — o toggle ativo/inativo continua sendo
+   a única ação assíncrona. "Ver Perfil" abre o CRM completo do cliente
+   em /admin/clientes/:id. */
+const dataFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR').format(new Date(d)) : '-';
+const moeda = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+
+const paramsBase =
+  (busca  ? `&q=${encodeURIComponent(busca)}` : '') +
+  (status ? `&status=${encodeURIComponent(status)}` : '');
+
+const linkOrdenar = (coluna, rotulo) => {
+  const novaDirecao = (ordenar === coluna && direcao === 'asc') ? 'desc' : 'asc';
+  const seta = ordenar === coluna ? (direcao === 'asc' ? ' ▲' : ' ▼') : '';
+  return `<a href="/admin/clientes?ordenar=${coluna}&direcao=${novaDirecao}${paramsBase}">${rotulo}${seta}</a>`;
+};
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Clientes</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'clientes' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Clientes' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Clientes</h1>
+          <p class="admin-page-header__data"><%= total %> cliente(s) cadastrado(s)</p>
+        </hgroup>
+      </header>
+
+      <form class="admin-toolbar" method="get" action="/admin/clientes">
+        <search class="admin-toolbar__busca" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <label for="clientes-busca" class="sr-only">Buscar por nome, e-mail ou telefone</label>
+          <input id="clientes-busca" type="search" name="q" placeholder="Buscar por nome, e-mail ou telefone..." value="<%= busca %>">
+        </search>
+        <label class="campo-admin">
+          <b class="sr-only">Status da conta</b>
+          <select name="status">
+            <option value="">Todos os status</option>
+            <option value="ativo" <%= status === 'ativo' ? 'selected' : '' %>>Ativa</option>
+            <option value="bloqueado" <%= status === 'bloqueado' ? 'selected' : '' %>>Bloqueada</option>
+          </select>
+        </label>
+        <button type="submit" class="btn-admin btn-admin--secundario">Buscar</button>
+        <% if (busca || status) { %><a class="btn-admin btn-admin--secundario" href="/admin/clientes">Limpar</a><% } %>
+      </form>
+
+      <article class="painel painel--tabela">
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin">
+            <thead>
+              <tr>
+                <th><%- linkOrdenar('nome', 'Cliente') %></th>
+                <th>Telefone</th>
+                <th>Cidade / UF</th>
+                <th><%- linkOrdenar('cadastro', 'Cadastro') %></th>
+                <th><%- linkOrdenar('ultima_compra', 'Última compra') %></th>
+                <th class="num"><%- linkOrdenar('pedidos', 'Pedidos') %></th>
+                <th class="num"><%- linkOrdenar('gasto', 'Total gasto') %></th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="clientes-tbody">
+              <% clientes.forEach(c => { %>
+                <tr data-id="<%= c.id %>">
+                  <td>
+                    <b class="celula-produto">
+                      <img src="<%= c.foto_perfil || '/imagens/perfil.png' %>" alt="" data-fallback="/imagens/perfil.png">
+                      <b>
+                        <strong><%= c.nome %></strong>
+                        <small><%= c.email %></small>
+                      </b>
+                    </b>
+                  </td>
+                  <td><%= c.telefone || '-' %></td>
+                  <td><%= c.cidade ? `${c.cidade} / ${c.uf}` : '-' %></td>
+                  <td><%= dataFmt(c.criado_em) %></td>
+                  <td><%= dataFmt(c.ultima_compra) %></td>
+                  <td class="num"><%= c.total_pedidos %></td>
+                  <td class="num"><%= moeda(c.total_gasto) %></td>
+                  <td>
+                    <label class="toggle">
+                      <input type="checkbox" class="js-toggle-ativo" <%= c.ativo ? 'checked' : '' %> aria-label="Cliente ativo">
+                      <i class="toggle__trilho" aria-hidden="true"></i>
+                    </label>
+                  </td>
+                  <td>
+                    <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/admin/clientes/<%= c.id %>">
+                      <i class="fas fa-id-card" aria-hidden="true"></i>Ver Perfil
+                    </a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% if (!clientes.length) { %>
+            <p class="tabela-admin__vazia">Nenhum cliente encontrado<%= (busca || status) ? ' para este filtro.' : '.' %></p>
+          <% } %>
+        </section>
+
+        <% if (totalPaginas > 1) { %>
+          <nav class="paginacao" aria-label="Paginação de clientes">
+            <% if (pagina > 1) { %><a href="/admin/clientes?pagina=<%= pagina - 1 %><%= paramsBase %>">‹</a><% } else { %><b class="desabilitado">‹</b><% } %>
+            <% for (let p = 1; p <= totalPaginas; p++) { %>
+              <% if (p === pagina) { %><b class="atual"><%= p %></b><% } else { %><a href="/admin/clientes?pagina=<%= p %><%= paramsBase %>"><%= p %></a><% } %>
+            <% } %>
+            <% if (pagina < totalPaginas) { %><a href="/admin/clientes?pagina=<%= pagina + 1 %><%= paramsBase %>">›</a><% } else { %><b class="desabilitado">›</b><% } %>
+          </nav>
+        <% } %>
+      </article>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-clientes.js" defer></script>
+</body>
+</html>

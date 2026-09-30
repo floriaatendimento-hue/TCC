@@ -1,0 +1,123 @@
+<%
+/* REESCRITO (Fase 5): Estoque agora foca só em quantidade — separado
+   do catálogo (ver pages/admin/produtos.ejs). `produtos` e
+   `movimentacoes` vêm 100% do banco (Produto.findAllAdmin +
+   MovimentacaoEstoque.historico). Página 100% SSR, sem JS — "Registrar
+   movimentação" e "Movimentar" (por linha) navegam para a página
+   dedicada em /admin/estoque/movimentacao/nova (ver
+   pages/admin/estoque-movimentacao.ejs), que antes era um <dialog>
+   aqui mesmo. */
+const produtosComEstoqueBaixo = produtos.filter(p => Number(p.estoque) <= Number(p.estoque_minimo));
+const ROTULO_TIPO_MOV = { entrada: 'Entrada', saida: 'Saída', ajuste: 'Ajuste' };
+const CLASSE_TIPO_MOV = { entrada: 'badge--verde', saida: 'badge--vermelho', ajuste: 'badge--dourado' };
+const dataHoraFmt = (d) => new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(d));
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Estoque</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'estoque' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Estoque' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Estoque</h1>
+          <p class="admin-page-header__data"><%= produtosComEstoqueBaixo.length %> produto(s) no limite mínimo ou abaixo</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--primario" href="/admin/estoque/movimentacao/nova">
+            <i class="fas fa-exchange-alt" aria-hidden="true"></i>Registrar movimentação
+          </a>
+        </nav>
+      </header>
+
+      <% if (produtosComEstoqueBaixo.length) { %>
+        <article class="alerta-card" style="margin-bottom: var(--esp-5);">
+          <h3 class="alerta-card__titulo"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i>Estoque baixo</h3>
+          <ul>
+            <% produtosComEstoqueBaixo.slice(0, 6).forEach(p => { %>
+              <li><b><%= p.nome %></b><b class="alerta-card__badge"><%= p.estoque %>/<%= p.estoque_minimo %></b></li>
+            <% }) %>
+          </ul>
+        </article>
+      <% } %>
+
+      <article class="painel painel--tabela" style="margin-bottom: var(--esp-5);">
+        <header class="painel__cabecalho" style="padding: var(--esp-5) var(--esp-6) 0;">
+          <h2 class="painel__titulo">Produtos</h2>
+        </header>
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin">
+            <thead><tr><th>Produto</th><th>Categoria</th><th class="num">Estoque</th><th class="num">Mínimo</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody>
+              <% produtos.forEach(p => {
+                   const baixo = Number(p.estoque) <= Number(p.estoque_minimo);
+                   const zerado = Number(p.estoque) === 0;
+              %>
+                <tr>
+                  <td><strong><%= p.nome %></strong></td>
+                  <td><%= p.categoria_nome || '-' %></td>
+                  <td class="num"><%= p.estoque %></td>
+                  <td class="num"><%= p.estoque_minimo %></td>
+                  <td>
+                    <b class="badge <%= zerado ? 'badge--vermelho' : (baixo ? 'badge--dourado' : 'badge--verde') %>">
+                      <%= zerado ? 'Sem estoque' : (baixo ? 'Estoque baixo' : 'Em estoque') %>
+                    </b>
+                  </td>
+                  <td class="acoes-tabela">
+                    <a href="/admin/estoque/movimentacao/nova?produto_id=<%= p.id %>">Movimentar</a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% if (!produtos.length) { %><p class="tabela-admin__vazia">Nenhum produto cadastrado ainda.</p><% } %>
+        </section>
+      </article>
+
+      <article class="painel painel--tabela">
+        <header class="painel__cabecalho" style="padding: var(--esp-5) var(--esp-6) 0;">
+          <h2 class="painel__titulo">Histórico de movimentações</h2>
+          <p class="painel__subtitulo"><%= totalMovimentacoes %> registro(s)</p>
+        </header>
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin">
+            <thead><tr><th>Quando</th><th>Produto</th><th>Tipo</th><th class="num">Qtd.</th><th class="num">Antes → Depois</th><th>Motivo</th><th>Quem</th></tr></thead>
+            <tbody>
+              <% movimentacoes.forEach(m => { %>
+                <tr>
+                  <td><%= dataHoraFmt(m.criado_em) %></td>
+                  <td><%= m.produto_nome %></td>
+                  <td><b class="badge <%= CLASSE_TIPO_MOV[m.tipo] %>"><%= ROTULO_TIPO_MOV[m.tipo] %></b></td>
+                  <td class="num"><%= m.quantidade %></td>
+                  <td class="num"><%= m.estoque_anterior %> → <%= m.estoque_novo %></td>
+                  <td><%= m.motivo || '-' %></td>
+                  <td><%= m.usuario_nome || '-' %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% if (!movimentacoes.length) { %><p class="tabela-admin__vazia">Nenhuma movimentação registrada ainda.</p><% } %>
+        </section>
+
+        <% if (totalPaginasMov > 1) { %>
+          <nav class="paginacao" aria-label="Paginação do histórico">
+            <% if (paginaMov > 1) { %><a href="/estoque?paginaMov=<%= paginaMov - 1 %>">‹</a><% } else { %><b class="desabilitado">‹</b><% } %>
+            <% for (let p = 1; p <= totalPaginasMov; p++) { %>
+              <% if (p === paginaMov) { %><b class="atual"><%= p %></b><% } else { %><a href="/estoque?paginaMov=<%= p %>"><%= p %></a><% } %>
+            <% } %>
+            <% if (paginaMov < totalPaginasMov) { %><a href="/estoque?paginaMov=<%= paginaMov + 1 %>">›</a><% } else { %><b class="desabilitado">›</b><% } %>
+          </nav>
+        <% } %>
+      </article>
+    </main>
+  </section>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<link rel="stylesheet" href="/css/layout/footer.css">
+<link rel="stylesheet" href="/css/layout/contato-modal.css">
+
+<footer role="contentinfo">
+  <section class="footer-inner">
+
+    <section class="footer-brand" aria-label="Identidade da marca">
+      <img src="/imagens/flor.png" alt="Floria">
+      <p>Reverdecer lares, cidades e corações, uma planta de cada vez.</p>
+    </section>
+
+    <nav class="footer-social" aria-label="Redes sociais">
+      <p class="footer-social-label">Siga-nos</p>
+      <ul class="footer-social-links">
+        <li>
+          <a href="<%= socialLinks.email.href %>"
+             aria-label="<%= socialLinks.email.label %>" title="<%= socialLinks.email.title %>"
+             data-abrir-modal-contato="email" data-contato-valor="<%= socialLinks.email.valor %>">
+            <i class="fas fa-envelope" aria-hidden="true"></i>
+          </a>
+        </li>
+        <li>
+          <a href="<%= socialLinks.whatsapp.href %>" target="_blank" rel="noopener noreferrer"
+             aria-label="<%= socialLinks.whatsapp.label %>" title="<%= socialLinks.whatsapp.title %>">
+            <i class="fab fa-whatsapp" aria-hidden="true"></i>
+          </a>
+        </li>
+        <li>
+          <a href="<%= socialLinks.telefone.href %>"
+             aria-label="<%= socialLinks.telefone.label %>" title="<%= socialLinks.telefone.title %>"
+             data-abrir-modal-contato="telefone" data-contato-valor="<%= socialLinks.telefone.valor %>">
+            <i class="fas fa-phone" aria-hidden="true"></i>
+          </a>
+        </li>
+        <li>
+          <a href="<%= socialLinks.facebook.href %>" target="_blank" rel="noopener noreferrer"
+             aria-label="<%= socialLinks.facebook.label %>" title="<%= socialLinks.facebook.title %>">
+            <i class="fab fa-facebook-f" aria-hidden="true"></i>
+          </a>
+        </li>
+        <li>
+          <a href="<%= socialLinks.instagram.href %>" target="_blank" rel="noopener noreferrer"
+             aria-label="<%= socialLinks.instagram.label %>" title="<%= socialLinks.instagram.title %>">
+            <i class="fab fa-instagram" aria-hidden="true"></i>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <section class="footer-bottom">
+      <p class="footer-address">Rua das Flores, 666-777, Vila do Abismo, SP</p>
+      <nav class="footer-legal" aria-label="Links legais">
+        <a href="/termos-de-uso">Termos de Uso</a>
+        <a href="/politica-de-privacidade">Política de Privacidade</a>
+        <a href="/politica-de-cookies">Política de Cookies</a>
+        <button type="button" class="footer-legal-btn" data-abrir-preferencias-cookies>Preferências de Cookies</button>
+      </nav>
+      <p><small>&copy; 2024 Floria. Todos os direitos reservados.</small></p>
+    </section>
+
+  </section>
+</footer>
+
+<%- include("../shared/modal-contato") %>
+<script src="/js/layout/contato-modal.js"></script>

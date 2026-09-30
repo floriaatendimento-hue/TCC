@@ -1,0 +1,189 @@
+<%
+/* ═══════════════════════════════════════════════════════════
+   Helpers de apresentação — só formatação, nenhuma regra de
+   negócio nova (dados já vêm prontos da rota).
+═══════════════════════════════════════════════════════════ */
+const fmt = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+const fmtData = (d) => {
+  if (!d) return '-';
+  return new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+const ESTADOS = {
+  pendente:    { rotulo: 'Aguardando pagamento',   classe: 'aguardando' },
+  processando: { rotulo: 'Processando pagamento',  classe: 'processando' },
+  aprovado:    { rotulo: 'Pagamento confirmado',   classe: 'pago' },
+  expirado:    { rotulo: 'Pagamento expirado',     classe: 'expirado' },
+  recusado:    { rotulo: 'Pagamento recusado',     classe: 'recusado' },
+  estornado:   { rotulo: 'Pagamento reembolsado',  classe: 'estornado' },
+};
+const estadoAtual = ESTADOS[pedido.status_pagamento] || ESTADOS.pendente;
+const aguardando = ['pendente', 'processando'].includes(pedido.status_pagamento);
+
+const DESCRICOES = {
+  pendente:    pedido.forma_pagto === 'boleto' ? 'Copie o código de barras para pagar no seu banco ou app.' : 'Escaneie o QR Code ou copie o código para pagar no app do seu banco.',
+  processando: 'Estamos confirmando seu pagamento, isso leva só um instante.',
+  aprovado:    'Tudo certo! Você já pode acompanhar a preparação do seu pedido.',
+  expirado:    'O tempo para pagamento acabou. Volte ao carrinho para tentar novamente.',
+  recusado:    'Não foi possível confirmar este pagamento.',
+  estornado:   'O valor deste pedido foi reembolsado.',
+};
+
+let titulo = 'Pagamento';
+if (pedido.forma_pagto === 'pix' && aguardando) titulo = 'Pague com Pix';
+else if (pedido.forma_pagto === 'boleto' && aguardando) titulo = 'Pague o boleto';
+else titulo = estadoAtual.rotulo;
+
+const itens = pedido.itens || [];
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pagamento do pedido #<%= pedido.id %> - Floria</title>
+  <link rel="stylesheet" href="/css/carrinho/pagamento-pedido.css">
+</head>
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main class="pagpedido">
+    <header class="pagpedido__topo">
+      <nav class="pagpedido__trilha" aria-label="Etapas da compra">
+        <ol>
+          <li class="pagpedido__trilha-item is-concluido">
+            <b class="pagpedido__trilha-marca" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </b>
+            <b class="pagpedido__trilha-texto">Carrinho</b>
+          </li>
+          <li class="pagpedido__trilha-item is-concluido">
+            <b class="pagpedido__trilha-marca" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </b>
+            <b class="pagpedido__trilha-texto">Pagamento</b>
+          </li>
+          <li class="pagpedido__trilha-item is-atual" aria-current="step">
+            <b class="pagpedido__trilha-marca" aria-hidden="true">3</b>
+            <b class="pagpedido__trilha-texto">Confirmação</b>
+          </li>
+        </ol>
+      </nav>
+      <p class="pagpedido__eyebrow">Pedido #<%= pedido.id %></p>
+      <h1><%= titulo %></h1>
+    </header>
+
+    <section class="pagpedido__grid">
+      <section class="pagpedido__principal">
+
+        <section class="status-card status-card--<%= estadoAtual.classe %>" id="status-card" aria-live="polite">
+          <i class="status-card__icone" aria-hidden="true">
+            <svg data-estado="pendente" <%= pedido.status_pagamento !== 'pendente' ? 'hidden' : '' %> viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+            <svg data-estado="processando" <%= pedido.status_pagamento !== 'processando' ? 'hidden' : '' %> class="girando" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="40" stroke-dashoffset="15"/></svg>
+            <svg data-estado="aprovado" <%= pedido.status_pagamento !== 'aprovado' ? 'hidden' : '' %> viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.5 2.5L16 9"/></svg>
+            <svg data-estado="expirado" <%= pedido.status_pagamento !== 'expirado' ? 'hidden' : '' %> viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+            <svg data-estado="recusado" <%= pedido.status_pagamento !== 'recusado' ? 'hidden' : '' %> viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="13"/><line x1="12" y1="16.5" x2="12.01" y2="16.5"/></svg>
+            <svg data-estado="estornado" <%= pedido.status_pagamento !== 'estornado' ? 'hidden' : '' %> viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 3 3 9 9 9"/></svg>
+          </i>
+          <section class="status-card__texto">
+            <strong id="status-card-rotulo"><%= estadoAtual.rotulo %></strong>
+            <small id="status-card-desc"><%= DESCRICOES[pedido.status_pagamento] || '' %></small>
+          </section>
+        </section>
+
+        <% if (pagamentoExibicao && pagamentoExibicao.tipo === 'pix') { %>
+          <section class="pagpedido__acao" aria-label="Pagamento via Pix">
+            <% if (pagamentoExibicao.qrDataUrl) { %>
+              <figure class="qr-destaque">
+                <i class="qr-destaque__canto qr-destaque__canto--tl" aria-hidden="true"></i>
+                <i class="qr-destaque__canto qr-destaque__canto--tr" aria-hidden="true"></i>
+                <i class="qr-destaque__canto qr-destaque__canto--bl" aria-hidden="true"></i>
+                <i class="qr-destaque__canto qr-destaque__canto--br" aria-hidden="true"></i>
+                <img src="<%= pagamentoExibicao.qrDataUrl %>" alt="QR Code para pagamento via Pix" width="240" height="240">
+              </figure>
+            <% } %>
+            <section class="copia-cola" aria-label="Código Pix copia e cola">
+              <p class="copia-cola__rotulo">Pix copia e cola</p>
+              <p class="copia-cola__caixa">
+                <output id="codigo-copiar" class="copia-cola__codigo"><%= pagamentoExibicao.payload %></output>
+              </p>
+              <button type="button" class="botao botao--primario botao--grande" id="btn-copiar" data-copiar="<%= pagamentoExibicao.payload %>">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <b class="botao__texto">Copiar código</b>
+              </button>
+            </section>
+            <p class="pagpedido__expira">Válido por 30 minutos após a geração.</p>
+            <ol class="passos-metodo">
+              <li><b class="passos-metodo__numero" aria-hidden="true">1</b><p>Abra o app do seu banco ou carteira digital</p></li>
+              <li><b class="passos-metodo__numero" aria-hidden="true">2</b><p>Escaneie o QR Code ou cole o código copiado na opção Pix Copia e Cola</p></li>
+              <li><b class="passos-metodo__numero" aria-hidden="true">3</b><p>Pronto: a confirmação acontece automaticamente nesta página</p></li>
+            </ol>
+          </section>
+        <% } else if (pagamentoExibicao && pagamentoExibicao.tipo === 'boleto') { %>
+          <section class="pagpedido__acao" aria-label="Pagamento via boleto">
+            <p class="metodo-info-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+              Vencimento: <%= fmtData(pagamentoExibicao.vencimento) %>
+            </p>
+            <section class="copia-cola boleto-ticket" aria-label="Linha digitável do boleto">
+              <p class="copia-cola__rotulo">Linha digitável</p>
+              <p class="copia-cola__caixa">
+                <output id="codigo-copiar" class="copia-cola__codigo"><%= pagamentoExibicao.linhaDigitavel %></output>
+              </p>
+              <button type="button" class="botao botao--primario botao--grande" id="btn-copiar" data-copiar="<%= pagamentoExibicao.linhaDigitavel %>">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <b class="botao__texto">Copiar código de barras</b>
+              </button>
+            </section>
+            <ol class="passos-metodo">
+              <li><b class="passos-metodo__numero" aria-hidden="true">1</b><p>Copie o código de barras acima</p></li>
+              <li><b class="passos-metodo__numero" aria-hidden="true">2</b><p>Pague no banco, lotérica ou app até <strong><%= fmtData(pagamentoExibicao.vencimento) %></strong></p></li>
+              <li><b class="passos-metodo__numero" aria-hidden="true">3</b><p>Confirmação automática assim que a compensação for identificada</p></li>
+            </ol>
+          </section>
+        <% } else { %>
+          <!-- Já concluído -->
+          <section class="pagpedido__acao pagpedido__acao--concluido">
+            <a class="botao botao--primario botao--grande" href="/pedido/<%= pedido.id %>">Ver meu pedido</a>
+          </section>
+        <% } %>
+
+      </section>
+
+      <aside class="pagpedido__resumo" aria-label="Resumo do pedido">
+        <section class="resumo-pedido-card">
+          <h2>Resumo do pedido</h2>
+          <ul class="resumo-pedido-card__itens">
+            <% itens.forEach((item) => { %>
+              <li><b><%= item.produto_nome || 'Produto' %><%= item.cor ? ' (' + item.cor + ')' : '' %> × <%= item.quantidade %></b><b><%= fmt(item.preco_unit * item.quantidade) %></b></li>
+            <% }); %>
+          </ul>
+          <p class="resumo-pedido-card__linha"><b>Subtotal</b><b><%= fmt(pedido.subtotal) %></b></p>
+          <p class="resumo-pedido-card__linha"><b>Frete</b><b><%= Number(pedido.frete) > 0 ? fmt(pedido.frete) : 'Grátis' %></b></p>
+          <% if (Number(pedido.desconto) > 0) { %>
+            <p class="resumo-pedido-card__linha"><b>Desconto<% if (pedido.cupom) { %> (<%= pedido.cupom %>)<% } %></b><b>− <%= fmt(pedido.desconto) %></b></p>
+          <% } %>
+          <p class="resumo-pedido-card__total"><b>Total</b><strong><%= fmt(pedido.total) %></strong></p>
+        </section>
+
+        <p class="pagpedido__ajuda"><a href="/pedido/<%= pedido.id %>">Ver detalhes do pedido</a></p>
+      </aside>
+
+    </section>
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+
+  <script>
+    window.__pagamentoPedido = {
+      id: <%- JSON.stringify(pedido.id) %>,
+      statusInicial: <%- JSON.stringify(pedido.status_pagamento) %>,
+      aguardando: <%- JSON.stringify(aguardando) %>,
+      rotulos: <%- JSON.stringify(Object.fromEntries(Object.entries(ESTADOS).map(([k, v]) => [k, v.rotulo]))) %>,
+      descricoes: <%- JSON.stringify(DESCRICOES) %>,
+    };
+  </script>
+  <script src="/js/carrinho/pagamento-pedido.js"></script>
+</body>
+</html>

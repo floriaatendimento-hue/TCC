@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrinho - Floria</title>
+  <link rel="stylesheet" href="/css/carrinho/carrinho.css">
+</head>
+
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main class="carrinho-page">
+    <section class="carrinho-container">
+
+      <section class="carrinho-topo">
+        <a href="/" class="voltar-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Continuar comprando
+        </a>
+        <h1 class="carrinho-titulo">
+          Meu Carrinho
+          <output class="badge-count" id="item-count"></output>
+        </h1>
+      </section>
+
+      <section class="carrinho-layout">
+
+        <!-- Coluna de produtos -->
+        <section class="secao-produtos" aria-label="Produtos no carrinho">
+          <section id="produtos-lista" class="produtos-lista">
+          </section>
+        </section>
+
+        <!-- Resumo do pedido -->
+        <aside class="secao-resumo" aria-label="Resumo do pedido">
+          <section class="resumo-card">
+            <h2 class="resumo-titulo">Resumo do Pedido</h2>
+
+            <section class="resumo-itens">
+              <section class="resumo-row">
+                <b>Subtotal</b>
+                <strong id="subtotal">R$ 0,00</strong>
+              </section>
+              <section class="resumo-row resumo-row-desconto" id="linha-desconto" hidden>
+                <b>Desconto <b class="cupom-codigo-tag" id="desconto-codigo"></b></b>
+                <strong id="desconto-valor">− R$ 0,00</strong>
+              </section>
+              <section class="resumo-row">
+                <b>Entrega</b>
+                <strong class="tag-gratis">Grátis</strong>
+              </section>
+            </section>
+
+            <section class="resumo-total-row">
+              <b>Total</b>
+              <strong id="total">R$ 0,00</strong>
+            </section>
+
+            <section class="cupom-wrap" aria-label="Cupom de desconto">
+              <p class="cupom-label">Código de desconto</p>
+              <p class="cupom-form" id="cupom-form">
+                <input type="text" id="input-cupom" placeholder="Ex: FLORIA10" autocomplete="off" spellcheck="false">
+                <button type="button" id="btn-cupom">Aplicar</button>
+              </p>
+              <p class="cupom-aplicado-info" id="cupom-aplicado-info" hidden>
+                <svg class="cupom-aplicado-icone" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+                <b class="cupom-aplicado-texto">
+                  <strong id="cupom-aplicado-codigo"></strong>
+                  <small>Cupom aplicado · você economiza <output id="cupom-aplicado-valor">R$ 0,00</output></small>
+                </b>
+                <button type="button" id="btn-remover-cupom" class="cupom-remover-btn" aria-label="Remover cupom aplicado" title="Remover cupom">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </p>
+              <output class="cupom-msg" id="cupom-msg" role="alert"></output>
+            </section>
+
+            <button class="btn-finalizar" id="btn-finalizar" type="button">
+              Finalizar Compra
+            </button>
+
+            <p class="selo-seguranca">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              Pagamento 100% seguro e protegido
+            </p>
+
+            <section class="metodos-pagamento">
+              <b title="Crédito/Débito">Cartão</b>
+              <b title="Pix">Pix</b>
+              <b title="Boleto">Boleto</b>
+            </section>
+          </section>
+        </aside>
+
+      </section>
+    </section>
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+  <script src="/js/carrinho/carrinho.js"></script>
+</body>
+</html>

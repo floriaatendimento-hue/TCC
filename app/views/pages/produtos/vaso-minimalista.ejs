@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaso Minimalista - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'vaso-minimalista',
+      nome: 'Vaso Minimalista',
+      sku: 'FLO-VASOMINIMALISTA',
+      marca: null,
+      categoriaNome: 'Vasos & Cachepôs',
+      categoriaSlug: 'vasos',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/produtos-fotos/vaso-minimalista-1.webp', alt: 'Vaso Minimalista - frente' },
+        { src: '/imagens/produtos-fotos/vaso-minimalista-2.webp', alt: 'Vaso Minimalista - detalhe' },
+        { src: '/imagens/produtos-fotos/vaso-minimalista-3.webp', alt: 'Vaso Minimalista - lateral' }
+      ],
+      precoAtual: 60.00,
+      precoAntigo: 78.00,
+      parcelasTexto: 'à vista',
+      estoque: 21,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(17 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-star', texto: 'Design clean' },
+        { icone: 'fas fa-shield-alt', texto: 'Cerâmica matte' },
+        { icone: 'fas fa-sun', texto: 'Uso interno' }
+      ],
+      descricao: 'Vaso de perfil baixo com acabamento matte fosco em tom neutro, pensado para quem valoriza o minimalismo na decoração. A ausência de ornamentos coloca toda a atenção na planta. Ideal para suculentas, cactos e ervas aromáticas cultivadas em bancadas e estantes. O acabamento fosco resiste a impressões digitais e não reflete luz, mantendo o visual sempre limpo.',
+      beneficios: 'Acabamento fosco que resiste a impressões digitais e não reflete luz, mantendo o visual sempre limpo.',
+      comoUtilizar: 'Ideal para bancadas e estantes com suculentas, cactos ou ervas aromáticas.',
+      recomendacoes: 'Evite produtos de limpeza abrasivos, que podem alterar o acabamento matte com o tempo.',
+      ficha: [
+        { rotulo: 'Material', valor: 'Cerâmica com acabamento matte' },
+        { rotulo: 'Design', valor: 'Perfil baixo, minimalista' },
+        { rotulo: 'Uso', valor: 'Interno' },
+        { rotulo: 'Drenagem', valor: 'Furo de drenagem' },
+        { rotulo: 'Porte indicado', valor: 'Suculentas, cactos e ervas aromáticas' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-cube', titulo: 'Material', texto: 'Cerâmica com acabamento matte fosco, resistente a impressões digitais.' },
+        { icone: 'fas fa-ruler-combined', titulo: 'Capacidade', texto: 'Indicado para suculentas, cactos e ervas aromáticas de bancada.' },
+        { icone: 'fas fa-tint', titulo: 'Drenagem', texto: 'Possui furo de drenagem na base.' },
+        { icone: 'fas fa-broom', titulo: 'Limpeza', texto: 'Use apenas pano seco ou levemente úmido, sem produtos abrasivos.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

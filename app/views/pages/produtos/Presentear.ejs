@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria - Para Presentes</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main>
+    <section class="page-title" aria-labelledby="presentear-titulo">
+      <i class="page-title-linha" aria-hidden="true"></i>
+      <h1 id="presentear-titulo">Para Presentear</h1>
+      <p>Uma seleção pensada para quem vai presentear, em preparação.</p>
+    </section>
+
+    <section class="empty-state" aria-live="polite">
+      <i class="far fa-gift empty-state-icone" aria-hidden="true"></i>
+      <h2>Em breve</h2>
+      <p>Estamos organizando kits e sugestões prontas para presente. Enquanto isso, conheça as plantas e vasos mais procurados da loja.</p>
+      <a href="/maisvendidos" class="btn-ver-mais">Ver mais vendidos</a>
+    </section>
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

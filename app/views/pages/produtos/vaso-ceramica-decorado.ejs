@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaso Cerâmica Decorado - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'vaso-ceramica-decorado',
+      nome: 'Vaso Cerâmica Decorado',
+      sku: 'FLO-VASOCERAMICADECORADO',
+      marca: null,
+      categoriaNome: 'Vasos & Cachepôs',
+      categoriaSlug: 'vasos',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/produtos-fotos/vaso-ceramica-decorado-1.webp', alt: 'Vaso Cerâmica Decorado - frente' },
+        { src: '/imagens/produtos-fotos/vaso-ceramica-decorado-2.webp', alt: 'Vaso Cerâmica Decorado - detalhe' },
+        { src: '/imagens/produtos-fotos/vaso-ceramica-decorado-3.webp', alt: 'Vaso Cerâmica Decorado - lateral' }
+      ],
+      precoAtual: 75.00,
+      precoAntigo: 95.00,
+      parcelasTexto: 'em até 2x sem juros',
+      estoque: 16,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(20 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-star', texto: 'Design exclusivo' },
+        { icone: 'fas fa-shield-alt', texto: 'Cerâmica premium' },
+        { icone: 'fas fa-sun', texto: 'Uso interno' }
+      ],
+      descricao: 'Vaso de cerâmica com estampas decorativas pintadas à mão, inspiradas na flora brasileira. Cada detalhe é aplicado por artistas ceramistas, tornando cada peça única. A cerâmica de alta temperatura garante resistência a trincas e variações de umidade. Ideal para orquídeas, bromélias e plantas de flores. Acompanha prato decorativo da mesma linha.',
+      beneficios: 'Estampas pintadas à mão tornam cada peça única, valorizando a decoração do ambiente.',
+      comoUtilizar: 'Utilize o prato decorativo incluso para coletar o excesso de água drenada.',
+      recomendacoes: 'Evite exposição direta e prolongada ao sol externo, que pode desbotar a pintura com o tempo.',
+      ficha: [
+        { rotulo: 'Material', valor: 'Cerâmica de alta temperatura' },
+        { rotulo: 'Acabamento', valor: 'Pintado à mão' },
+        { rotulo: 'Drenagem', valor: 'Furo de drenagem com prato incluso' },
+        { rotulo: 'Uso', valor: 'Interno' },
+        { rotulo: 'Porte indicado', valor: 'Orquídeas, bromélias e plantas de flores' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-cube', titulo: 'Material', texto: 'Cerâmica de alta temperatura, resistente a trincas e variações de umidade.' },
+        { icone: 'fas fa-ruler-combined', titulo: 'Capacidade', texto: 'Indicado para orquídeas, bromélias e plantas de flores.' },
+        { icone: 'fas fa-tint', titulo: 'Drenagem', texto: 'Furo de drenagem com prato decorativo incluso.' },
+        { icone: 'fas fa-broom', titulo: 'Limpeza', texto: 'Limpe com pano macio e úmido para preservar a pintura decorativa.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

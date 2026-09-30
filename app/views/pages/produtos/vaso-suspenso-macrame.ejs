@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaso Suspenso Macramê - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'vaso-suspenso-macrame',
+      nome: 'Vaso Suspenso Macramê',
+      sku: 'FLO-VASOSUSPENSOMACRAME',
+      marca: null,
+      categoriaNome: 'Vasos & Cachepôs',
+      categoriaSlug: 'vasos',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/produtos-fotos/vaso-suspenso-macrame-1.webp', alt: 'Vaso Suspenso Macramê - frente' },
+        { src: '/imagens/produtos-fotos/vaso-suspenso-macrame-2.webp', alt: 'Vaso Suspenso Macramê - detalhe' },
+        { src: '/imagens/produtos-fotos/vaso-suspenso-macrame-3.webp', alt: 'Vaso Suspenso Macramê - lateral' }
+      ],
+      precoAtual: 80.00,
+      precoAntigo: 100.00,
+      parcelasTexto: 'em até 2x sem juros',
+      estoque: 13,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(10 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-star', texto: 'Artesanal' },
+        { icone: 'fas fa-leaf', texto: 'Plantas pendentes' }
+      ],
+      descricao: 'Suporte de macramê artesanal feito à mão com cordas de algodão cru, acompanha vaso de cerâmica de 14cm. Perfeito para samambaias, pothos e plantas pendentes. Cria charme e amplitude visual em qualquer cômodo. Resistente e fácil de instalar em teto ou parede.',
+      beneficios: 'Cria charme e amplitude visual, aproveitando o pé-direito do ambiente com plantas pendentes.',
+      comoUtilizar: 'Instale em um ponto de fixação firme no teto ou parede e encaixe o vaso de cerâmica de 14cm incluso.',
+      recomendacoes: 'Verifique periodicamente o ponto de fixação para garantir que suporte o peso do vaso cheio.',
+      ficha: [
+        { rotulo: 'Material', valor: 'Corda de algodão cru, artesanal' },
+        { rotulo: 'Vaso incluso', valor: 'Cerâmica, 14 cm' },
+        { rotulo: 'Instalação', valor: 'Teto ou parede' },
+        { rotulo: 'Uso', valor: 'Interno' },
+        { rotulo: 'Porte indicado', valor: 'Samambaias, pothos e plantas pendentes' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-cube', titulo: 'Material', texto: 'Corda de algodão cru: evite umidade excessiva, que pode manchar o tecido.' },
+        { icone: 'fas fa-ruler-combined', titulo: 'Capacidade', texto: 'Acompanha vaso de cerâmica de 14 cm, ideal para plantas pendentes.' },
+        { icone: 'fas fa-tint', titulo: 'Drenagem', texto: 'Verifique a drenagem do vaso de cerâmica incluso antes de regar.' },
+        { icone: 'fas fa-broom', titulo: 'Limpeza', texto: 'Limpe a corda com pano seco; evite lavar com água em excesso.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Babosa - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'babosa',
+      nome: 'Babosa (Aloe Vera)',
+      sku: 'FLO-BABOSA',
+      marca: null,
+      categoriaNome: 'Plantas',
+      categoriaSlug: 'plantas',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/baboda.jpg', alt: 'Babosa - vista frontal' },
+        { src: '/imagens/baboda.jpg', alt: 'Babosa - detalhe da folha' },
+        { src: '/imagens/baboda.jpg', alt: 'Babosa - close' }
+      ],
+      precoAtual: 125.00,
+      precoAntigo: 150.00,
+      parcelasTexto: 'em até 3x sem juros',
+      estoque: 25,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="far fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: 'Sem avaliações ainda',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-sun', texto: 'Sol pleno ou meia sombra' },
+        { icone: 'fas fa-tint', texto: 'Rega esparsa' },
+        { icone: 'fas fa-heart', texto: 'Uso medicinal' }
+      ],
+      descricao: 'A Babosa (Aloe vera) é uma suculenta resistente, conhecida mundialmente por suas propriedades medicinais e cosméticas. Seu gel é usado para tratar queimaduras, hidratar a pele e fortalecer cabelos. Exige pouquíssima manutenção: suporta sol intenso e rega esporádica. Ótima para iniciantes e ambientes secos, como escritórios e varandas.',
+      beneficios: 'O gel das folhas é usado para hidratar a pele, tratar pequenas queimaduras e fortalecer cabelos.',
+      comoUtilizar: 'Cultive em local com boa luminosidade, regue apenas quando o substrato estiver completamente seco e evite pratos com água acumulada.',
+      recomendacoes: 'Mantenha longe de cães e gatos: o látex da folha é irritante se ingerido por pets.',
+      ficha: [
+        { rotulo: 'Nome científico', valor: 'Aloe vera' },
+        { rotulo: 'Família', valor: 'Asphodelaceae' },
+        { rotulo: 'Porte (muda vendida)', valor: '20 – 40 cm' },
+        { rotulo: 'Luminosidade', valor: 'Sol pleno' },
+        { rotulo: 'Toxicidade', valor: 'Tóxica para pets: o látex da folha é irritante se ingerido por cães e gatos' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-sun', titulo: 'Luz', texto: 'Sol pleno ou meia sombra, com boa luminosidade direta.' },
+        { icone: 'fas fa-tint', titulo: 'Rega', texto: 'A cada 10 a 15 dias, somente quando o substrato estiver completamente seco.' },
+        { icone: 'fas fa-thermometer-half', titulo: 'Temperatura', texto: '18°C – 30°C. Protege de correntes de frio.' },
+        { icone: 'fas fa-exclamation-triangle', titulo: 'Atenção', texto: 'Evite encharcar o substrato: o excesso de água apodrece as raízes. O látex da folha é tóxico se ingerido por cães e gatos.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

@@ -1,0 +1,29 @@
+:root {
+  --scroll-largura:     6px;
+  --scroll-track:       transparent;
+  --scroll-thumb:       rgba(184, 148, 95, 0.40);
+  --scroll-thumb-hover: var(--dourado-hover);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+}
+
+*::-webkit-scrollbar {
+  width: var(--scroll-largura);
+  height: var(--scroll-largura);
+}
+*::-webkit-scrollbar-track {
+  background: var(--scroll-track);
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--scroll-thumb);
+  border-radius: var(--raio-pill);
+  background-clip: padding-box;
+  border: 1px solid transparent;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scroll-thumb-hover);
+}

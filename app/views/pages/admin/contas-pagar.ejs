@@ -1,0 +1,173 @@
+<%
+/* ADICIONADO (Contas a Pagar — Fase 2): página própria, separada de
+   Compras (seção 3 da especificação) — visão granular: 1 linha por
+   parcela ou conta avulsa (não vinculada a compra nenhuma, ex.: aluguel).
+   Mesmo design system das outras listagens do admin. */
+const ROTULOS_CONTA = { pendente: 'Pendente', parcialmente_paga: 'Parcial', paga: 'Paga', vencida: 'Vencida', cancelada: 'Cancelada' };
+const CLASSE_CONTA = { pendente: 'badge--dourado', parcialmente_paga: 'badge--azul', paga: 'badge--verde', vencida: 'badge--vermelho', cancelada: 'badge--cinza' };
+const ROTULOS_CATEGORIA = { compra_fornecedor: 'Compra de fornecedor', aluguel: 'Aluguel', utilidades: 'Utilidades', servicos: 'Serviços', impostos: 'Impostos', salarios: 'Salários', outro: 'Outro' };
+const moeda = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const dataFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR').format(new Date(d)) : '-';
+const filtroAtivo = busca || fornecedorId || statusConta || categoria || de || ate;
+const paramsBase =
+  (fornecedorId ? `&fornecedor_id=${encodeURIComponent(fornecedorId)}` : '') +
+  (statusConta  ? `&status=${encodeURIComponent(statusConta)}`         : '') +
+  (categoria    ? `&categoria=${encodeURIComponent(categoria)}`        : '') +
+  (busca        ? `&busca=${encodeURIComponent(busca)}`                : '') +
+  (de           ? `&de=${encodeURIComponent(de)}`                      : '') +
+  (ate          ? `&ate=${encodeURIComponent(ate)}`                    : '');
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Contas a Pagar</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'contas-pagar' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Contas a Pagar' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Contas a Pagar</h1>
+          <p class="admin-page-header__data">Controle contas, vencimentos, pagamentos e valores pendentes.</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--primario" href="/admin/contas-pagar/nova">
+            <i class="fas fa-plus" aria-hidden="true"></i>Nova conta
+          </a>
+        </nav>
+      </header>
+
+      <section class="stats-grid" style="margin-bottom: var(--esp-5);">
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-hourglass-half"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.totalEmAberto) %></p>
+          <p class="stat-card__legenda">Total em aberto</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-calendar-day"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.venceHoje) %></p>
+          <p class="stat-card__legenda">Vence hoje</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--erro" aria-hidden="true"><i class="fas fa-exclamation-triangle"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.totalVencido) %></p>
+          <p class="stat-card__legenda">Vencidas</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--azul" aria-hidden="true"><i class="fas fa-calendar-week"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.proximosVencimentos) %></p>
+          <p class="stat-card__legenda">Próximos 7 dias</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--verde" aria-hidden="true"><i class="fas fa-hand-holding-usd"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.totalPago) %></p>
+          <p class="stat-card__legenda">Pago (total)</p>
+        </article>
+      </section>
+
+      <form class="admin-toolbar" method="get" action="/admin/contas-pagar">
+        <search class="admin-toolbar__busca" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <input type="search" name="busca" value="<%= busca %>" placeholder="Buscar por nº da conta, compra, fornecedor ou descrição...">
+        </search>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Fornecedor</b>
+          <select name="fornecedor_id" onchange="this.form.submit()">
+            <option value="">Todos os fornecedores</option>
+            <% fornecedores.forEach(f => { %>
+              <option value="<%= f.id %>" <%= String(fornecedorId) === String(f.id) ? 'selected' : '' %>><%= f.razao_social %></option>
+            <% }) %>
+          </select>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Status</b>
+          <select name="status" onchange="this.form.submit()">
+            <option value="">Todos os status</option>
+            <% Object.keys(ROTULOS_CONTA).forEach(chave => { %>
+              <option value="<%= chave %>" <%= statusConta === chave ? 'selected' : '' %>><%= ROTULOS_CONTA[chave] %></option>
+            <% }) %>
+          </select>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Categoria</b>
+          <select name="categoria" onchange="this.form.submit()">
+            <option value="">Todas as categorias</option>
+            <% categorias.forEach(c => { %>
+              <option value="<%= c %>" <%= categoria === c ? 'selected' : '' %>><%= ROTULOS_CATEGORIA[c] %></option>
+            <% }) %>
+          </select>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b>De</b>
+          <input type="date" name="de" value="<%= de %>" data-br-enhance onchange="this.form.submit()">
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b>Até</b>
+          <input type="date" name="ate" value="<%= ate %>" data-br-enhance onchange="this.form.submit()">
+        </label>
+        <button type="submit" class="btn-admin btn-admin--secundario">Filtrar</button>
+        <% if (filtroAtivo) { %><a class="btn-admin btn-admin--secundario" href="/admin/contas-pagar">Limpar</a><% } %>
+      </form>
+
+      <% if (erro) { %>
+        <article class="painel" role="alert" style="margin-bottom: var(--esp-4);">
+          <p><strong><%= erro %></strong></p>
+        </article>
+      <% } %>
+
+      <article class="painel painel--tabela">
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin">
+            <thead>
+              <tr>
+                <th>Conta</th><th>Fornecedor</th><th>Descrição</th><th>Origem</th>
+                <th>Vencimento</th><th class="num">Valor</th><th class="num">Pago</th><th class="num">Saldo</th><th>Status</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% contas.forEach(c => { %>
+                <tr>
+                  <td><strong>#<%= c.id %></strong></td>
+                  <td><%= c.fornecedor_nome %></td>
+                  <td><%= c.compra_id ? `Compra #${c.compra_numero}` + (c.parcela_total > 1 ? ` (${c.parcela_numero}/${c.parcela_total})` : '') : (c.descricao || '-') %></td>
+                  <td><% if (c.compra_id) { %><a class="tabela-link" href="/admin/compras/<%= c.compra_id %>">Ver compra</a><% } else { %><%= ROTULOS_CATEGORIA[c.categoria] || c.categoria %><% } %></td>
+                  <td><%= dataFmt(c.vencimento) %></td>
+                  <td class="num"><%= moeda(c.valor_original) %></td>
+                  <td class="num"><%= moeda(c.total_pago) %></td>
+                  <td class="num"><%= moeda(c.saldo) %></td>
+                  <td><b class="badge <%= CLASSE_CONTA[c.status_exibicao] || 'badge--cinza' %>"><%= ROTULOS_CONTA[c.status_exibicao] || c.status_exibicao %></b></td>
+                  <td class="acoes-tabela">
+                    <a href="<%= c.compra_id ? '/admin/compras/' + c.compra_id : '/admin/contas-pagar' %>">Detalhes</a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% if (!contas.length) { %>
+            <p class="tabela-admin__vazia"><%= filtroAtivo ? 'Nenhuma conta encontrada para esses filtros.' : 'Nenhuma conta a pagar registrada ainda.' %></p>
+          <% } %>
+        </section>
+
+        <% if (totalPaginas > 1) { %>
+          <nav class="paginacao" aria-label="Paginação de contas a pagar">
+            <% if (pagina > 1) { %><a href="/admin/contas-pagar?pagina=<%= pagina - 1 %><%= paramsBase %>">‹</a><% } else { %><b class="desabilitado">‹</b><% } %>
+            <% for (let p = 1; p <= totalPaginas; p++) { %>
+              <% if (p === pagina) { %><b class="atual"><%= p %></b><% } else { %><a href="/admin/contas-pagar?pagina=<%= p %><%= paramsBase %>"><%= p %></a><% } %>
+            <% } %>
+            <% if (pagina < totalPaginas) { %><a href="/admin/contas-pagar?pagina=<%= pagina + 1 %><%= paramsBase %>">›</a><% } else { %><b class="desabilitado">›</b><% } %>
+          </nav>
+        <% } %>
+      </article>
+    </main>
+  </section>
+
+  <script src="/js/admin/date-picker-br.js" defer></script>
+</body>
+</html>

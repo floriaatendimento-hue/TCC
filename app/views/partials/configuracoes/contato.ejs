@@ -1,0 +1,64 @@
+<article class="painel" aria-labelledby="config-secao-contato">
+  <header class="painel__cabecalho">
+    <h2 class="painel__titulo" id="config-secao-contato"><i class="fas fa-address-book" aria-hidden="true"></i> Contato</h2>
+    <p class="painel__subtitulo">Canais de contato e redes sociais usados no rodapé e no suporte.</p>
+  </header>
+
+    <fieldset class="form-secao">
+      <legend><i class="fas fa-envelope" aria-hidden="true"></i>E-mail e telefone</legend>
+      <p class="form-secao__ajuda">Usados no ícone de contato do rodapé, em todas as páginas do site.</p>
+      <section class="form-admin__linha">
+        <label class="campo-admin">
+          <b>E-mail *</b>
+          <input type="email" id="cfg-loja-email" maxlength="150" value="<%= val('loja_email') %>" required>
+        </label>
+        <label class="campo-admin">
+          <b>Telefone (exibição)</b>
+          <input type="text" id="cfg-telefone-exibicao" placeholder="+55 11 4002-8922" value="<%= val('telefone_exibicao') %>">
+          <small class="campo-admin__ajuda">Como o telefone aparece escrito para o cliente.</small>
+        </label>
+      </section>
+      <section class="form-admin__linha">
+        <label class="campo-admin">
+          <b>Telefone (link para ligar)</b>
+          <input type="text" id="cfg-telefone-e164" placeholder="+551140028922" value="<%= val('telefone_e164') %>">
+          <small class="campo-admin__ajuda">Formato internacional, sem espaços; usado pelo botão "Ligar agora".</small>
+        </label>
+      </section>
+    </fieldset>
+
+    <fieldset class="form-secao">
+      <legend><i class="fab fa-whatsapp" aria-hidden="true"></i>WhatsApp</legend>
+      <p class="form-secao__ajuda">Número único usado nos links de WhatsApp do site. A mensagem inicial muda de acordo com onde o cliente clicou.</p>
+      <label class="campo-admin">
+        <b>Número do WhatsApp</b>
+        <input type="text" id="cfg-whatsapp-numero" placeholder="5511999999999" value="<%= val('whatsapp_numero') %>">
+        <small class="campo-admin__ajuda">DDI + DDD + número, sem espaços ou símbolos.</small>
+      </label>
+      <label class="campo-admin">
+        <b>Mensagem inicial: vendas</b>
+        <input type="text" id="cfg-whatsapp-mensagem" maxlength="300" value="<%= val('whatsapp_mensagem') %>">
+        <small class="campo-admin__ajuda">Pré-preenchida quando o cliente inicia a conversa pela loja.</small>
+      </label>
+      <label class="campo-admin">
+        <b>Mensagem inicial: suporte</b>
+        <input type="text" id="cfg-whatsapp-mensagem-suporte" maxlength="300" value="<%= val('whatsapp_mensagem_suporte') %>">
+        <small class="campo-admin__ajuda">Pré-preenchida quando o cliente inicia a conversa pela página de Suporte.</small>
+      </label>
+    </fieldset>
+
+    <fieldset class="form-secao">
+      <legend><i class="fas fa-share-alt" aria-hidden="true"></i>Redes sociais</legend>
+      <p class="form-secao__ajuda">Links exibidos no rodapé do site.</p>
+      <section class="form-admin__linha">
+        <label class="campo-admin">
+          <b>Facebook</b>
+          <input type="text" id="cfg-facebook" value="<%= val('facebook') %>">
+        </label>
+        <label class="campo-admin">
+          <b>Instagram</b>
+          <input type="text" id="cfg-instagram" value="<%= val('instagram') %>">
+        </label>
+      </section>
+    </fieldset>
+</article>

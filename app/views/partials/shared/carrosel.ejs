@@ -1,0 +1,82 @@
+<%
+/* CORRIGIDO: o carrossel era 100% estático (4 imagens fixas), sem
+   nenhuma ligação com a tabela `banners` — o admin cadastrava/editava/
+   excluía banners e nada mudava na home. Agora renderiza a lista real
+   vinda de GET / (Banner.findAtivos, já filtrada por ativo/vigência e
+   ordenada por `ordem`). Sem banner cadastrado, a seção nem aparece.
+
+   CORRIGIDO: também não existia nenhuma exibição de título/subtítulo/
+   botão (só o alt da imagem) — o slide fica com uma legenda semântica
+   (hgroup + link) sobre a imagem quando o admin preenche esses campos;
+   banners que só têm imagem continuam exibidos como antes. */
+const listaBanners = (typeof banners !== 'undefined' && Array.isArray(banners)) ? banners : [];
+const urlImg = (imagem) => (imagem && imagem.startsWith('/')) ? imagem : '/imagens/' + imagem;
+%>
+<link rel="stylesheet" href="/css/shared/carrosel.css">
+
+<% if (listaBanners.length) { %>
+<section
+  class="carrossel"
+  role="region"
+  aria-roledescription="carrossel"
+  aria-label="Banners promocionais Floria"
+  tabindex="0"
+>
+  <% listaBanners.forEach((banner, indice) => {
+       const temLegenda = !!(banner.titulo || banner.subtitulo);
+       const temBotao = !!(banner.texto_botao && banner.link);
+  %>
+    <article class="slide <%= indice === 0 ? 'active' : '' %> <%= temLegenda ? 'slide--com-legenda' : '' %>" role="group" aria-roledescription="slide"
+      aria-label="<%= indice + 1 %> de <%= listaBanners.length %>" aria-hidden="<%= indice === 0 ? 'false' : 'true' %>">
+      <% /* tabindex="-1" nos slides ocultos (aria-hidden="true") — sem isso
+            o link/botão continua alcançável via Tab mesmo escondido do
+            leitor de tela ("foco fantasma"). O JS do carrossel atualiza
+            isso ao trocar de slide (ver carrosel.js). */
+         const tabAtributo = indice === 0 ? '' : ' tabindex="-1"';
+      %>
+      <% /* Quando existe legenda visível (h2/p logo abaixo), o alt da imagem
+            repetiria o mesmo texto pro leitor de tela — exceto quando a
+            imagem está dentro de <a>, caso em que o alt é o único nome
+            acessível do link e não pode ficar vazio. */
+         const altCapa = (temLegenda && !(banner.link && !temBotao)) ? '' : (banner.titulo || '');
+      %>
+      <% if (banner.link && !temBotao) { %>
+        <a class="slide-capa" href="<%= banner.link %>"<%- tabAtributo %>>
+          <img src="<%= urlImg(banner.imagem) %>" alt="<%= altCapa %>" loading="<%= indice === 0 ? 'eager' : 'lazy' %>" decoding="async" data-fallback="/imagens/image.png">
+        </a>
+      <% } else { %>
+        <img class="slide-capa" src="<%= urlImg(banner.imagem) %>" alt="<%= altCapa %>" loading="<%= indice === 0 ? 'eager' : 'lazy' %>" decoding="async" data-fallback="/imagens/image.png">
+      <% } %>
+      <% if (temLegenda) { %>
+        <hgroup class="slide-legenda">
+          <% if (banner.titulo) { %><h2><%= banner.titulo %></h2><% } %>
+          <% if (banner.subtitulo) { %><p><%= banner.subtitulo %></p><% } %>
+        </hgroup>
+      <% } %>
+      <% if (temBotao) { %>
+        <a class="slide-botao" href="<%= banner.link %>"<%- tabAtributo %>><%= banner.texto_botao %></a>
+      <% } %>
+    </article>
+  <% }) %>
+
+  <% if (listaBanners.length > 1) { %>
+    <button type="button" class="carrossel-seta carrossel-seta--anterior" aria-label="Banner anterior">
+      <i aria-hidden="true">&#8592;</i>
+    </button>
+    <button type="button" class="carrossel-seta carrossel-seta--proximo" aria-label="Próximo banner">
+      <i aria-hidden="true">&#8594;</i>
+    </button>
+
+    <nav class="carrossel-indicadores" aria-label="Selecionar banner">
+      <% listaBanners.forEach((banner, indice) => { %>
+        <button type="button" class="indicador <%= indice === 0 ? 'active' : '' %>"
+          aria-label="Ir para o banner <%= indice + 1 %>" aria-current="<%= indice === 0 ? 'true' : 'false' %>">
+          <i class="indicador-ponto" aria-hidden="true"></i>
+        </button>
+      <% }) %>
+    </nav>
+  <% } %>
+</section>
+
+<script src="/js/shared/carrosel.js" defer></script>
+<% } %>

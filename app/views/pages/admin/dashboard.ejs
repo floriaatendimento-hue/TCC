@@ -1,0 +1,736 @@
+<%
+/* ADICIONADO: Dashboard administrativo v2.
+   `dashboard` vem de app/services/relatorios/dashboardService.js (dados reais do
+   banco); `secaoAtual` vem da rota GET /admin em router.js. Se a
+   consulta ao banco falhar, `dashboard` chega como null e a página
+   mostra um aviso em vez de quebrar. */
+const dataFormatada = new Intl.DateTimeFormat('pt-BR', {
+  weekday: 'long', day: 'numeric', month: 'long',
+}).format(new Date());
+
+const temDados = !!dashboard;
+const cards = temDados ? dashboard.cards : null;
+const fat   = temDados ? dashboard.faturamento : null;
+
+/* REDESIGN (visual apenas — v3): primeiro nome do admin p/ saudação no
+   cabeçalho e um percentual de produtos ativos, calculado aqui na view
+   a partir de `cards` (já vindo do dashboardService), só para exibir
+   um selo de contexto no card — nenhum dado novo é buscado no banco. */
+const primeiroNome = locals.usuario ? usuario.nome.split(' ')[0] : 'Administrador';
+const pctAtivos = (temDados && cards.totalProdutos > 0)
+  ? Math.round((cards.produtosAtivos / cards.totalProdutos) * 100)
+  : null;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Dashboard</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'dashboard' }) %>
+
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Dashboard' }) %>
+
+    <main class="admin-main dashboard-v3">
+
+      <header class="dash-hero">
+        <hgroup>
+          <p class="dash-hero__saudacao">Olá, <%= primeiroNome %></p>
+          <h1 class="dash-hero__titulo">Dashboard</h1>
+          <p class="dash-hero__data"><i class="fas fa-calendar-day" aria-hidden="true"></i><%= dataFormatada %></p>
+        </hgroup>
+      </header>
+
+      <% if (!temDados) { %>
+        <article class="painel" role="alert">
+          <p><strong>Não foi possível carregar os dados do banco agora.</strong>
+             Verifique a conexão com o MySQL e recarregue a página.</p>
+        </article>
+      <% } else { %>
+
+        <!-- CARDS DE ESTATÍSTICA -->
+        <section class="stats-grid" aria-label="Indicadores gerais">
+          <article class="stat-card dash-stat">
+            <header class="stat-card__topo">
+              <i class="stat-card__icone" aria-hidden="true"><i class="fas fa-seedling"></i></i>
+            </header>
+            <p class="stat-card__valor"><%= cards.totalProdutos %></p>
+            <p class="dash-stat__titulo">Total de produtos</p>
+            <p class="dash-stat__legenda">Itens ativos e inativos no catálogo</p>
+          </article>
+
+          <article class="stat-card dash-stat">
+            <header class="stat-card__topo">
+              <i class="stat-card__icone stat-card__icone--verde" aria-hidden="true"><i class="fas fa-check-circle"></i></i>
+            </header>
+            <p class="stat-card__valor"><%= cards.produtosAtivos %></p>
+            <p class="dash-stat__titulo">Produtos ativos</p>
+            <p class="dash-stat__legenda">Disponíveis para venda</p>
+            <% if (pctAtivos !== null) { %>
+              <p class="dash-stat__badge dash-stat__badge--ok"><i class="fas fa-arrow-up" aria-hidden="true"></i><%= pctAtivos %>% do catálogo</p>
+            <% } %>
+          </article>
+
+          <article class="stat-card dash-stat">
+            <header class="stat-card__topo">
+              <i class="stat-card__icone stat-card__icone--erro" aria-hidden="true"><i class="fas fa-box-open"></i></i>
+            </header>
+            <p class="stat-card__valor"><%= cards.produtosSemEstoque %></p>
+            <p class="dash-stat__titulo">Produtos sem estoque</p>
+            <p class="dash-stat__legenda">Indisponíveis para compra</p>
+            <% if (cards.produtosSemEstoque > 0) { %>
+              <p class="dash-stat__badge dash-stat__badge--alerta"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i>Requer atenção</p>
+            <% } else { %>
+              <p class="dash-stat__badge dash-stat__badge--ok"><i class="fas fa-check" aria-hidden="true"></i>Tudo certo</p>
+            <% } %>
+          </article>
+
+          <article class="stat-card dash-stat">
+            <header class="stat-card__topo">
+              <i class="stat-card__icone stat-card__icone--azul" aria-hidden="true"><i class="fas fa-receipt"></i></i>
+            </header>
+            <p class="stat-card__valor"><%= cards.pedidosHoje %></p>
+            <p class="dash-stat__titulo">Pedidos do dia</p>
+            <p class="dash-stat__legenda">Recebidos hoje</p>
+          </article>
+
+          <article class="stat-card dash-stat">
+            <header class="stat-card__topo">
+              <i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-clock"></i></i>
+            </header>
+            <p class="stat-card__valor"><%= cards.pedidosPendentes %></p>
+            <p class="dash-stat__titulo">Pedidos pendentes</p>
+            <p class="dash-stat__legenda">Aguardando processamento</p>
+            <% if (cards.pedidosPendentes > 0) { %>
+              <p class="dash-stat__badge dash-stat__badge--info"><i class="fas fa-hourglass-half" aria-hidden="true"></i>Aguardando ação</p>
+            <% } else { %>
+              <p class="dash-stat__badge dash-stat__badge--ok"><i class="fas fa-check" aria-hidden="true"></i>Em dia</p>
+            <% } %>
+          </article>
+
+          <article class="stat-card dash-stat">
+            <header class="stat-card__topo">
+              <i class="stat-card__icone stat-card__icone--verde-medio" aria-hidden="true"><i class="fas fa-users"></i></i>
+            </header>
+            <p class="stat-card__valor"><%= cards.clientesCadastrados %></p>
+            <p class="dash-stat__titulo">Clientes cadastrados</p>
+            <p class="dash-stat__legenda">Contas criadas na loja</p>
+          </article>
+        </section>
+
+        <section class="dash-charts" aria-label="Gráficos de desempenho">
+          <article class="painel dash-chart-card grafico-faturamento">
+            <header class="painel__cabecalho">
+              <hgroup>
+                <h2 class="painel__titulo"><i class="fas fa-chart-bar" aria-hidden="true"></i>Faturamento</h2>
+                <p class="painel__subtitulo">Últimos 7 dias (pedidos com pagamento aprovado)</p>
+              </hgroup>
+              <p class="painel__valor-destaque">
+                <%= fat.totalSemanaFormatado %>
+                <b class="stat-card__variacao <%= fat.variacaoPercentual >= 0 ? 'stat-card__variacao--alta' : 'stat-card__variacao--baixa' %>">
+                  <i class="fas fa-arrow-<%= fat.variacaoPercentual >= 0 ? 'up' : 'down' %>" aria-hidden="true"></i>
+                  <%= Math.abs(fat.variacaoPercentual) %>%
+                </b>
+              </p>
+            </header>
+
+            <figure>
+              <%
+                const largura = 640, altura = 220, margemEsq = 46, margemDir = 6, margemBase = 28, margemTopo = 18;
+                const n = fat.serie.length;
+                const larguraUtil  = largura - margemEsq - margemDir;
+                const alturaUtil   = altura - margemBase - margemTopo;
+                const larguraBarra = (larguraUtil / n) * 0.5;
+                const espacoBarra  = larguraUtil / n;
+
+                /* Teto do eixo Y arredondado pra um número "redondo" (1/2/5 ×
+                   potência de 10) — nunca o próprio maior valor cru, senão a
+                   barra mais alta sempre bate no topo e a grade não ajuda em
+                   nada. */
+                function tetoEixoY(valor) {
+                  if (valor <= 0) return 10;
+                  const exp = Math.pow(10, Math.floor(Math.log10(valor)));
+                  const passo = valor / exp;
+                  const base = passo <= 1 ? 1 : passo <= 2 ? 2 : passo <= 5 ? 5 : 10;
+                  return base * exp;
+                }
+                function moedaCurta(v) {
+                  if (v >= 1000) return 'R$' + (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'k';
+                  return 'R$' + Math.round(v);
+                }
+                const tetoY = tetoEixoY(fat.maiorValorDia);
+                const passosGradeY = [0, 0.25, 0.5, 0.75, 1];
+              %>
+              <svg viewBox="0 0 <%= largura %> <%= altura %>" role="img" aria-label="Gráfico de faturamento diário dos últimos 7 dias">
+                <% passosGradeY.forEach(pct => {
+                     const y = margemTopo + (1 - pct) * alturaUtil;
+                %>
+                  <line class="linha-guia" x1="<%= margemEsq %>" y1="<%= y.toFixed(1) %>" x2="<%= largura - margemDir %>" y2="<%= y.toFixed(1) %>"></line>
+                  <text class="eixo-label-y" x="<%= margemEsq - 8 %>" y="<%= (y + 3).toFixed(1) %>" text-anchor="end"><%= moedaCurta(tetoY * pct) %></text>
+                <% }) %>
+
+                <% fat.serie.forEach((dia, i) => {
+                     const alturaBarra = tetoY > 0 ? (dia.total / tetoY) * alturaUtil : 0;
+                     const x = margemEsq + i * espacoBarra + (espacoBarra - larguraBarra) / 2;
+                     const y = altura - margemBase - alturaBarra;
+                     const valorFormatado = dia.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                %>
+                  <rect class="barra" tabindex="0" role="img"
+                        aria-label="<%= dia.label %>: <%= valorFormatado %>"
+                        data-tooltip-titulo="<%= dia.label %>"
+                        data-tooltip-cor="var(--dourado)"
+                        data-tooltip-rotulo="Faturamento"
+                        data-tooltip-valor="<%= valorFormatado %>"
+                        x="<%= x.toFixed(1) %>" y="<%= y.toFixed(1) %>"
+                        width="<%= larguraBarra.toFixed(1) %>" height="<%= Math.max(alturaBarra, 2).toFixed(1) %>" rx="4">
+                  </rect>
+                  <text class="eixo-label" x="<%= (x + larguraBarra / 2).toFixed(1) %>" y="<%= altura - 8 %>" text-anchor="middle"><%= dia.label %></text>
+                <% }) %>
+              </svg>
+              <figcaption>Passe o cursor (ou use Tab) sobre uma barra para ver o valor exato do dia.</figcaption>
+            </figure>
+          </article>
+
+          <article class="painel dash-chart-card grafico-evolucao">
+            <header class="painel__cabecalho">
+              <hgroup>
+                <h2 class="painel__titulo"><i class="fas fa-chart-line" aria-hidden="true"></i>Evolução</h2>
+                <p class="painel__subtitulo">Pedidos e faturamento dos últimos 7 dias</p>
+              </hgroup>
+              <ul class="legenda-grafico" aria-label="Legenda do gráfico de evolução">
+                <li class="legenda-grafico__item">
+                  <i class="legenda-cor legenda-cor--faturamento" aria-hidden="true"></i>
+                  Faturamento
+                  <b id="legenda-valor-faturamento" class="legenda-grafico__valor"><%= fat.totalSemanaFormatado %></b>
+                </li>
+                <li class="legenda-grafico__item">
+                  <i class="legenda-cor legenda-cor--pedidos" aria-hidden="true"></i>
+                  Pedidos
+                  <b id="legenda-valor-pedidos" class="legenda-grafico__valor"><%= dashboard.evolucao.serie.reduce((s, d) => s + d.pedidos, 0) %></b>
+                </li>
+              </ul>
+            </header>
+
+            <p class="dash-chart-status" id="evolucao-status" aria-live="polite">
+              <i class="dash-chart-status__ponto" aria-hidden="true"></i>
+              <b id="evolucao-status-texto">Atualiza automaticamente</b>
+            </p>
+
+            <figure>
+              <%
+                const evLargura = 640, evAltura = 220;
+                const evMargemEsq = 34, evMargemDir = 12, evMargemTopo = 18, evMargemBase = 28;
+                const evSerie = dashboard.evolucao.serie;
+                const evN = evSerie.length;
+                const evAlturaUtil  = evAltura  - evMargemTopo - evMargemBase;
+                const evLarguraUtil = evLargura - evMargemEsq  - evMargemDir;
+                const evPassoX = evN > 1 ? evLarguraUtil / (evN - 1) : 0;
+                const evMaiorFat = dashboard.evolucao.maiorFaturamento;
+                const evMaiorPed = dashboard.evolucao.maiorPedidos;
+
+                const evX = i => evMargemEsq + i * evPassoX;
+                const evY = (valor, maior) => {
+                  const pct = maior > 0 ? (valor / maior) : 0;
+                  return evMargemTopo + (1 - pct) * evAlturaUtil;
+                };
+
+                const evPontosFat = evSerie.map((d, i) => ({ x: evX(i), y: evY(d.faturamento, evMaiorFat) }));
+                const evPontosPed = evSerie.map((d, i) => ({ x: evX(i), y: evY(d.pedidos, evMaiorPed) }));
+                const evPolyFat = evPontosFat.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+                const evPolyPed = evPontosPed.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+              %>
+              <%
+                const evBaseline = evAltura - evMargemBase;
+                const evAreaFat = 'M ' + evPontosFat.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ')
+                  + ` L ${evPontosFat[evN - 1].x.toFixed(1)},${evBaseline} L ${evPontosFat[0].x.toFixed(1)},${evBaseline} Z`;
+              %>
+              <svg id="grafico-evolucao-svg" viewBox="0 0 <%= evLargura %> <%= evAltura %>" role="img"
+                   aria-label="Gráfico de linhas com a evolução diária de pedidos e faturamento nos últimos 7 dias, em percentual do maior valor do período"
+                   data-largura="<%= evLargura %>" data-altura="<%= evAltura %>"
+                   data-margem-esq="<%= evMargemEsq %>" data-margem-dir="<%= evMargemDir %>"
+                   data-margem-topo="<%= evMargemTopo %>" data-margem-base="<%= evMargemBase %>">
+                <defs>
+                  <linearGradient id="gradFaturamentoArea" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%"  stop-color="var(--dourado)" stop-opacity="0.22"></stop>
+                    <stop offset="100%" stop-color="var(--dourado)" stop-opacity="0.02"></stop>
+                  </linearGradient>
+                </defs>
+
+                <% [0, 25, 50, 75, 100].forEach(pct => {
+                     const y = evMargemTopo + (1 - pct / 100) * evAlturaUtil;
+                %>
+                  <line class="linha-guia" x1="<%= evMargemEsq %>" y1="<%= y.toFixed(1) %>" x2="<%= evLargura - evMargemDir %>" y2="<%= y.toFixed(1) %>"></line>
+                <% }) %>
+
+                <path id="area-fat" class="area-serie area-serie--faturamento" d="<%= evAreaFat %>"></path>
+
+                <polyline id="linha-fat" class="linha-serie linha-serie--faturamento" points="<%= evPolyFat %>"></polyline>
+                <polyline id="linha-ped" class="linha-serie linha-serie--pedidos" points="<%= evPolyPed %>"></polyline>
+
+                <g id="pontos-fat" aria-hidden="true">
+                  <% evPontosFat.forEach((p, i) => { %>
+                    <rect class="ponto-serie ponto-serie--faturamento" x="<%= (p.x - 4).toFixed(1) %>" y="<%= (p.y - 4).toFixed(1) %>"
+                          width="8" height="8" transform="rotate(45 <%= p.x.toFixed(1) %> <%= p.y.toFixed(1) %>)"></rect>
+                  <% }) %>
+                </g>
+                <g id="pontos-ped" aria-hidden="true">
+                  <% evPontosPed.forEach((p, i) => { %>
+                    <circle class="ponto-serie ponto-serie--pedidos" cx="<%= p.x.toFixed(1) %>" cy="<%= p.y.toFixed(1) %>" r="4.5"></circle>
+                  <% }) %>
+                </g>
+
+                <% evSerie.forEach((d, i) => { %>
+                  <text class="eixo-label" x="<%= evX(i).toFixed(1) %>" y="<%= evAltura - 8 %>" text-anchor="middle"><%= d.label %></text>
+                <% }) %>
+
+                <line id="grafico-evolucao-crosshair" class="crosshair" x1="0" y1="<%= evMargemTopo %>" x2="0" y2="<%= evBaseline %>"></line>
+                <rect id="grafico-evolucao-hitarea" class="grafico-hit-area" tabindex="0" role="img"
+                      aria-label="Use as setas do teclado, com o gráfico focado, pra ler dia a dia os valores de pedidos e faturamento"
+                      x="<%= evMargemEsq %>" y="<%= evMargemTopo %>" width="<%= evLarguraUtil %>" height="<%= evAlturaUtil %>"></rect>
+              </svg>
+              <figcaption>Passe o cursor (ou toque, no celular) sobre o gráfico para ver os valores exatos do dia. As linhas são exibidas em % do maior valor do período. Os números completos estão na tabela abaixo.</figcaption>
+            </figure>
+
+            <script type="application/json" id="grafico-evolucao-dados"><%- JSON.stringify(evSerie) %></script>
+
+            <details class="tabela-evolucao-detalhes">
+              <summary>Ver dados em tabela</summary>
+              <table id="tabela-evolucao">
+                <caption class="sr-only">Pedidos e faturamento diários dos últimos 7 dias</caption>
+                <thead>
+                  <tr><th scope="col">Dia</th><th scope="col">Pedidos</th><th scope="col">Faturamento</th></tr>
+                </thead>
+                <tbody id="tabela-evolucao-corpo">
+                  <% evSerie.forEach(d => { %>
+                    <tr>
+                      <td><%= d.label %></td>
+                      <td><%= d.pedidos %></td>
+                      <td><%= d.faturamento.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </details>
+          </article>
+        </section>
+
+        <article class="painel dash-chart-card grafico-trafego" id="grafico-trafego-card" aria-label="Tráfego do site">
+          <%
+            const trDados = dashboard.trafego;
+            const trLargura = 860, trAltura = 220, trMargemEsq = 40, trMargemDir = 10, trMargemTopo = 18, trMargemBase = 28;
+            const trSerie = trDados.serie;
+            const trN = trSerie.length;
+            const trAlturaUtil  = trAltura  - trMargemTopo - trMargemBase;
+            const trLarguraUtil = trLargura - trMargemEsq  - trMargemDir;
+            const trPassoX = trN > 1 ? trLarguraUtil / (trN - 1) : 0;
+            const trBaseline = trAltura - trMargemBase;
+
+            function trX(i) { return trMargemEsq + i * trPassoX; }
+            function trTetoEixoY(valor) {
+              if (valor <= 0) return 10;
+              const exp = Math.pow(10, Math.floor(Math.log10(valor)));
+              const passo = valor / exp;
+              const base = passo <= 1 ? 1 : passo <= 2 ? 2 : passo <= 5 ? 5 : 10;
+              return base * exp;
+            }
+            const trTetoY = trTetoEixoY(trDados.maiorValor);
+            function trY(valor) { return trMargemTopo + (1 - (trTetoY > 0 ? valor / trTetoY : 0)) * trAlturaUtil; }
+
+            const trPontos = trSerie.map((d, i) => ({ x: trX(i), y: trY(d.total), d }));
+            const trPoly = trPontos.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+            const trArea = 'M ' + trPontos.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ')
+              + ` L ${trPontos[trN - 1].x.toFixed(1)},${trBaseline} L ${trPontos[0].x.toFixed(1)},${trBaseline} Z`;
+
+            /* No máximo ~8 rótulos no eixo X (nunca um por balde — 24h/30d
+               teriam 24/30 rótulos amontoados). O último balde (mais
+               recente) sempre aparece — mas troca de lugar com o rótulo
+               regular anterior em vez de somar mais um, quando os dois
+               ficariam espremidos lado a lado. */
+            function indicesRotuloEixoX(n, passo) {
+              const out = [];
+              for (let i = 0; i < n; i += passo) out.push(i);
+              const ultimo = n - 1;
+              if (out[out.length - 1] !== ultimo) {
+                if (ultimo - out[out.length - 1] < passo / 2) out[out.length - 1] = ultimo;
+                else out.push(ultimo);
+              }
+              return out;
+            }
+            const trPasso = Math.max(1, Math.ceil(trN / 8));
+            const trIndicesRotulo = indicesRotuloEixoX(trN, trPasso);
+          %>
+          <header class="painel__cabecalho">
+            <hgroup>
+              <h2 class="painel__titulo"><i class="fas fa-chart-area" aria-hidden="true"></i>Tráfego do site</h2>
+              <p class="painel__subtitulo">
+                Acessos às páginas de categoria (/plantas, /vasos...) ·
+                <b id="trafego-total"><%= trDados.total %></b> nos
+                <b id="trafego-periodo-texto"><%= trDados.periodoRotulo %></b>
+                <b class="stat-card__variacao <%= trDados.variacaoPercentual >= 0 ? 'stat-card__variacao--alta' : 'stat-card__variacao--baixa' %>" id="trafego-variacao">
+                  <i class="fas fa-arrow-<%= trDados.variacaoPercentual >= 0 ? 'up' : 'down' %>" aria-hidden="true"></i>
+                  <%= Math.abs(trDados.variacaoPercentual) %>%
+                </b>
+              </p>
+            </hgroup>
+            <nav class="periodo-trafego" aria-label="Selecionar período do gráfico de tráfego" id="trafego-periodo-nav">
+              <button type="button" class="chip-periodo <%= trDados.periodo === '12m' ? 'is-active' : '' %>" data-periodo="12m">12 meses</button>
+              <button type="button" class="chip-periodo <%= trDados.periodo === '30d' ? 'is-active' : '' %>" data-periodo="30d">30 dias</button>
+              <button type="button" class="chip-periodo <%= trDados.periodo === '7d'  ? 'is-active' : '' %>" data-periodo="7d">7 dias</button>
+              <button type="button" class="chip-periodo <%= trDados.periodo === '24h' ? 'is-active' : '' %>" data-periodo="24h">24 horas</button>
+            </nav>
+          </header>
+
+          <figure>
+            <svg id="grafico-trafego-svg" viewBox="0 0 <%= trLargura %> <%= trAltura %>" role="img"
+                 aria-label="Gráfico de área com o número de acessos às páginas de categoria ao longo do tempo"
+                 data-largura="<%= trLargura %>" data-altura="<%= trAltura %>"
+                 data-margem-esq="<%= trMargemEsq %>" data-margem-dir="<%= trMargemDir %>"
+                 data-margem-topo="<%= trMargemTopo %>" data-margem-base="<%= trMargemBase %>">
+              <defs>
+                <linearGradient id="gradTrafegoArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stop-color="var(--dourado)" stop-opacity="0.22"></stop>
+                  <stop offset="100%" stop-color="var(--dourado)" stop-opacity="0.02"></stop>
+                </linearGradient>
+              </defs>
+
+              <g id="grafico-trafego-grade">
+                <% [0, 0.25, 0.5, 0.75, 1].forEach(pct => {
+                     const y = trMargemTopo + (1 - pct) * trAlturaUtil;
+                %>
+                  <line class="linha-guia" x1="<%= trMargemEsq %>" y1="<%= y.toFixed(1) %>" x2="<%= trLargura - trMargemDir %>" y2="<%= y.toFixed(1) %>"></line>
+                  <text class="eixo-label-y" x="<%= trMargemEsq - 8 %>" y="<%= (y + 3).toFixed(1) %>" text-anchor="end"><%= Math.round(trTetoY * pct) %></text>
+                <% }) %>
+              </g>
+
+              <path id="area-trafego" class="area-serie area-serie--trafego" d="<%= trArea %>"></path>
+              <polyline id="linha-trafego" class="linha-serie linha-serie--trafego" points="<%= trPoly %>"></polyline>
+
+              <g id="pontos-trafego" aria-hidden="true">
+                <% trPontos.forEach(p => { %>
+                  <circle class="ponto-serie ponto-serie--trafego" cx="<%= p.x.toFixed(1) %>" cy="<%= p.y.toFixed(1) %>" r="3.5"></circle>
+                <% }) %>
+              </g>
+
+              <g id="grafico-trafego-eixox">
+                <% trIndicesRotulo.forEach(i => { %>
+                  <text class="eixo-label" x="<%= trX(i).toFixed(1) %>" y="<%= trAltura - 8 %>" text-anchor="middle"><%= trSerie[i].label %></text>
+                <% }) %>
+              </g>
+
+              <line id="grafico-trafego-crosshair" class="crosshair" x1="0" y1="<%= trMargemTopo %>" x2="0" y2="<%= trBaseline %>"></line>
+              <rect id="grafico-trafego-hitarea" class="grafico-hit-area" tabindex="0" role="img"
+                    aria-label="Use as setas do teclado, com o gráfico focado, pra ler os acessos período a período"
+                    x="<%= trMargemEsq %>" y="<%= trMargemTopo %>" width="<%= trLarguraUtil %>" height="<%= trAlturaUtil %>"></rect>
+            </svg>
+            <figcaption>Passe o cursor (ou toque, no celular) sobre o gráfico para ver o número exato de acessos em cada ponto.</figcaption>
+          </figure>
+
+          <script type="application/json" id="grafico-trafego-dados"><%- JSON.stringify(trSerie) %></script>
+        </article>
+
+        <article class="painel dash-chart-card grafico-atividade" id="grafico-atividade-card" aria-label="Atividade de clientes">
+          <%
+            const acDados = dashboard.atividadeClientes;
+            const acLargura = 860, acAltura = 220, acMargemEsq = 32, acMargemDir = 10, acMargemTopo = 18, acMargemBase = 28;
+            const acSerie = acDados.serie;
+            const acN = acSerie.length;
+            const acAlturaUtil  = acAltura  - acMargemTopo - acMargemBase;
+            const acLarguraUtil = acLargura - acMargemEsq  - acMargemDir;
+            const acPassoX = acN > 1 ? acLarguraUtil / (acN - 1) : 0;
+            const acBaseline = acAltura - acMargemBase;
+
+            function acX(i) { return acMargemEsq + i * acPassoX; }
+            function acTetoEixoY(valor) {
+              if (valor <= 0) return 10;
+              const exp = Math.pow(10, Math.floor(Math.log10(valor)));
+              const passo = valor / exp;
+              const base = passo <= 1 ? 1 : passo <= 2 ? 2 : passo <= 5 ? 5 : 10;
+              return base * exp;
+            }
+            const acTetoY = acTetoEixoY(acDados.maiorValor);
+            function acY(valor) { return acMargemTopo + (1 - (acTetoY > 0 ? valor / acTetoY : 0)) * acAlturaUtil; }
+
+            const acPontosNovos = acSerie.map((d, i) => ({ x: acX(i), y: acY(d.novos) }));
+            const acPontosTotal = acSerie.map((d, i) => ({ x: acX(i), y: acY(d.total) }));
+            const acPolyNovos = acPontosNovos.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+            const acPolyTotal = acPontosTotal.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+            const acAreaNovos = 'M ' + acPontosNovos.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ')
+              + ` L ${acPontosNovos[acN - 1].x.toFixed(1)},${acBaseline} L ${acPontosNovos[0].x.toFixed(1)},${acBaseline} Z`;
+            const acAreaRecorrentes = 'M ' + acPontosTotal.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ')
+              + ' L ' + acPontosNovos.slice().reverse().map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' L ') + ' Z';
+
+            function indicesRotuloEixoXAc(n, passo) {
+              const out = [];
+              for (let i = 0; i < n; i += passo) out.push(i);
+              const ultimo = n - 1;
+              if (out[out.length - 1] !== ultimo) {
+                if (ultimo - out[out.length - 1] < passo / 2) out[out.length - 1] = ultimo;
+                else out.push(ultimo);
+              }
+              return out;
+            }
+            const acPasso = Math.max(1, Math.ceil(acN / 8));
+            const acIndicesRotulo = indicesRotuloEixoXAc(acN, acPasso);
+          %>
+          <header class="painel__cabecalho">
+            <hgroup>
+              <h2 class="painel__titulo"><i class="fas fa-users" aria-hidden="true"></i>Atividade de clientes</h2>
+              <p class="painel__subtitulo">
+                <b id="atividade-total"><%= acDados.totalGeral %></b> contas ativas nos
+                <b id="atividade-periodo-texto"><%= acDados.periodoRotulo %></b> ·
+                <%= acDados.totalNovos %> novas, <%= acDados.totalRecorrentes %> recorrentes
+              </p>
+            </hgroup>
+            <select class="periodo-select" id="atividade-periodo-select" aria-label="Selecionar período do gráfico de atividade de clientes">
+              <option value="30d" <%= acDados.periodo === '30d' ? 'selected' : '' %>>Últimos 30 dias</option>
+              <option value="90d" <%= acDados.periodo === '90d' ? 'selected' : '' %>>Últimos 3 meses</option>
+              <option value="12m" <%= acDados.periodo === '12m' ? 'selected' : '' %>>Últimos 12 meses</option>
+            </select>
+          </header>
+
+          <ul class="legenda-grafico" aria-label="Legenda do gráfico de atividade de clientes">
+            <li class="legenda-grafico__item"><i class="legenda-cor legenda-cor--novos" aria-hidden="true"></i>Clientes novos</li>
+            <li class="legenda-grafico__item"><i class="legenda-cor legenda-cor--recorrentes" aria-hidden="true"></i>Clientes recorrentes</li>
+          </ul>
+
+          <figure>
+            <svg id="grafico-atividade-svg" viewBox="0 0 <%= acLargura %> <%= acAltura %>" role="img"
+                 aria-label="Gráfico de área empilhada com clientes novos e recorrentes ao longo do tempo"
+                 data-largura="<%= acLargura %>" data-altura="<%= acAltura %>"
+                 data-margem-esq="<%= acMargemEsq %>" data-margem-dir="<%= acMargemDir %>"
+                 data-margem-topo="<%= acMargemTopo %>" data-margem-base="<%= acMargemBase %>">
+              <g id="grafico-atividade-grade">
+                <% [0, 0.25, 0.5, 0.75, 1].forEach(pct => {
+                     const y = acMargemTopo + (1 - pct) * acAlturaUtil;
+                %>
+                  <line class="linha-guia" x1="<%= acMargemEsq %>" y1="<%= y.toFixed(1) %>" x2="<%= acLargura - acMargemDir %>" y2="<%= y.toFixed(1) %>"></line>
+                  <text class="eixo-label-y" x="<%= acMargemEsq - 8 %>" y="<%= (y + 3).toFixed(1) %>" text-anchor="end"><%= Math.round(acTetoY * pct) %></text>
+                <% }) %>
+              </g>
+
+              <path id="area-atividade-recorrentes" class="area-serie area-serie--recorrentes" d="<%= acAreaRecorrentes %>"></path>
+              <path id="area-atividade-novos" class="area-serie area-serie--novos" d="<%= acAreaNovos %>"></path>
+              <polyline id="linha-atividade-total" class="linha-serie linha-serie--recorrentes" points="<%= acPolyTotal %>"></polyline>
+              <polyline id="linha-atividade-novos" class="linha-serie linha-serie--novos" points="<%= acPolyNovos %>"></polyline>
+
+              <g id="grafico-atividade-eixox">
+                <% acIndicesRotulo.forEach(i => { %>
+                  <text class="eixo-label" x="<%= acX(i).toFixed(1) %>" y="<%= acAltura - 8 %>" text-anchor="middle"><%= acSerie[i].label %></text>
+                <% }) %>
+              </g>
+
+              <line id="grafico-atividade-crosshair" class="crosshair" x1="0" y1="<%= acMargemTopo %>" x2="0" y2="<%= acBaseline %>"></line>
+              <rect id="grafico-atividade-hitarea" class="grafico-hit-area" tabindex="0" role="img"
+                    aria-label="Use as setas do teclado, com o gráfico focado, pra ler a atividade de clientes período a período"
+                    x="<%= acMargemEsq %>" y="<%= acMargemTopo %>" width="<%= acLarguraUtil %>" height="<%= acAlturaUtil %>"></rect>
+            </svg>
+            <figcaption>Passe o cursor (ou toque, no celular) sobre o gráfico para ver os números exatos de cada ponto.</figcaption>
+          </figure>
+
+          <script type="application/json" id="grafico-atividade-dados"><%- JSON.stringify(acSerie) %></script>
+        </article>
+
+        <section class="dash-insights" aria-label="Rankings e alertas">
+
+          <article class="painel dash-insight grafico-formas-pagamento" aria-label="Formas de pagamento">
+            <header class="painel__cabecalho">
+              <hgroup>
+                <h2 class="painel__titulo"><i class="fas fa-wallet" aria-hidden="true"></i>Formas de pagamento</h2>
+                <p class="painel__subtitulo">Faturamento aprovado nos últimos 30 dias</p>
+              </hgroup>
+            </header>
+
+            <% if (dashboard.formasPagamento.total > 0) {
+              const donutR = 58, donutCx = 80, donutCy = 80, donutStroke = 20, donutGap = 3;
+              const donutC = 2 * Math.PI * donutR;
+              let donutCum = 0;
+              const donutFatias = dashboard.formasPagamento.itens.map(item => {
+                const arcLen = Math.max((item.percentual / 100) * donutC - donutGap, 0);
+                const offset = -((donutCum / 100) * donutC + donutGap / 2);
+                donutCum += item.percentual;
+                return Object.assign({}, item, { arcLen, offset });
+              });
+            %>
+              <figure class="donut-figura">
+                <svg class="donut-svg" viewBox="0 0 160 160" role="img" aria-label="Distribuição do faturamento por forma de pagamento nos últimos 30 dias">
+                  <circle cx="<%= donutCx %>" cy="<%= donutCy %>" r="<%= donutR %>" fill="none" stroke="var(--creme-escuro)" stroke-width="<%= donutStroke %>"></circle>
+                  <% donutFatias.forEach(f => { if (f.total <= 0) return; %>
+                    <circle class="donut-fatia" tabindex="0" role="img"
+                            aria-label="<%= f.rotulo %>: <%= f.totalFormatado %> (<%= f.percentual %>%)"
+                            data-tooltip-titulo="<%= f.rotulo %>"
+                            data-tooltip-cor="<%= f.cor %>"
+                            data-tooltip-rotulo="Faturamento"
+                            data-tooltip-valor="<%= f.totalFormatado %> · <%= f.percentual %>%"
+                            cx="<%= donutCx %>" cy="<%= donutCy %>" r="<%= donutR %>" fill="none" stroke="<%= f.cor %>" stroke-width="<%= donutStroke %>"
+                            stroke-dasharray="<%= f.arcLen.toFixed(1) %> <%= (donutC - f.arcLen).toFixed(1) %>"
+                            stroke-dashoffset="<%= f.offset.toFixed(1) %>"
+                            transform="rotate(-90 <%= donutCx %> <%= donutCy %>)"></circle>
+                  <% }) %>
+                </svg>
+                <p class="donut-total"><b>Total</b><strong><%= dashboard.formasPagamento.totalFormatado %></strong></p>
+                <figcaption class="sr-only">Total faturado nos últimos 30 dias, por forma de pagamento</figcaption>
+              </figure>
+
+              <ul class="donut-legenda" aria-label="Legenda de formas de pagamento">
+                <% dashboard.formasPagamento.itens.forEach(item => { %>
+                  <li>
+                    <i class="donut-legenda__cor" style="background:<%= item.cor %>" aria-hidden="true"></i>
+                    <b class="donut-legenda__nome"><%= item.rotulo %></b>
+                    <b class="donut-legenda__valor"><%= item.totalFormatado %></b>
+                    <b class="donut-legenda__pct"><%= item.percentual %>%</b>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } else { %>
+              <p class="lista-ranking--vazia">Ainda não há pagamentos aprovados nos últimos 30 dias.</p>
+            <% } %>
+          </article>
+
+          <article class="painel dash-insight">
+            <header class="painel__cabecalho dash-insight__cabecalho">
+              <i class="dash-insight__icone" aria-hidden="true"><i class="fas fa-trophy"></i></i>
+              <h2 class="painel__titulo">Mais vendidos</h2>
+            </header>
+            <% if (dashboard.produtosMaisVendidos.length) { %>
+              <ol class="lista-ranking">
+                <% dashboard.produtosMaisVendidos.forEach((p, i) => { %>
+                  <li>
+                    <b class="lista-ranking__pos"><%= i + 1 %></b>
+                    <b class="lista-ranking__nome"><%= p.nome %></b>
+                    <b class="lista-ranking__valor"><%= p.total_vendido %> vendas</b>
+                  </li>
+                <% }) %>
+              </ol>
+            <% } else { %>
+              <p class="lista-ranking--vazia">Ainda não há vendas aprovadas registradas.</p>
+            <% } %>
+          </article>
+
+          <article class="painel dash-insight">
+            <header class="painel__cabecalho dash-insight__cabecalho">
+              <i class="dash-insight__icone" aria-hidden="true"><i class="fas fa-heart"></i></i>
+              <h2 class="painel__titulo">Mais favoritados</h2>
+            </header>
+            <% if (dashboard.produtosMaisFavoritados.length) { %>
+              <ol class="lista-ranking">
+                <% dashboard.produtosMaisFavoritados.forEach((p, i) => { %>
+                  <li>
+                    <b class="lista-ranking__pos"><%= i + 1 %></b>
+                    <b class="lista-ranking__nome"><%= p.nome %></b>
+                    <b class="lista-ranking__valor"><%= p.total %> favoritos</b>
+                  </li>
+                <% }) %>
+              </ol>
+            <% } else { %>
+              <p class="lista-ranking--vazia">Ainda não há produtos favoritados pelos clientes.</p>
+            <% } %>
+          </article>
+
+          <article class="alerta-card dash-insight dash-insight--alerta">
+            <h3 class="alerta-card__titulo"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i>Estoque baixo</h3>
+            <p class="alerta-card__legenda"><%= dashboard.alertas.estoqueBaixo.length %> produto(s) no limite mínimo cadastrado ou abaixo</p>
+            <% if (dashboard.alertas.estoqueBaixo.length) { %>
+              <ul>
+                <% dashboard.alertas.estoqueBaixo.forEach(p => { %>
+                  <li>
+                    <b><%= p.nome %></b>
+                    <b class="alerta-card__badge"><%= p.estoque %>/<%= p.estoque_minimo %> un.</b>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } else { %>
+              <p class="alerta-card--vazio">Nenhum produto com estoque baixo.</p>
+            <% } %>
+          </article>
+
+          <article class="alerta-card dash-insight dash-insight--alerta">
+            <h3 class="alerta-card__titulo"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i>Pedidos parados</h3>
+            <p class="alerta-card__legenda"><%= dashboard.alertas.pedidosParados.length %> sem atualização de status há 2+ dias</p>
+            <% if (dashboard.alertas.pedidosParados.length) { %>
+              <ul>
+                <% dashboard.alertas.pedidosParados.forEach(ped => { %>
+                  <li>
+                    <b>Pedido #<%= ped.id %></b>
+                    <b class="alerta-card__badge"><%= ped.dias_parado %>d parado</b>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } else { %>
+              <p class="alerta-card--vazio">Nenhum pedido parado no momento.</p>
+            <% } %>
+          </article>
+
+          <article class="alerta-card dash-insight dash-insight--alerta">
+            <h3 class="alerta-card__titulo"><i class="fas fa-star" aria-hidden="true"></i>Avaliações sem resposta</h3>
+            <p class="alerta-card__legenda">Aguardando retorno do lojista</p>
+            <% if (dashboard.alertas.avaliacoesRecentes.length) { %>
+              <ul>
+                <% dashboard.alertas.avaliacoesRecentes.forEach(av => { %>
+                  <li>
+                    <b><%= av.usuario_nome %> - <%= av.produto_slug %></b>
+                    <b class="alerta-card__badge"><%= av.avaliacao %> <i class="fas fa-star" aria-hidden="true"></i></b>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } else { %>
+              <p class="alerta-card--vazio">Nenhuma avaliação aguardando resposta.</p>
+            <% } %>
+          </article>
+        </section>
+
+        <p class="dash-acoes__titulo">Ações rápidas</p>
+        <nav class="dash-acoes dash-acoes--secundaria" aria-label="Ações rápidas">
+          <a class="dash-acao" href="/estoque">
+            <i class="dash-acao__icone" aria-hidden="true"><i class="fas fa-seedling"></i></i>
+            <b class="dash-acao__texto">
+              <b class="dash-acao__label">Novo Produto</b>
+              <b class="dash-acao__sub">Cadastrar no catálogo</b>
+            </b>
+          </a>
+          <a class="dash-acao" href="/pedidos">
+            <i class="dash-acao__icone" aria-hidden="true"><i class="fas fa-receipt"></i></i>
+            <b class="dash-acao__texto">
+              <b class="dash-acao__label">Pedidos</b>
+              <b class="dash-acao__sub">Ver e atualizar status</b>
+            </b>
+          </a>
+          <a class="dash-acao" href="/admin/cupons/novo">
+            <i class="dash-acao__icone" aria-hidden="true"><i class="fas fa-tag"></i></i>
+            <b class="dash-acao__texto">
+              <b class="dash-acao__label">Novo Cupom</b>
+              <b class="dash-acao__sub">Criar promoção</b>
+            </b>
+          </a>
+          <a class="dash-acao" href="/admin/banners">
+            <i class="dash-acao__icone" aria-hidden="true"><i class="fas fa-image"></i></i>
+            <b class="dash-acao__texto">
+              <b class="dash-acao__label">Novo Banner</b>
+              <b class="dash-acao__sub">Destacar na home</b>
+            </b>
+          </a>
+          <a class="dash-acao" href="/admin/categorias">
+            <i class="dash-acao__icone" aria-hidden="true"><i class="fas fa-layer-group"></i></i>
+            <b class="dash-acao__texto">
+              <b class="dash-acao__label">Nova Categoria</b>
+              <b class="dash-acao__sub">Organizar catálogo</b>
+            </b>
+          </a>
+        </nav>
+
+      <% } %>
+    </main>
+  </section>
+
+  <output class="chart-tooltip" id="chart-tooltip" aria-hidden="true">
+    <b class="chart-tooltip__titulo" id="chart-tooltip-titulo"></b>
+    <ul class="chart-tooltip__linhas" id="chart-tooltip-linhas"></ul>
+  </output>
+
+  <script src="/js/admin/admin-dashboard.js" defer></script>
+</body>
+</html>

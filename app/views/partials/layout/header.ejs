@@ -1,0 +1,200 @@
+<script>
+(function () {
+  try {
+    var p = JSON.parse(localStorage.getItem('floria_a11y_prefs') || 'null');
+    if (!p) return;
+    var h = document.documentElement;
+    if (p.tamanho_fonte && p.tamanho_fonte !== 'normal') h.setAttribute('data-a11y-fonte', p.tamanho_fonte);
+    if (p.espacamento_texto && p.espacamento_texto !== 'normal') h.setAttribute('data-a11y-espacamento', p.espacamento_texto);
+    if (p.alto_contraste) h.setAttribute('data-a11y-contraste', '1');
+    if (p.reduzir_movimento) h.setAttribute('data-a11y-movimento', '1');
+    if (p.destacar_links) h.setAttribute('data-a11y-links', '1');
+    if (p.destacar_foco) h.setAttribute('data-a11y-foco', '1');
+    if (p.interface_simplificada) h.setAttribute('data-a11y-simples', '1');
+    if (p.otimizar_leitor_tela) h.setAttribute('data-a11y-leitor', '1');
+    if (p.libras_ativo) h.setAttribute('data-a11y-libras', '1');
+  } catch (e) {}
+})();
+</script>
+<link rel="stylesheet" href="/css/shared/acessibilidade.css">
+<link rel="stylesheet" href="/css/layout/header.css">
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/layout/toast.css">
+<link rel="stylesheet" href="/css/shared/dialog-logout.css">
+<link rel="stylesheet" href="/css/layout/dialog-confirmar.css">
+<link rel="stylesheet" href="/css/layout/cookie-consent.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+  integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+</head>
+<body>
+<a href="#conteudo-principal" class="skip-link">Pular para o conteúdo principal</a>
+<script>
+  window.__logado = !!(<%= locals.usuario ? true : false %>);
+  window.__usuarioId = <%= locals.usuario ? locals.usuario.id : 'null' %>;
+  window.__usuarioNome = <%- locals.usuario ? JSON.stringify(locals.usuario.nome || '').replace(/</g, '\\u003c') : "''" %>;
+</script>
+<input type="hidden" id="csrf-token" value="<%= csrfToken %>">
+<script src="/js/shared/acessibilidade.js" defer></script>
+<script src="/js/shared/img-fallback.js" defer></script>
+<script src="/js/layout/auth-modal.js"></script>
+<script src="/js/shared/avatar-sync.js" defer></script>
+<script src="/js/layout/busca.js" defer></script>
+<script src="/js/layout/favoritos.js" defer></script>
+<script src="/js/layout/itens.js" defer></script>
+<script src="/js/layout/card-ratings.js" defer></script>
+<script src="/js/layout/relacionados.js" defer></script>
+<script src="/js/layout/cores-produto.js" defer></script>
+<script src="/js/layout/conta-menu.js" defer></script>
+<script src="/js/layout/mini-cart.js" defer></script>
+<script src="/js/layout/menu-mobile.js" defer></script>
+<script src="/js/shared/logout.js" defer></script>
+<script src="/js/layout/dialog-confirmar.js" defer></script>
+<script src="/js/layout/cookie-consent.js" defer></script>
+
+<header class="site-header" role="banner">
+  <nav class="navbar" aria-label="Navegação principal">
+    <section class="max-width">
+
+      <section class="nav-left">
+        <button type="button" class="hamburger-btn" id="hamburger-btn"
+                aria-label="Abrir menu de navegação" aria-expanded="false" aria-controls="drawer-menu">
+          <i aria-hidden="true"></i><i aria-hidden="true"></i><i aria-hidden="true"></i>
+        </button>
+
+        <figure class="logo">
+          <a href="/" aria-label="Floria: página inicial">
+            <img src="/imagens/logoflor.png" alt="">
+            <b class="logo-wordmark">Floria</b>
+          </a>
+        </figure>
+      </section>
+
+      <section class="nav-center">
+        <% var ROTAS_CATEGORIA_PROPRIA = ['plantas', 'vasos', 'ferramentas', 'adubos', 'controle-pragas']; %>
+        <ul class="menu">
+          <li><a href="/maisvendidos">Mais Vendidos</a></li>
+          <% (locals.categoriasNav || []).forEach(function (c) { %>
+            <li><a href="<%= ROTAS_CATEGORIA_PROPRIA.includes(c.slug) ? '/' + c.slug : '/categoria/' + c.slug %>"><%= c.nome %></a></li>
+          <% }) %>
+          <li><a href="/sobre-nos">Sobre Nós</a></li>
+          <li><a href="/suporte">Suporte</a></li>
+        </ul>
+      </section>
+
+      <section class="nav-right">
+        <section class="busca-wrapper" id="busca-wrapper">
+          <form class="serch-icon" action="/busca" method="get"
+                role="search" aria-label="Busca (cabeçalho)" autocomplete="off" id="busca-form">
+            <button type="submit" class="icon" aria-label="Buscar">
+              <i class="fas fa-search" aria-hidden="true"></i>
+            </button>
+            <input
+              type="search"
+              name="q"
+              id="busca-input"
+              placeholder="Buscar plantas, vasos, ferramentas..."
+              aria-label="Buscar produtos"
+              aria-autocomplete="list"
+              aria-controls="busca-dropdown"
+              autocomplete="off"
+              maxlength="100"
+            >
+          </form>
+          <section class="busca-dropdown" id="busca-dropdown"
+               role="listbox" aria-label="Sugestões"></section>
+        </section>
+
+        <menu class="icones">
+          <li class="conta-item">
+            <% if (locals.usuario) { %>
+              <button type="button" class="icone-btn conta-trigger avatar-usuario-btn" id="conta-trigger"
+                      aria-haspopup="true" aria-expanded="false" aria-controls="conta-menu"
+                      aria-label="Minha conta" title="Minha conta">
+                <% if (usuario.foto_perfil) { %>
+                  <img class="avatar-usuario" data-avatar-usuario src="<%= usuario.foto_perfil %>" alt=""
+                       data-fallback="/imagens/perfil.png">
+                <% } else { %>
+                  <i class="far fa-user avatar-usuario-fallback" data-avatar-usuario-fallback aria-hidden="true"></i>
+                <% } %>
+              </button>
+              <section class="conta-menu" id="conta-menu" role="menu" aria-label="Menu da conta" hidden>
+                <header class="conta-menu-cabecalho">
+                  <% if (usuario.foto_perfil) { %>
+                    <img class="conta-menu-avatar avatar-usuario" data-avatar-usuario src="<%= usuario.foto_perfil %>" alt=""
+                         data-fallback="/imagens/perfil.png">
+                  <% } else { %>
+                    <img class="conta-menu-avatar avatar-usuario" data-avatar-usuario src="/imagens/perfil.png" alt="">
+                  <% } %>
+                  <section class="conta-menu-cabecalho-texto">
+                    <strong><%= usuario.nome.split(' ')[0] %></strong>
+                    <small><%= usuario.email %></small>
+                  </section>
+                </header>
+                <a role="menuitem" href="/perfil">
+                  <i class="far fa-user" aria-hidden="true"></i> Minha conta
+                </a>
+                <a role="menuitem" href="/perfil#pedidos">
+                  <i class="far fa-file-alt" aria-hidden="true"></i> Pedidos
+                </a>
+                <a role="menuitem" href="/perfil#favoritos">
+                  <i class="far fa-heart" aria-hidden="true"></i> Favoritos
+                </a>
+                <a role="menuitem" href="/perfil#conta">
+                  <i class="fas fa-cog" aria-hidden="true"></i> Configurações
+                </a>
+                <a role="menuitem" href="/perfil#acessibilidade">
+                  <i class="fas fa-universal-access" aria-hidden="true"></i> Acessibilidade
+                </a>
+                <a role="menuitem" href="/suporte">
+                  <i class="far fa-question-circle" aria-hidden="true"></i> Ajuda e suporte
+                </a>
+                <button type="button" role="menuitem" id="conta-sair" class="conta-sair" data-logout-trigger>
+                  <i class="fas fa-sign-out-alt" aria-hidden="true"></i> Sair
+                </button>
+              </section>
+            <% } else { %>
+              <a href="/login" class="icone-btn" aria-label="Entrar ou criar conta" title="Entrar ou criar conta">
+                <i class="far fa-user" aria-hidden="true"></i>
+              </a>
+            <% } %>
+          </li>
+          <li class="carrinho-item">
+            <button type="button" class="icone-btn carrinho-trigger" id="cart-trigger"
+                    aria-haspopup="true" aria-expanded="false" aria-controls="mini-cart-panel"
+                    aria-label="Carrinho de compras" title="Carrinho de compras">
+              <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+              <output class="badge cart-badge" id="cart-count" aria-hidden="true"></output>
+            </button>
+
+            <section class="mini-cart-panel" id="mini-cart-panel" role="region" aria-label="Resumo do carrinho" hidden>
+              <header class="mini-cart-cabecalho">
+                <strong>Meu Carrinho</strong>
+                <button type="button" class="mini-cart-fechar" id="mini-cart-fechar" aria-label="Fechar carrinho">
+                  <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+              </header>
+
+              <ul class="mini-cart-corpo" id="mini-cart-corpo"></ul>
+
+              <footer class="mini-cart-rodape" id="mini-cart-rodape" hidden>
+                <section class="mini-cart-linha-total">
+                  <b>Subtotal <small>(<output id="mini-cart-qtd-total">0</output> itens)</small></b>
+                  <strong id="mini-cart-subtotal-total">R$ 0,00</strong>
+                </section>
+                <section class="mini-cart-acoes">
+                  <a href="/carrinho" class="mini-cart-btn mini-cart-btn-secundario">Ver Carrinho</a>
+                  <button type="button" class="mini-cart-btn mini-cart-btn-primario" id="mini-cart-finalizar">Finalizar Compra</button>
+                </section>
+              </footer>
+            </section>
+          </li>
+        </menu>
+      </section>
+
+    </section>
+  </nav>
+</header>
+
+<%- include("../shared/dialog-logout") %>
+<%- include("../shared/dialog-confirmar") %>
+<%- include("../shared/cookie-consent") %>

@@ -1,0 +1,48 @@
+<%
+/* Partial: painel de informações do produto — compõe todos os
+   sub-partials na mesma ordem usada pela página de referência.
+   Local esperado: pv (view-model completo, ver _pagina.ejs), descontoPct */
+%>
+<section class="info">
+  <%- include('./_cabecalho', {
+    categoriaNome: pv.categoriaNome, categoriaSlug: pv.categoriaSlug,
+    subcategoriaNome: pv.subcategoriaNome, nome: pv.nome, sku: pv.sku, marca: pv.marca
+  }) %>
+
+  <%- include('./_preco', {
+    precoAtual: pv.precoAtual, precoAntigo: pv.precoAntigo, parcelasTexto: pv.parcelasTexto,
+    estoque: pv.estoque, estoqueMinimo: pv.estoqueMinimo, descontoPct: descontoPct
+  }) %>
+
+  <%- include('./_avaliacao-topo', { avaliacaoEstrelas: pv.avaliacaoEstrelas, avaliacaoTexto: pv.avaliacaoTexto }) %>
+
+  <hr class="separador">
+
+  <%- include('./_variacoes', { variacoes: pv.variacoes }) %>
+
+  <%- include('./_quantidade') %>
+
+  <%- include('./_acoes', {
+    slug: pv.slug, nome: pv.nome, imagemPrincipal: pv.imagens[0].src,
+    precoAtual: pv.precoAtual, estoque: pv.estoque, categoriaSlug: pv.categoriaSlug
+  }) %>
+
+  <section class="trust-badges" aria-label="Garantias da compra">
+    <p class="trust-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v6c0 4.418-3.134 7.418-7 9-3.866-1.582-7-4.582-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+      <b>Compra Segura</b>
+    </p>
+    <p class="trust-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v8H3z"/><path d="M14 10h4l3 3v2h-7z"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg>
+      <b>Entrega Rápida</b>
+    </p>
+    <p class="trust-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4v5h5"/><path d="M20 20v-5h-5"/><path d="M5 9a7 7 0 0 1 12-4l3 3"/><path d="M19 15a7 7 0 0 1-12 4l-3-3"/></svg>
+      <b>Troca Fácil</b>
+    </p>
+  </section>
+
+  <%- include('./_tags', { tags: pv.tags }) %>
+
+  <%- include('./_frete', { slug: pv.slug }) %>
+</section>

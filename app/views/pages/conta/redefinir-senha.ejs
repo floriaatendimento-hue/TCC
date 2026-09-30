@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redefinir senha - Floria</title>
+  <link rel="stylesheet" href="/css/conta/login2.css" />
+  <link rel="stylesheet" href="/css/conta/forca-senha.css" />
+  <link rel="stylesheet" href="/css/conta/redefinir-senha.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main class="page-wrapper">
+    <section class="cartao-redefinir">
+      <h1 class="title title-second">Redefinir senha</h1>
+      <p class="description description-second">Código verificado. Escolha uma nova senha para sua conta.</p>
+
+      <section class="form" id="redefinir-form-wrapper">
+        <input type="hidden" id="csrf-redefinir" value="<%= csrfToken %>" />
+
+        <fieldset class="campo-grupo" id="grupo-nova-senha">
+          <label class="label-input" for="nova-senha-redefinir">
+            <i class="fas fa-lock icon-modify" aria-hidden="true"></i>
+            <input type="password" id="nova-senha-redefinir" name="novaSenha" placeholder="Nova senha"
+              autocomplete="new-password" required aria-required="true"
+              aria-describedby="nova-senha-redefinir-forca nova-senha-redefinir-erro" />
+            <button type="button" class="toggle-senha" aria-label="Mostrar senha" data-alvo="nova-senha-redefinir">
+              <i class="far fa-eye" aria-hidden="true"></i>
+            </button>
+          </label>
+          <output class="campo-erro-msg" id="nova-senha-redefinir-erro" role="alert"></output>
+          <%- include("../../partials/shared/forca-senha", { alvoId: 'nova-senha-redefinir', secaoId: 'nova-senha-redefinir-forca' }) %>
+        </fieldset>
+
+        <fieldset class="campo-grupo" id="grupo-confirmar-senha">
+          <label class="label-input" for="confirmar-senha-redefinir">
+            <i class="fas fa-lock icon-modify" aria-hidden="true"></i>
+            <input type="password" id="confirmar-senha-redefinir" name="confirmarSenha" placeholder="Confirmar nova senha"
+              autocomplete="new-password" required aria-required="true"
+              aria-describedby="confirmar-senha-redefinir-erro" />
+          </label>
+          <output class="campo-erro-msg" id="confirmar-senha-redefinir-erro" role="alert"></output>
+        </fieldset>
+
+        <output id="redefinir-msg-geral" role="alert"></output>
+
+        <button type="button" id="btn-redefinir-senha" class="btn btn-second">Redefinir senha</button>
+      </section>
+    </section>
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+
+  <script src="/js/conta/forca-senha.js"></script>
+  <script src="/js/conta/redefinir-senha.js"></script>
+</body>
+</html>

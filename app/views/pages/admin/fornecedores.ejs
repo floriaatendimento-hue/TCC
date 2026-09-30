@@ -1,0 +1,187 @@
+<%
+/* ADICIONADO (Financeiro — Fornecedores): listagem de fornecedores com o
+   histórico financeiro agregado (total comprado, total pago, saldo em
+   aberto) já embutido em cada linha — ver Fornecedor.findAll(). */
+const ROTULOS_STATUS = { ativo: 'Ativo', inativo: 'Inativo', bloqueado: 'Bloqueado' };
+const CLASSE_BADGE = { ativo: 'badge--verde', inativo: 'badge--cinza', bloqueado: 'badge--vermelho' };
+const moeda = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+const filtroAtivo = busca || status || cidade || uf || dataCadastroDe || dataCadastroAte || comCompras || comContasAbertas;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Fornecedores</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'fornecedores' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Fornecedores' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Fornecedores</h1>
+          <p class="admin-page-header__data">Gerencie seus fornecedores, dados cadastrais, compras e informações financeiras.</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--primario" href="/admin/fornecedores/novo">
+            <i class="fas fa-plus" aria-hidden="true"></i>Novo fornecedor
+          </a>
+        </nav>
+      </header>
+
+      <section class="stats-grid" style="margin-bottom: var(--esp-5);">
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-truck"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= indicadores.total %></p>
+          <p class="stat-card__legenda">Total de fornecedores</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--verde" aria-hidden="true"><i class="fas fa-check-circle"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= indicadores.ativos %></p>
+          <p class="stat-card__legenda">Ativos</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--cinza" aria-hidden="true"><i class="fas fa-pause-circle"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= indicadores.inativos %></p>
+          <p class="stat-card__legenda">Inativos/bloqueados</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-hourglass-half"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= indicadores.comContasAbertas %></p>
+          <p class="stat-card__legenda">Com contas em aberto</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--erro" aria-hidden="true"><i class="fas fa-exclamation-triangle"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(indicadores.totalEmAberto) %></p>
+          <p class="stat-card__legenda">Total em aberto</p>
+        </article>
+      </section>
+
+      <form class="admin-toolbar" method="get" action="/admin/fornecedores">
+        <search class="admin-toolbar__busca" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <input type="search" name="busca" value="<%= busca %>" placeholder="Buscar por nome, documento, e-mail ou telefone...">
+        </search>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Filtrar por status</b>
+          <select name="status" onchange="this.form.submit()">
+            <option value="">Todos os status</option>
+            <% Object.keys(ROTULOS_STATUS).forEach(chave => { %>
+              <option value="<%= chave %>" <%= status === chave ? 'selected' : '' %>><%= ROTULOS_STATUS[chave] %></option>
+            <% }) %>
+          </select>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Cidade</b>
+          <input type="text" name="cidade" value="<%= cidade %>" placeholder="Cidade" style="max-width:140px;">
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Estado</b>
+          <select name="uf" onchange="this.form.submit()">
+            <option value="">UF</option>
+            <% UFS.forEach(sigla => { %><option value="<%= sigla %>" <%= uf === sigla ? 'selected' : '' %>><%= sigla %></option><% }) %>
+          </select>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Compras</b>
+          <select name="com_compras" onchange="this.form.submit()">
+            <option value="">Com ou sem compras</option>
+            <option value="true" <%= comCompras === 'true' ? 'selected' : '' %>>Com compras</option>
+            <option value="false" <%= comCompras === 'false' ? 'selected' : '' %>>Sem compras</option>
+          </select>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Contas em aberto</b>
+          <select name="com_contas_abertas" onchange="this.form.submit()">
+            <option value="">Contas em aberto (todos)</option>
+            <option value="true" <%= comContasAbertas === 'true' ? 'selected' : '' %>>Com contas em aberto</option>
+            <option value="false" <%= comContasAbertas === 'false' ? 'selected' : '' %>>Sem contas em aberto</option>
+          </select>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b style="font-size:11px;">Cadastrado de</b>
+          <input type="date" name="data_de" value="<%= dataCadastroDe %>" data-br-enhance onchange="this.form.submit()">
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b style="font-size:11px;">até</b>
+          <input type="date" name="data_ate" value="<%= dataCadastroAte %>" data-br-enhance onchange="this.form.submit()">
+        </label>
+        <button type="submit" class="btn-admin btn-admin--secundario">Buscar</button>
+        <% if (filtroAtivo) { %><a class="btn-admin btn-admin--secundario" href="/admin/fornecedores">Limpar</a><% } %>
+      </form>
+
+      <% if (erro) { %>
+        <article class="painel" role="alert" style="margin-bottom: var(--esp-4);">
+          <p><strong><%= erro %></strong></p>
+        </article>
+      <% } %>
+
+      <article class="painel painel--tabela">
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin">
+            <thead>
+              <tr>
+                <th>Fornecedor</th>
+                <th>Documento</th>
+                <th>Cidade</th>
+                <th>Status</th>
+                <th class="num">Compras</th>
+                <th class="num">Comprado</th>
+                <th class="num">Pago</th>
+                <th class="num">Em aberto</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% fornecedores.forEach(f => { %>
+                <tr data-id="<%= f.id %>">
+                  <td>
+                    <a class="celula-produto" href="/admin/fornecedores/<%= f.id %>">
+                      <strong><%= f.razao_social %></strong>
+                      <% if (f.nome_fantasia) { %><small><%= f.nome_fantasia %></small><% } %>
+                    </a>
+                  </td>
+                  <td><%= f.documento || '-' %></td>
+                  <td><%= [f.cidade, f.uf].filter(Boolean).join('/') || '-' %></td>
+                  <td><b class="badge <%= CLASSE_BADGE[f.status] %>"><%= ROTULOS_STATUS[f.status] %></b></td>
+                  <td class="num"><%= f.qtd_compras %></td>
+                  <td class="num"><%= moeda(f.total_comprado) %></td>
+                  <td class="num"><%= moeda(f.total_pago) %></td>
+                  <td class="num"><%= moeda(f.saldo_em_aberto) %></td>
+                  <td class="acoes-tabela">
+                    <a href="/admin/fornecedores/<%= f.id %>">Detalhes</a>
+                    <a href="/admin/fornecedores/<%= f.id %>/editar">Editar</a>
+                    <% if (f.status === 'ativo') { %>
+                      <a href="#" class="js-status" data-id="<%= f.id %>" data-status="bloqueado">Bloquear</a>
+                    <% } else { %>
+                      <a href="#" class="js-status" data-id="<%= f.id %>" data-status="ativo">Reativar</a>
+                    <% } %>
+                    <% if (!f.qtd_compras) { %>
+                      <a href="#" class="js-excluir" data-id="<%= f.id %>" data-nome="<%= f.razao_social %>">Excluir</a>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% if (!fornecedores.length) { %>
+            <p class="tabela-admin__vazia">
+              <%= filtroAtivo ? 'Nenhum fornecedor encontrado para esses filtros.' : 'Nenhum fornecedor cadastrado ainda.' %>
+            </p>
+          <% } %>
+        </section>
+      </article>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-toast.js" defer></script>
+  <script src="/js/admin/date-picker-br.js" defer></script>
+  <script src="/js/admin/admin-fornecedores.js" defer></script>
+</body>
+</html>

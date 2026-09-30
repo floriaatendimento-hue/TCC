@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria - Mais Vendidos</title>
+  <link rel="stylesheet" href="/css/produtos/Vasos.css">
+  <link rel="stylesheet" href="/css/shared/carousel.css">
+  <link rel="stylesheet" href="/css/shared/cards-fix.css">
+</head>
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main>
+    <section class="page-title">
+      <h1>Mais Vendidos</h1>
+      <p>Os preferidos dos nossos clientes</p>
+    </section>
+
+    <% (typeof secoes !== 'undefined' ? secoes : []).forEach(function (secao) { %>
+    <section class="cards-section" aria-labelledby="mais-<%= secao.categoria.slug %>">
+      <header class="section-label">
+        <h2 id="mais-<%= secao.categoria.slug %>"><%= secao.categoria.nome %></h2>
+      </header>
+      <nav class="carousel-wrapper">
+        <button class="carousel-btn" onclick="scrollCarousel(this,-1)" aria-label="Anterior">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <ul class="cards-container">
+          <% secao.produtos.forEach(function (p) {
+               var preco = p.preco_exibido;
+               var precoFmt = 'R$ ' + Number(preco).toFixed(2).replace('.', ',');
+               var precoAntigo = p.preco_riscado
+                 ? 'R$ ' + Number(p.preco_riscado).toFixed(2).replace('.', ',')
+                 : null;
+               var slugPagina = p.slug_pagina || p.slug;
+               var href = '/' + slugPagina;
+          %>
+          <li><article class="card card-home">
+            <a href="<%= href %>">
+              <figure>
+                <% if (p.destaque) { %>
+                  <b class="card-badge card-badge-vendida">Mais vendida</b>
+                <% } %>
+                <img
+                  src="/imagens/<%= p.imagem || 'image.png' %>"
+                  alt="<%= p.nome %>"
+                  loading="lazy"
+                  data-fallback="/imagens/image.png"
+                >
+                <button type="button" class="btn-favorito btn-favorito--card"
+                  data-slug="<%= slugPagina %>" data-nome="<%= p.nome %>"
+                  data-imagem="/imagens/<%= p.imagem || 'image.png' %>" data-preco="<%= preco %>"
+                  aria-label="Favoritar" aria-pressed="false">
+                  <i class="far fa-heart" aria-hidden="true"></i>
+                </button>
+              </figure>
+              <section class="card-caption">
+                <h3><%= p.nome %></h3><b class="card-categoria"><%= p.categoria_nome %></b><output class="card-rating" data-rating-slot="<%= slugPagina %>" data-rating-pendente><i class="card-rating-estrelas" aria-hidden="true"></i><b class="card-rating-qtd"></b></output>
+                <% if (precoAntigo) { %><p class="price-old"><%= precoAntigo %></p><% } %>
+                <p class="price"><%= precoFmt %></p>
+              </section>
+            </a>
+            <footer class="card-footer"><button type="button" class="btn-comprar">Adicionar</button></footer>
+          </article></li>
+          <% }); %>
+        </ul>
+        <button class="carousel-btn" onclick="scrollCarousel(this,1)" aria-label="Próximo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>
+        </button>
+      </nav>
+    </section>
+    <% }); %>
+
+    <% if ((typeof secoes !== 'undefined' ? secoes : []).length === 0) { %>
+    <section class="cards-section">
+      <p style="text-align:center; padding: 2rem 0;">Ainda não há produtos com vendas registradas.</p>
+    </section>
+    <% } %>
+
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+  <script src="/js/shared/carousel.js"></script>
+</body>
+</html>

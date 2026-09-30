@@ -1,0 +1,18 @@
+<%
+/* Partial: categoria/subcategoria + título + SKU/marca.
+   Locais esperados: categoriaNome, categoriaSlug, subcategoriaNome, nome, sku, marca
+*/
+%>
+<% if (categoriaNome) { %>
+<p class="info-categoria">
+  <%= categoriaNome %><% if (subcategoriaNome) { %> › <%= subcategoriaNome %><% } %>
+</p>
+<% } %>
+<h1><%= nome %></h1>
+<% if (sku || marca) { %>
+<p class="produto-identificacao">
+  <% if (sku) { %><b class="produto-sku">SKU: <%= sku %></b><% } %>
+  <% if (sku && marca) { %><b class="sep">·</b><% } %>
+  <% if (marca) { %><b class="produto-marca"><%= marca %></b><% } %>
+</p>
+<% } %>

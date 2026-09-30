@@ -1,0 +1,251 @@
+@import url("../shared/tokens.css");
+
+aside.floria-toast {
+  position: fixed;
+  z-index: calc(var(--z-modal) + 50);
+  bottom: var(--esp-6);
+  right: var(--esp-6);
+  width: min(380px, calc(100vw - (2 * var(--esp-6))));
+}
+aside.floria-toast[hidden] { display: none; }
+
+article.floria-toast-card {
+  background: var(--branco);
+  border-radius: var(--raio-grande);
+  border: 1px solid var(--borda-dourada);
+  box-shadow: var(--sombra-lg);
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(18px) scale(.97);
+  transition: opacity .32s cubic-bezier(0.34,1.15,0.64,1),
+              transform .32s cubic-bezier(0.34,1.15,0.64,1);
+}
+aside.floria-toast.aberto article.floria-toast-card {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+article.floria-toast-card.atualizado {
+  animation: floriaToastPulso .32s ease;
+}
+@keyframes floriaToastPulso {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.018); }
+  100% { transform: scale(1); }
+}
+
+header.floria-toast-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: var(--esp-4) var(--esp-4) 0;
+}
+
+i.floria-toast-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--sucesso-bg);
+  color: var(--sucesso);
+}
+i.floria-toast-icone svg { width: 14px; height: 14px; }
+
+p.floria-toast-titulo {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--fonte-corpo);
+  font-size: var(--texto-sm);
+  font-weight: 600;
+  color: var(--verde-escuro);
+  letter-spacing: .01em;
+  line-height: 1.3;
+}
+
+button.floria-toast-fechar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: var(--texto-fraco);
+  cursor: pointer;
+  transition: background var(--transicao), color var(--transicao);
+}
+button.floria-toast-fechar:hover {
+  background: var(--creme);
+  color: var(--texto);
+}
+button.floria-toast-fechar:focus-visible {
+  outline: 2px solid var(--verde-medio);
+  outline-offset: 1px;
+}
+button.floria-toast-fechar svg { width: 13px; height: 13px; }
+
+section.floria-toast-corpo {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: var(--esp-3) var(--esp-4) 0;
+}
+
+figure.floria-toast-figura {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: var(--raio-sm);
+  overflow: hidden;
+  background: var(--creme);
+  border: 1px solid var(--borda-dourada);
+}
+figure.floria-toast-figura[hidden] { display: none; }
+img.floria-toast-imagem {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+section.floria-toast-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+p.floria-toast-nome {
+  font-family: var(--fonte-corpo);
+  font-size: var(--texto-base);
+  font-weight: 600;
+  color: var(--texto);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+p.floria-toast-variacao {
+  font-size: var(--texto-xs);
+  color: var(--texto-suave);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+p.floria-toast-variacao[hidden] { display: none; }
+
+p.floria-toast-detalhes {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+  font-size: var(--texto-xs);
+  color: var(--texto-fraco);
+  margin-top: 1px;
+}
+b.floria-toast-preco {
+  font-family: var(--fonte-titulo);
+  font-weight: 600;
+  color: var(--verde-medio);
+  font-size: var(--texto-sm);
+}
+b.floria-toast-preco[hidden] { display: none; }
+
+footer.floria-toast-acoes {
+  display: flex;
+  gap: var(--esp-2);
+  padding: var(--esp-4);
+}
+a.floria-toast-btn,
+button.floria-toast-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 var(--esp-2);
+  border-radius: var(--raio-pill);
+  font-family: var(--fonte-corpo);
+  font-size: var(--texto-xs);
+  font-weight: 600;
+  letter-spacing: .01em;
+  cursor: pointer;
+  transition: background var(--transicao), color var(--transicao), border-color var(--transicao);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+button.floria-toast-btn-secundario {
+  background: transparent;
+  border: 1px solid var(--borda-dourada);
+  color: var(--texto-suave);
+}
+button.floria-toast-btn-secundario:hover {
+  background: var(--creme);
+  color: var(--texto);
+}
+a.floria-toast-btn-primario {
+  background: var(--verde-medio);
+  border: 1px solid transparent;
+  color: var(--branco);
+}
+a.floria-toast-btn-primario:hover {
+  background: var(--verde-escuro);
+}
+.floria-toast-btn:focus-visible {
+  outline: 2px solid var(--dourado-hover);
+  outline-offset: 2px;
+}
+
+output.floria-toast-progresso {
+  display: block;
+  height: 3px;
+  background: var(--dourado);
+  transform-origin: left;
+  transform: scaleX(1);
+}
+@keyframes floriaToastProgresso {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+@media (max-width: 599px) {
+  aside.floria-toast {
+    left: var(--esp-3);
+    right: var(--esp-3);
+    bottom: var(--esp-3);
+    width: auto;
+  }
+  figure.floria-toast-figura { width: 44px; height: 44px; }
+  header.floria-toast-cabecalho,
+  section.floria-toast-corpo,
+  footer.floria-toast-acoes {
+    padding-left: var(--esp-3);
+    padding-right: var(--esp-3);
+  }
+  p.floria-toast-nome { font-size: var(--texto-sm); }
+  footer.floria-toast-acoes { gap: var(--esp-1); }
+  a.floria-toast-btn, button.floria-toast-btn {
+    font-size: 11.5px;
+    padding: 0 6px;
+  }
+}
+
+@media (prefers-contrast: more) {
+  article.floria-toast-card { border-width: 2px; }
+  button.floria-toast-btn-secundario { border-width: 2px; }
+}
+
+/* Respeita preferência por menos movimento */
+@media (prefers-reduced-motion: reduce) {
+  article.floria-toast-card,
+  article.floria-toast-card.atualizado {
+    transition: opacity .01s linear;
+    animation: none !important;
+  }
+  output.floria-toast-progresso { animation: none !important; }
+}

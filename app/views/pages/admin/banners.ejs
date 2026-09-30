@@ -1,0 +1,177 @@
+<%
+/* REDESENHO (reimaginação do admin de Banners): a antiga tabela simples +
+   <dialog> apertado virou uma grade de cards visuais (prévia real de cada
+   banner) com criação/edição em páginas próprias (ver admin-banner-form.ejs
+   e as rotas /admin/banners/novo, /admin/banners/:id/editar). Nenhuma regra
+   de negócio mudou aqui — os mesmos banners de sempre (Banner.findAll,
+   GET /admin/banners), só a apresentação e as ações (duplicar, reordenar
+   por arrastar) que passam a existir de verdade.
+
+   Status derivado (Ativo/Agendado/Pausado/Expirado) segue exatamente o
+   mesmo princípio já usado em admin-promocoes.ejs (statusPromocao/
+   statusCupom): calculado aqui a partir de `ativo` + `data_inicio`/
+   `data_fim`, sem precisar de coluna nova no banco. */
+const dataFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(d)) : null;
+const urlImg = (imagem) => (imagem && imagem.startsWith('/')) ? imagem : '/imagens/' + imagem;
+const LOCAL_BANNER = 'Home - Carrossel principal';
+
+const agora = new Date();
+const statusBanner = (b) => {
+  if (!b.ativo) return { texto: 'Pausado', classe: 'badge--cinza', chave: 'pausado' };
+  if (b.data_inicio && new Date(b.data_inicio) > agora) return { texto: 'Agendado', classe: 'badge--dourado', chave: 'agendado' };
+  if (b.data_fim && new Date(b.data_fim) < agora) return { texto: 'Expirado', classe: 'badge--vermelho', chave: 'expirado' };
+  return { texto: 'Ativo', classe: 'badge--verde', chave: 'ativo' };
+};
+
+let qtdAtivos = 0, qtdAgendados = 0, qtdPausados = 0, qtdExpirados = 0;
+banners.forEach((b) => {
+  const chave = statusBanner(b).chave;
+  if (chave === 'ativo') qtdAtivos++;
+  else if (chave === 'agendado') qtdAgendados++;
+  else if (chave === 'pausado') qtdPausados++;
+  else if (chave === 'expirado') qtdExpirados++;
+});
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Banners</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/admin-banners.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'banners' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Banners' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Banners</h1>
+          <p class="admin-page-header__data">Gerencie os banners exibidos na loja, organize campanhas e controle quando cada banner será apresentado aos clientes.</p>
+        </hgroup>
+        <nav class="admin-page-header__acoes admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--primario" href="/admin/banners/novo">
+            <i class="fas fa-plus" aria-hidden="true"></i>Novo Banner
+          </a>
+        </nav>
+      </header>
+
+      <section class="stats-grid dashboard-v3 painel-dashboard" aria-label="Resumo dos banners">
+        <article class="stat-card dash-stat">
+          <header class="stat-card__topo">
+            <i class="stat-card__icone stat-card__icone--verde" aria-hidden="true"><i class="fas fa-bolt"></i></i>
+          </header>
+          <p class="stat-card__valor"><%= qtdAtivos %></p>
+          <p class="dash-stat__titulo">Ativos agora</p>
+          <p class="dash-stat__legenda">Visíveis na loja neste momento</p>
+        </article>
+        <article class="stat-card dash-stat">
+          <header class="stat-card__topo">
+            <i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-calendar-check"></i></i>
+          </header>
+          <p class="stat-card__valor"><%= qtdAgendados %></p>
+          <p class="dash-stat__titulo">Agendados</p>
+          <p class="dash-stat__legenda">Vigência ainda não iniciada</p>
+        </article>
+        <article class="stat-card dash-stat">
+          <header class="stat-card__topo">
+            <i class="stat-card__icone stat-card__icone--azul" aria-hidden="true"><i class="fas fa-pause"></i></i>
+          </header>
+          <p class="stat-card__valor"><%= qtdPausados %></p>
+          <p class="dash-stat__titulo">Pausados</p>
+          <p class="dash-stat__legenda">Fora do ar até serem reativados</p>
+        </article>
+        <article class="stat-card dash-stat">
+          <header class="stat-card__topo">
+            <i class="stat-card__icone stat-card__icone--erro" aria-hidden="true"><i class="fas fa-hourglass-end"></i></i>
+          </header>
+          <p class="stat-card__valor"><%= qtdExpirados %></p>
+          <p class="dash-stat__titulo">Expirados</p>
+          <p class="dash-stat__legenda">Fora da vigência cadastrada</p>
+        </article>
+      </section>
+
+      <form class="admin-toolbar">
+        <search class="admin-toolbar__busca" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <label for="banners-busca" class="sr-only">Pesquisar banner</label>
+          <input id="banners-busca" type="search" placeholder="Pesquisar por título...">
+        </search>
+        <nav class="filtro-abas" aria-label="Filtrar por status">
+          <button type="button" class="filtro-aba is-ativa" data-status="">Todos</button>
+          <button type="button" class="filtro-aba" data-status="ativo">Ativos</button>
+          <button type="button" class="filtro-aba" data-status="agendado">Agendados</button>
+          <button type="button" class="filtro-aba" data-status="pausado">Pausados</button>
+          <button type="button" class="filtro-aba" data-status="expirado">Expirados</button>
+        </nav>
+        <label class="campo-admin banners-ordenar">
+          <b class="sr-only">Ordenar por</b>
+          <select id="banners-ordenar">
+            <option value="ordem">Ordem de exibição</option>
+            <option value="nome">Nome (A-Z)</option>
+            <option value="inicio">Data de início</option>
+          </select>
+        </label>
+      </form>
+
+      <ul class="banners-grade" id="banners-grade">
+        <% banners.forEach((b) => {
+             const st = statusBanner(b);
+             const vigenciaInicio = dataFmt(b.data_inicio);
+             const vigenciaFim = dataFmt(b.data_fim);
+        %>
+          <li class="banner-card" draggable="true" data-id="<%= b.id %>" data-titulo="<%= b.titulo %>" data-busca="<%= (b.titulo || '').toLowerCase() %>" data-status="<%= st.chave %>" data-ativo="<%= b.ativo ? 1 : 0 %>" data-ordem="<%= b.ordem %>" data-inicio-ts="<%= b.data_inicio ? new Date(b.data_inicio).getTime() : 0 %>">
+            <figure class="banner-card__capa">
+              <img src="<%= urlImg(b.imagem) %>" alt="" loading="lazy" data-fallback="/imagens/image.png">
+              <figcaption class="banner-card__badge"><b class="badge <%= st.classe %>"><%= st.texto %></b></figcaption>
+              <i class="banner-card__arrastar" aria-hidden="true" title="Arraste para reordenar"><i class="fas fa-grip-vertical"></i></i>
+            </figure>
+            <article class="banner-card__corpo">
+              <hgroup>
+                <h3><%= b.titulo %></h3>
+                <p class="banner-card__local"><i class="fas fa-map-marker-alt" aria-hidden="true"></i><%= LOCAL_BANNER %></p>
+              </hgroup>
+              <dl class="banner-card__meta">
+                <dt>Início</dt><dd><%= vigenciaInicio || 'Imediato' %></dd>
+                <dt>Término</dt><dd><%= vigenciaFim || 'Sem término' %></dd>
+                <dt>Ordem</dt><dd>#<%= b.ordem %></dd>
+              </dl>
+              <footer class="banner-card__acoes">
+                <nav class="banner-card__mover" aria-label="Reordenar banner">
+                  <button type="button" class="banner-card__mover-btn js-mover" data-direcao="cima" aria-label="Mover para cima"><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
+                  <button type="button" class="banner-card__mover-btn js-mover" data-direcao="baixo" aria-label="Mover para baixo"><i class="fas fa-arrow-down" aria-hidden="true"></i></button>
+                </nav>
+                <a class="btn-icone" href="/admin/banners/<%= b.id %>/editar" aria-label="Editar banner" title="Editar"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                <details class="acoes-menu">
+                  <summary aria-label="Mais ações"><i class="fas fa-ellipsis-v" aria-hidden="true"></i></summary>
+                  <menu>
+                    <li><a href="/" target="_blank" rel="noopener"><i class="fas fa-eye" aria-hidden="true"></i>Visualizar na loja</a></li>
+                    <li><button type="button" class="js-duplicar"><i class="fas fa-copy" aria-hidden="true"></i>Duplicar</button></li>
+                    <li><button type="button" class="js-toggle-ativo"><i class="fas <%= b.ativo ? 'fa-pause' : 'fa-play' %>" aria-hidden="true"></i><%= b.ativo ? 'Pausar' : 'Ativar' %></button></li>
+                    <li role="separator"></li>
+                    <li><button type="button" class="excluir js-excluir"><i class="fas fa-trash" aria-hidden="true"></i>Excluir</button></li>
+                  </menu>
+                </details>
+              </footer>
+            </article>
+          </li>
+        <% }) %>
+      </ul>
+
+      <p class="tabela-admin__vazia" id="banners-vazio" <%= banners.length ? 'hidden' : '' %>>
+        Nenhum banner cadastrado ainda.
+        <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/admin/banners/novo">
+          <i class="fas fa-plus" aria-hidden="true"></i>Criar meu primeiro banner
+        </a>
+      </p>
+      <p class="tabela-admin__vazia" id="banners-vazio-filtro" hidden>Nenhum banner encontrado para esse filtro.</p>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-toast.js" defer></script>
+  <script src="/js/admin/admin-banners.js" defer></script>
+</body>
+</html>

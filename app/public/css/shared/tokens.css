@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
+@import url("scrollbar.css");
+
+:root {
+
+  /* Cor · Marca */
+  --verde-escuro:   #0E3124;
+  --verde-medio:    #154030;
+  --verde-sidebar:  #0E3124;   /* sidebar admin */
+  --verde-claro:    #e8f5ee;
+  --dourado:        #b8945f;
+  --dourado-claro:  #d4b483;
+  --dourado-hover:  #846339;
+
+  /* Cor · Terracota */
+  --terracota:         #b9603c;
+  --terracota-claro:   #d98a68;
+  --terracota-escuro:  #8f4327;
+  --terracota-sombra:  rgba(185,96,60,0.28);
+  --terracota-bg-suave: rgba(185,96,60,0.10);
+
+  /* Cor · Neutros */
+  --creme:          #FFFFFF;   /* fundo padrão de página */
+  --creme-escuro:   #F2F2F0;
+  --cinza-bg:       #F2F2F0;   /* fundo de painéis */
+  --branco:         #ffffff;
+  --texto:          #1a1a1a;   /* texto principal */
+  --texto-suave:    #5a5a4a;   /* texto secundário */
+  --texto-fraco:    #6b6b5c;
+  --borda:          rgba(0,0,0,0.07);
+  --borda-dourada:  rgba(184,148,95,0.16);
+
+  /* Cor · Semântica */
+  --sucesso:        #2d7a58;
+  --sucesso-bg:     #e8f5ee;
+  --erro:           #c0392b;
+  --erro-bg:        #fdf0ef;
+  --aviso:          #b8945f;
+
+  /* Sombra */
+  --sombra-sm:      0 2px 16px rgba(14,49,36,0.07);
+  --sombra-md:      0 8px 40px rgba(14,49,36,0.13);
+  --sombra-lg:      0 16px 56px rgba(14,49,36,0.18);
+
+  /* Raio de borda */
+  --raio-sm:        8px;
+  --raio:           12px;
+  --raio-grande:    20px;
+  --raio-pill:      999px;
+
+  /* Tipografia */
+  --fonte-titulo:   'Fraunces', Georgia, serif;
+  --fonte-corpo:    'DM Sans', system-ui, sans-serif;
+  --texto-xs:       12px;
+  --texto-sm:       13.5px;
+  --texto-base:     15px;
+  --texto-md:       18px;
+  --titulo-sm:      1.5rem;
+  --titulo-md:      2rem;
+  --titulo-lg:      2.8rem;
+
+  /* Espaçamento */
+  --esp-1:  4px;
+  --esp-2:  8px;
+  --esp-3:  12px;
+  --esp-4:  16px;
+  --esp-5:  20px;
+  --esp-6:  24px;
+  --esp-8:  32px;
+  --esp-10: 40px;
+  --esp-12: 48px;
+
+  /* Transição */
+  --transicao:      0.26s cubic-bezier(0.4,0,0.2,1);
+  --transicao-mola: 0.38s cubic-bezier(0.34,1.56,0.64,1);
+
+  /* Layout */
+  --largura-max:    1340px;
+  --header-h:       72px;
+  --sidebar-w:      230px;
+
+  --bp-tablet:  600px;
+  --bp-desktop: 1024px;
+
+  /* Escala Z */
+  --z-header:   200;
+  --z-sidebar:  200;
+  --z-dropdown: 300;
+  --z-modal:    500;
+
+  /* Raio adicional */
+  --raio-md: 14px;
+
+  --dourado-sombra:     rgba(184,148,95,0.30);
+  --dourado-sombra-f:   rgba(184,148,95,0.35);
+  --dourado-bg-suave:   rgba(184,148,95,0.14);
+  --verde-sombra-sm:    rgba(14,49,36,0.12);
+  --verde-sombra-md:    rgba(14,49,36,0.16);
+  --verde-medio-borda:  rgba(21,64,48,0.20);
+  --verde-medio-sombra: rgba(21,64,48,0.28);
+  --erro-sombra:        rgba(192,57,43,0.30);
+  --erro-listra:        rgba(192,57,43,0.85);
+  --anel-swatch:        rgba(255,255,255,0.88);
+  --sombra-swatch:      rgba(14,49,36,0.18);
+  --sombra-swatch-fina: rgba(14,49,36,0.09);
+  --overlay-escuro:     rgba(14,49,36,0.62);
+
+  /* Aviso */
+  --aviso-bg:     #fdf3e3;
+  --aviso-texto:  #8a5a12;
+  --aviso-borda:  #f0d9a8;
+}

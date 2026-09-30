@@ -1,0 +1,153 @@
+<%
+/* ADICIONADO: página exclusiva de "Registrar movimentação de estoque",
+   substituindo o antigo <dialog> de estoque.ejs (duas barras de rolagem,
+   pouco espaço em telas menores). `produtos` vem de Produto.findAllAdmin()
+   (rota GET /admin/estoque/movimentacao/nova em router.js) — mesma fonte
+   de dados de sempre. `produtoIdPreSelecionado` só marca a <option>
+   correspondente quando a página é aberta a partir do botão "Movimentar"
+   de uma linha específica da tabela de Estoque (?produto_id=).
+   O registro em si continua batendo no mesmo POST
+   /api/admin/estoque/movimentacao de sempre — ver admin-estoque-movimentacao.js. */
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Floria Admin - Nova Movimentação de Estoque</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'estoque' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Nova Movimentação' }) %>
+
+    <main class="admin-main">
+      <nav class="admin-breadcrumb admin-breadcrumb--pagina" aria-label="Trilha de navegação">
+        <a href="/estoque">Estoque</a>
+        <b aria-hidden="true">/</b>
+        <b class="atual">Nova movimentação</b>
+      </nav>
+
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Registrar Movimentação de Estoque</h1>
+          <p class="admin-page-header__data">Registre entradas, saídas ou ajustes de quantidade. Cada alteração fica guardada no histórico de movimentações.</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--secundario" href="/estoque"><i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar</a>
+        </nav>
+      </header>
+
+      <form id="form-movimentacao" class="movimentacao-layout">
+        <article class="movimentacao-formulario">
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-seedling" aria-hidden="true"></i>Produto</legend>
+            <p class="form-secao__ajuda">Selecione o item do catálogo que será movimentado.</p>
+            <label class="campo-admin">
+              <b>Produto *</b>
+              <select id="mov-produto" required>
+                <option value="">Selecione...</option>
+                <% produtos.forEach(p => { %>
+                  <option value="<%= p.id %>"
+                    data-nome="<%= p.nome %>"
+                    data-estoque="<%= p.estoque %>"
+                    data-categoria="<%= p.categoria_nome || '' %>"
+                    data-imagem="<%= p.imagem ? (String(p.imagem).indexOf('/') === 0 ? p.imagem : '/imagens/' + p.imagem) : '' %>"
+                    <%= (produtoIdPreSelecionado && Number(p.id) === Number(produtoIdPreSelecionado)) ? 'selected' : '' %>>
+                    <%= p.nome %> (estoque atual: <%= p.estoque %>)
+                  </option>
+                <% }) %>
+              </select>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-exchange-alt" aria-hidden="true"></i>Tipo de movimentação</legend>
+            <p class="form-secao__ajuda">Escolha como esta movimentação afeta o estoque.</p>
+            <ul class="tipo-movimentacao-opcoes">
+              <li>
+                <label class="tipo-movimentacao-opcao tipo-movimentacao-opcao--entrada">
+                  <input type="radio" name="mov-tipo" value="entrada" checked>
+                  <i class="fas fa-arrow-down" aria-hidden="true"></i>
+                  <strong>Entrada</strong>
+                  <small>Soma ao estoque</small>
+                </label>
+              </li>
+              <li>
+                <label class="tipo-movimentacao-opcao tipo-movimentacao-opcao--saida">
+                  <input type="radio" name="mov-tipo" value="saida">
+                  <i class="fas fa-arrow-up" aria-hidden="true"></i>
+                  <strong>Saída</strong>
+                  <small>Subtrai do estoque</small>
+                </label>
+              </li>
+              <li>
+                <label class="tipo-movimentacao-opcao tipo-movimentacao-opcao--ajuste">
+                  <input type="radio" name="mov-tipo" value="ajuste">
+                  <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                  <strong>Ajuste</strong>
+                  <small>Define o valor exato</small>
+                </label>
+              </li>
+            </ul>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-hashtag" aria-hidden="true"></i>Quantidade</legend>
+            <label class="campo-admin">
+              <b id="mov-quantidade-rotulo">Quantidade *</b>
+              <input type="number" id="mov-quantidade" min="0" step="1" placeholder="Ex.: 10" required>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-align-left" aria-hidden="true"></i>Motivo e observações</legend>
+            <p class="form-secao__ajuda">Opcional: ajuda a entender o contexto desta movimentação depois.</p>
+            <label class="campo-admin">
+              <b>Motivo</b>
+              <textarea id="mov-motivo" maxlength="255" rows="4" placeholder="Ex.: reposição do fornecedor, produto danificado..."></textarea>
+            </label>
+          </fieldset>
+
+          <output class="form-admin__mensagem" id="form-movimentacao-msg" role="alert"></output>
+        </article>
+
+        <aside class="movimentacao-painel" aria-label="Resumo da movimentação em tempo real">
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-clipboard-list" aria-hidden="true"></i>Resumo da movimentação</legend>
+            <p class="form-secao__ajuda">Atualizado automaticamente conforme você preenche o formulário.</p>
+
+            <figure class="produto-resumo" id="mov-produto-resumo" hidden>
+              <img id="mov-produto-resumo-img" src="" alt="" data-fallback="/imagens/image.png">
+              <figcaption>
+                <strong id="mov-produto-resumo-nome"></strong>
+                <small id="mov-produto-resumo-categoria"></small>
+              </figcaption>
+            </figure>
+
+            <ul class="resumo-movimentacao">
+              <li><small>Estoque atual</small><strong id="mov-resumo-estoque-atual">-</strong></li>
+              <li><small>Tipo</small><strong id="mov-resumo-tipo">-</strong></li>
+              <li><small>Quantidade</small><strong id="mov-resumo-quantidade">-</strong></li>
+              <li><small>Estoque após</small><strong id="mov-resumo-estoque-depois">-</strong></li>
+            </ul>
+
+            <p class="movimentacao-status" id="mov-status">
+              <i class="fas fa-info-circle" aria-hidden="true"></i>
+              <b id="mov-status-texto">Selecione um produto para começar.</b>
+            </p>
+          </fieldset>
+        </aside>
+
+        <footer class="movimentacao-acoes">
+          <a class="btn-admin btn-admin--secundario" href="/estoque"><i class="fas fa-times" aria-hidden="true"></i>Cancelar</a>
+          <button type="submit" class="btn-admin btn-admin--primario" id="btn-registrar-movimentacao"><i class="fas fa-check" aria-hidden="true"></i>Registrar Movimentação</button>
+        </footer>
+      </form>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-estoque-movimentacao.js" defer></script>
+</body>
+</html>

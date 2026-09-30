@@ -1,0 +1,21 @@
+<dialog id="dialog-remover-endereco" aria-labelledby="dialog-remover-endereco-titulo" aria-describedby="dialog-remover-endereco-texto">
+  <header class="dialog-remover-endereco-cabecalho">
+    <i class="dialog-remover-endereco-icone" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+        <path d="M10 11v6M14 11v6"/>
+        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+      </svg>
+    </i>
+    <h2 id="dialog-remover-endereco-titulo">Remover endereço?</h2>
+  </header>
+  <p id="dialog-remover-endereco-texto">
+    Tem certeza de que deseja remover <strong id="dialog-remover-endereco-nome">este endereço</strong>? Essa ação não poderá ser desfeita.
+  </p>
+  <output id="dialog-remover-endereco-erro" class="dialog-remover-endereco-erro" role="alert" hidden></output>
+  <menu>
+    <li><button type="button" class="dialog-remover-endereco-cancelar" data-remover-endereco-cancelar>Cancelar</button></li>
+    <li><button type="button" class="dialog-remover-endereco-confirmar" data-remover-endereco-confirmar>Remover endereço</button></li>
+  </menu>
+</dialog>

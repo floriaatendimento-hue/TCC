@@ -1,0 +1,166 @@
+<dialog id="modal-endereco" class="modal-endereco" aria-labelledby="modal-endereco-titulo">
+  <form id="form-endereco" novalidate>
+    <header class="modal-endereco-cabecalho">
+      <h3 id="modal-endereco-titulo">Novo endereço</h3>
+      <button type="button" id="fechar-modal-endereco" class="modal-endereco-fechar" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </header>
+
+    <section class="modal-endereco-corpo">
+      <input type="hidden" id="endereco-id" value="">
+      <input type="hidden" id="end-rotulo" name="rotulo">
+
+      <!-- Título do endereço -->
+      <fieldset>
+        <legend>Título do endereço</legend>
+        <section class="rotulo-opcoes" id="rotulo-opcoes" role="radiogroup" aria-label="Título do endereço">
+          <button type="button" class="rotulo-opcao" data-rotulo="Casa" role="radio" aria-checked="false" tabindex="0">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 9.5 12 3l9 6.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>
+            </svg>
+            <b>Casa</b>
+          </button>
+          <button type="button" class="rotulo-opcao" data-rotulo="Trabalho" role="radio" aria-checked="false" tabindex="-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2.5" y="7" width="19" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            <b>Trabalho</b>
+          </button>
+          <button type="button" class="rotulo-opcao" data-rotulo="Apartamento" role="radio" aria-checked="false" tabindex="-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="4" y="2" width="16" height="20" rx="1"/>
+              <line x1="8" y1="7" x2="8" y2="7.01"/><line x1="12" y1="7" x2="12" y2="7.01"/><line x1="16" y1="7" x2="16" y2="7.01"/>
+              <line x1="8" y1="12" x2="8" y2="12.01"/><line x1="12" y1="12" x2="12" y2="12.01"/><line x1="16" y1="12" x2="16" y2="12.01"/>
+              <path d="M10 22v-4h4v4"/>
+            </svg>
+            <b>Apartamento</b>
+          </button>
+          <button type="button" class="rotulo-opcao" data-rotulo="Família" role="radio" aria-checked="false" tabindex="-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            <b>Família</b>
+          </button>
+          <button type="button" class="rotulo-opcao" data-rotulo="Personalizado" role="radio" aria-checked="false" tabindex="-1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+            </svg>
+            <b>Personalizado</b>
+          </button>
+        </section>
+        <input type="text" id="end-rotulo-personalizado" placeholder="Ex: Casa da vó, Sítio…" maxlength="60" hidden aria-label="Nome personalizado do endereço">
+        <output id="erro-rotulo" class="campo-erro" role="alert"></output>
+      </fieldset>
+
+      <!-- CEP com busca automática -->
+      <fieldset>
+        <label for="end-cep">CEP</label>
+        <section class="campo-cep">
+          <input id="end-cep" name="cep" placeholder="00000-000" required maxlength="9" inputmode="numeric" autocomplete="postal-code" aria-describedby="cep-status erro-cep">
+          <output id="cep-status" class="cep-status" aria-live="polite"></output>
+        </section>
+        <output id="erro-cep" class="campo-erro" role="alert"></output>
+      </fieldset>
+
+      <fieldset>
+        <label for="end-logradouro">Rua / Logradouro</label>
+        <input id="end-logradouro" name="logradouro" placeholder="Rua, avenida…" required maxlength="180" autocomplete="address-line1" aria-describedby="erro-logradouro">
+        <output id="erro-logradouro" class="campo-erro" role="alert"></output>
+      </fieldset>
+
+      <section class="form-endereco-linha form-endereco-linha-2">
+        <fieldset>
+          <label for="end-numero">Número</label>
+          <input id="end-numero" name="numero" placeholder="Nº ou S/N" required maxlength="20" aria-describedby="erro-numero">
+          <output id="erro-numero" class="campo-erro" role="alert"></output>
+        </fieldset>
+        <fieldset>
+          <label for="end-complemento">Complemento</label>
+          <input id="end-complemento" name="complemento" placeholder="Apto, bloco…" maxlength="80" autocomplete="address-line2">
+        </fieldset>
+      </section>
+
+      <section class="form-endereco-linha form-endereco-linha-3">
+        <fieldset>
+          <label for="end-bairro">Bairro</label>
+          <input id="end-bairro" name="bairro" required maxlength="100" aria-describedby="erro-bairro">
+          <output id="erro-bairro" class="campo-erro" role="alert"></output>
+        </fieldset>
+        <fieldset>
+          <label for="end-cidade">Cidade</label>
+          <input id="end-cidade" name="cidade" required maxlength="100" autocomplete="address-level2" aria-describedby="erro-cidade">
+          <output id="erro-cidade" class="campo-erro" role="alert"></output>
+        </fieldset>
+        <fieldset class="form-endereco-uf">
+          <label for="end-uf">Estado</label>
+          <select id="end-uf" name="uf" required autocomplete="address-level1" aria-describedby="erro-uf">
+            <option value="">Selecione…</option>
+            <option value="AC">AC - Acre</option>
+            <option value="AL">AL - Alagoas</option>
+            <option value="AP">AP - Amapá</option>
+            <option value="AM">AM - Amazonas</option>
+            <option value="BA">BA - Bahia</option>
+            <option value="CE">CE - Ceará</option>
+            <option value="DF">DF - Distrito Federal</option>
+            <option value="ES">ES - Espírito Santo</option>
+            <option value="GO">GO - Goiás</option>
+            <option value="MA">MA - Maranhão</option>
+            <option value="MT">MT - Mato Grosso</option>
+            <option value="MS">MS - Mato Grosso do Sul</option>
+            <option value="MG">MG - Minas Gerais</option>
+            <option value="PA">PA - Pará</option>
+            <option value="PB">PB - Paraíba</option>
+            <option value="PR">PR - Paraná</option>
+            <option value="PE">PE - Pernambuco</option>
+            <option value="PI">PI - Piauí</option>
+            <option value="RJ">RJ - Rio de Janeiro</option>
+            <option value="RN">RN - Rio Grande do Norte</option>
+            <option value="RS">RS - Rio Grande do Sul</option>
+            <option value="RO">RO - Rondônia</option>
+            <option value="RR">RR - Roraima</option>
+            <option value="SC">SC - Santa Catarina</option>
+            <option value="SP">SP - São Paulo</option>
+            <option value="SE">SE - Sergipe</option>
+            <option value="TO">TO - Tocantins</option>
+          </select>
+          <output id="erro-uf" class="campo-erro" role="alert"></output>
+        </fieldset>
+      </section>
+
+      <fieldset>
+        <label for="end-referencia">Ponto de referência <small>(opcional)</small></label>
+        <input id="end-referencia" name="referencia" placeholder="Próximo ao mercado, portão azul…" maxlength="180">
+      </fieldset>
+
+      <hr class="modal-endereco-div">
+
+      <section class="form-endereco-linha form-endereco-linha-2">
+        <fieldset>
+          <label for="end-destinatario">Nome do destinatário</label>
+          <input id="end-destinatario" name="destinatario" placeholder="Quem vai receber a entrega" required maxlength="120" autocomplete="name" aria-describedby="erro-destinatario">
+          <output id="erro-destinatario" class="campo-erro" role="alert"></output>
+        </fieldset>
+        <fieldset>
+          <label for="end-telefone">Telefone para entrega</label>
+          <input type="tel" id="end-telefone" name="telefone" placeholder="(11) 91234-5678" required maxlength="20" inputmode="tel" autocomplete="tel" aria-describedby="erro-telefone">
+          <output id="erro-telefone" class="campo-erro" role="alert"></output>
+        </fieldset>
+      </section>
+
+      <label class="form-endereco-check">
+        <input type="checkbox" id="end-padrao" name="padrao">
+        Definir como endereço principal
+      </label>
+
+      <output id="msg-endereco" role="alert"></output>
+    </section>
+
+    <footer class="form-endereco-acoes">
+      <button type="button" id="btn-cancelar-endereco" class="btn-link">Cancelar</button>
+      <button type="submit" class="btn-primario" id="btn-salvar-endereco">Salvar</button>
+    </footer>
+  </form>
+</dialog>

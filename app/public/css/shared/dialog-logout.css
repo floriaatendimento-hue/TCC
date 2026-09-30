@@ -1,0 +1,109 @@
+@import url("tokens.css");
+
+dialog#dialog-logout {
+  border: none;
+  border-radius: var(--raio-grande);
+  padding: 1.75rem 1.75rem 1.5rem;
+  width: min(360px, calc(100% - 2.5rem));
+  margin: auto;
+  background: var(--branco);
+  box-shadow: var(--sombra-lg);
+  font-family: var(--fonte-corpo);
+  color: var(--texto);
+}
+dialog#dialog-logout[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  animation: dialogLogoutEntrada .22s cubic-bezier(0.34,1.2,0.64,1);
+}
+dialog#dialog-logout::backdrop {
+  background: var(--overlay-escuro);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+@keyframes dialogLogoutEntrada {
+  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+dialog#dialog-logout h2 {
+  font-family: var(--fonte-titulo);
+  font-size: 1.2rem;
+  font-weight: 400;
+  color: var(--verde-escuro);
+}
+dialog#dialog-logout .dialog-logout-texto {
+  font-size: var(--texto-base);
+  color: var(--texto-suave);
+  line-height: 1.6;
+  margin-top: -0.4rem;
+}
+dialog#dialog-logout menu {
+  list-style: none;
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+  margin: 0;
+  padding: 0;
+}
+
+dialog#dialog-logout .dialog-logout-cancelar {
+  padding: .65rem 1.25rem;
+  background: transparent;
+  border: 1px solid var(--borda);
+  color: var(--texto);
+  border-radius: var(--raio-pill);
+  cursor: pointer;
+  font-family: var(--fonte-corpo);
+  font-size: .875rem;
+  font-weight: 500;
+  transition: background var(--transicao), border-color var(--transicao);
+}
+dialog#dialog-logout .dialog-logout-cancelar:hover {
+  background: var(--creme);
+  border-color: var(--borda-dourada);
+}
+dialog#dialog-logout .dialog-logout-cancelar:focus-visible {
+  outline: 2px solid var(--verde-medio);
+  outline-offset: 2px;
+}
+
+dialog#dialog-logout .dialog-logout-confirmar {
+  padding: .7rem 1.5rem;
+  background: var(--verde-medio);
+  color: var(--branco);
+  border: none;
+  border-radius: var(--raio-pill);
+  cursor: pointer;
+  font-family: var(--fonte-corpo);
+  font-size: .875rem;
+  font-weight: 500;
+  letter-spacing: .02em;
+  transition: background var(--transicao), transform var(--transicao);
+  box-shadow: 0 4px 16px var(--verde-medio-sombra);
+}
+dialog#dialog-logout .dialog-logout-confirmar:hover {
+  background: var(--verde-escuro);
+  transform: translateY(-1px);
+}
+dialog#dialog-logout .dialog-logout-confirmar:active { transform: scale(.98); }
+dialog#dialog-logout .dialog-logout-confirmar:disabled {
+  opacity: .7;
+  cursor: default;
+  transform: none;
+}
+dialog#dialog-logout .dialog-logout-confirmar:focus-visible {
+  outline: 2px solid var(--verde-escuro);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  dialog#dialog-logout menu {
+    flex-direction: column-reverse;
+  }
+  dialog#dialog-logout .dialog-logout-cancelar,
+  dialog#dialog-logout .dialog-logout-confirmar {
+    width: 100%;
+    text-align: center;
+  }
+}

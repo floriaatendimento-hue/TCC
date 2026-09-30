@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Espada-de-São-Jorge - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'espadadesaojorge',
+      nome: 'Espada-de-São-Jorge',
+      sku: 'FLO-ESPADADESAOJORGE',
+      marca: null,
+      categoriaNome: 'Plantas',
+      categoriaSlug: 'plantas',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/produtos-fotos/espadadesaojorge-1.webp', alt: 'Espada-de-São-Jorge - vista frontal' },
+        { src: '/imagens/produtos-fotos/espadadesaojorge-1.webp', alt: 'Espada-de-São-Jorge - ângulo 2' },
+        { src: '/imagens/produtos-fotos/espadadesaojorge-1.webp', alt: 'Espada-de-São-Jorge - detalhe' }
+      ],
+      precoAtual: 35.00,
+      precoAntigo: 50.00,
+      parcelasTexto: 'à vista',
+      estoque: 35,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(56 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-sun', texto: 'Tolerante à sombra' },
+        { icone: 'fas fa-tint', texto: 'Rega mínima' },
+        { icone: 'fas fa-wind', texto: 'Purifica o ar' }
+      ],
+      descricao: 'A Sansevieria trifasciata, conhecida como Espada-de-São-Jorge, é uma das plantas mais resistentes e versáteis para interiores. Tolera baixa luminosidade, ambientes secos e irrigação irregular. É reconhecida por sua capacidade de purificar o ar, removendo toxinas como formol e benzeno. Suas folhas eretas e marmorizadas adicionam um toque elegante a qualquer ambiente.',
+      beneficios: 'Purifica o ar removendo toxinas como formol e benzeno, e tolera bem ambientes internos com pouca luz.',
+      comoUtilizar: 'Regue apenas quando o substrato estiver completamente seco e evite deixar água acumulada na base das folhas.',
+      recomendacoes: 'Espécie tóxica se ingerida: mantenha longe de cães e gatos que costumam mastigar folhas.',
+      ficha: [
+        { rotulo: 'Nome científico', valor: 'Dracaena trifasciata' },
+        { rotulo: 'Família', valor: 'Asparagaceae' },
+        { rotulo: 'Porte (muda vendida)', valor: '40 – 70 cm' },
+        { rotulo: 'Luminosidade', valor: 'Qualquer nível de luz, do sol pleno à sombra profunda' },
+        { rotulo: 'Toxicidade', valor: 'Tóxica para pets: contém saponinas, que causam náuseas, vômitos e salivação' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-sun', titulo: 'Luz', texto: 'Extremamente adaptável, de sol pleno a ambientes sombreados.' },
+        { icone: 'fas fa-tint', titulo: 'Rega', texto: 'A cada 15 a 20 dias, somente quando a terra estiver seca.' },
+        { icone: 'fas fa-thermometer-half', titulo: 'Temperatura', texto: '15°C – 30°C.' },
+        { icone: 'fas fa-exclamation-triangle', titulo: 'Atenção', texto: 'Não deixe água acumulada na base das folhas.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

@@ -1,0 +1,34 @@
+.cartao-redefinir {
+  width: 100%;
+  max-width: 420px;
+  background: var(--branco);
+  border-radius: 28px;
+  box-shadow: 0 30px 60px -20px rgba(13, 46, 34, 0.35);
+  padding: 48px 40px;
+  text-align: center;
+}
+.cartao-redefinir .title { margin-bottom: 8px; }
+.cartao-redefinir .description { margin-bottom: 24px; }
+.cartao-redefinir .form { text-align: left; }
+
+.redefinir-aviso {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--cinza-texto);
+  line-height: 1.6;
+  text-align: center;
+  padding: 8px 0 4px;
+}
+.redefinir-aviso a { color: var(--verde-escuro); text-decoration: underline; font-weight: 600; }
+
+#redefinir-msg-geral {
+  display: block;
+  min-height: 1.2rem;
+  font-size: 0.88rem;
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 480px) {
+  .cartao-redefinir { padding: 32px 22px; border-radius: 20px; }
+}

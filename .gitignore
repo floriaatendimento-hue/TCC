@@ -1,0 +1,28 @@
+node_modules/
+.env
+*.log
+
+# Playwright
+/test-results/
+/playwright-report/
+
+# Uploads de usuário
+app/public/uploads/*
+!app/public/uploads/.gitkeep
+
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.sqlite
+*.db
+*.sql.gz
+dump*.sql
+backup*/
+.vscode/
+.idea/
+.claude/
+Thumbs.db
+.DS_Store

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= modoInicial === 'signin' ? 'Login' : 'Criar conta' %> - Floria</title>
+  <link rel="stylesheet" href="/css/conta/login2.css" />
+  <link rel="stylesheet" href="/css/conta/forca-senha.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main class="page-wrapper">
+    <section class="container" id="auth-container" data-mode="<%= modoInicial %>">
+
+      <section class="form-slot form-slot-login">
+        <h2 class="title title-second">Login</h2>
+        <p class="description description-second">Use seu e-mail para entrar:</p>
+
+        <section class="form" id="login-form-wrapper">
+          <input type="hidden" id="csrf-login" value="<%= csrfToken %>" />
+
+          <fieldset class="campo-grupo" id="grupo-login-email">
+            <label class="label-input" for="login-email">
+              <i class="far fa-envelope icon-modify" aria-hidden="true"></i>
+              <input type="email" id="login-email" name="email" placeholder="E-mail"
+                autocomplete="email" required aria-required="true"
+                aria-describedby="login-email-erro" />
+              <i class="campo-status" aria-hidden="true"></i>
+            </label>
+            <output class="campo-erro-msg" id="login-email-erro" role="alert"></output>
+          </fieldset>
+
+          <fieldset class="campo-grupo" id="grupo-login-senha">
+            <label class="label-input" for="login-senha">
+              <i class="fas fa-lock icon-modify" aria-hidden="true"></i>
+              <input type="password" id="login-senha" name="senha" placeholder="Senha"
+                autocomplete="current-password" required aria-required="true"
+                aria-describedby="login-senha-erro" />
+              <button type="button" class="toggle-senha" aria-label="Mostrar senha" data-alvo="login-senha">
+                <i class="far fa-eye" aria-hidden="true"></i>
+              </button>
+              <i class="campo-status" aria-hidden="true"></i>
+            </label>
+            <output class="campo-erro-msg" id="login-senha-erro" role="alert"></output>
+          </fieldset>
+
+          <a href="#" id="abrir-modal-senha" class="password">Esqueceu a senha?</a>
+
+          <output id="login-msg-geral" role="alert"
+            style="display:block;min-height:1.2rem;font-size:.88rem;color:#c0392b;margin-bottom:.5rem;"></output>
+
+          <button type="button" id="btn-login" class="btn btn-second">Entrar</button>
+        </section>
+      </section>
+
+      <section class="form-slot form-slot-cadastro">
+        <h2 class="title title-second">Criar uma conta</h2>
+        <p class="description description-second">Use seu e-mail para se cadastrar:</p>
+
+        <section class="form" id="cadastro-form-wrapper">
+
+          <input type="hidden" id="csrf-cadastro" value="<%= csrfToken %>" />
+
+          <fieldset class="campo-grupo" id="grupo-cad-nome">
+            <label class="label-input" for="cad-nome">
+              <i class="far fa-user icon-modify" aria-hidden="true"></i>
+              <input type="text" id="cad-nome" name="nome" placeholder="Nome completo"
+                autocomplete="name" required aria-required="true"
+                aria-describedby="cad-nome-erro" />
+            </label>
+            <output class="campo-erro-msg" id="cad-nome-erro" role="alert"></output>
+          </fieldset>
+
+          <fieldset class="campo-grupo" id="grupo-cad-cpf">
+            <label class="label-input" for="cad-cpf">
+              <i class="fas fa-id-card icon-modify" aria-hidden="true"></i>
+              <input type="text" id="cad-cpf" name="cpf" placeholder="CPF" inputmode="numeric"
+                autocomplete="off" maxlength="14" required aria-required="true"
+                aria-describedby="cad-cpf-erro" />
+            </label>
+            <output class="campo-erro-msg" id="cad-cpf-erro" role="alert"></output>
+          </fieldset>
+
+          <fieldset class="campo-grupo" id="grupo-cad-telefone">
+            <label class="label-input" for="cad-telefone">
+              <i class="fas fa-mobile-alt icon-modify" aria-hidden="true"></i>
+              <input type="tel" id="cad-telefone" name="telefone" placeholder="Celular" inputmode="numeric"
+                autocomplete="tel" maxlength="15" required aria-required="true"
+                aria-describedby="cad-telefone-erro" />
+            </label>
+            <output class="campo-erro-msg" id="cad-telefone-erro" role="alert"></output>
+          </fieldset>
+
+          <fieldset class="campo-grupo" id="grupo-cad-email">
+            <label class="label-input" for="cad-email">
+              <i class="far fa-envelope icon-modify" aria-hidden="true"></i>
+              <input type="email" id="cad-email" name="email" placeholder="E-mail"
+                autocomplete="email" required aria-required="true"
+                aria-describedby="cad-email-erro" />
+            </label>
+            <output class="campo-erro-msg" id="cad-email-erro" role="alert"></output>
+          </fieldset>
+
+          <fieldset class="campo-grupo" id="grupo-cad-senha">
+            <label class="label-input" for="cad-senha">
+              <i class="fas fa-lock icon-modify" aria-hidden="true"></i>
+              <input type="password" id="cad-senha" name="senha" placeholder="Crie uma senha"
+                autocomplete="new-password" required aria-required="true"
+                aria-describedby="cad-senha-forca cad-senha-erro" />
+              <button type="button" class="toggle-senha" aria-label="Mostrar senha" data-alvo="cad-senha">
+                <i class="far fa-eye" aria-hidden="true"></i>
+              </button>
+            </label>
+            <output class="campo-erro-msg" id="cad-senha-erro" role="alert"></output>
+            <%- include("../../partials/shared/forca-senha", { alvoId: 'cad-senha', secaoId: 'cad-senha-forca' }) %>
+          </fieldset>
+
+          <fieldset class="campo-grupo" id="grupo-cad-confirmar">
+            <label class="label-input" for="cad-confirmar">
+              <i class="fas fa-lock icon-modify" aria-hidden="true"></i>
+              <input type="password" id="cad-confirmar" name="confirmar" placeholder="Confirmar senha"
+                autocomplete="new-password" required aria-required="true"
+                aria-describedby="cad-confirmar-erro" />
+            </label>
+            <output class="campo-erro-msg" id="cad-confirmar-erro" role="alert"></output>
+          </fieldset>
+
+          <output id="cadastro-msg-geral" role="alert"
+            style="display:block;min-height:1.2rem;font-size:.88rem;margin-bottom:.5rem;"></output>
+
+          <button type="button" id="btn-cadastro" class="btn btn-second">Criar conta</button>
+
+          <p class="cadastro-privacidade-nota">
+            Ao criar sua conta, você concorda com nossos
+            <a href="/termos-de-uso" target="_blank" rel="noopener noreferrer">Termos de Uso</a> e nossa
+            <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.
+          </p>
+
+        </section>
+      </section>
+
+      <% if (modoInicial === 'signin') { %>
+      <aside class="painel-curvo">
+        <h2 class="title title-primary painel-titulo" id="painel-titulo">Olá, amigo!</h2>
+        <p class="description description-primary painel-texto" id="painel-texto">Entre com suas informações pessoais<br>e comece a jornada conosco.</p>
+        <button class="btn btn-primary" id="painel-botao" type="button">Criar uma conta</button>
+      </aside>
+      <% } else { %>
+      <aside class="painel-curvo">
+        <h2 class="title title-primary painel-titulo" id="painel-titulo">Bem-vindo de volta!</h2>
+        <p class="description description-primary painel-texto" id="painel-texto">Para continuar conectado conosco,<br>por favor faça login.</p>
+        <button class="btn btn-primary" id="painel-botao" type="button">Já tenho conta</button>
+      </aside>
+      <% } %>
+
+    </section>
+  </main>
+
+  <dialog id="modal-senha" aria-modal="true" aria-labelledby="modal-titulo">
+    <h2 id="modal-titulo" style="font-family:'Fraunces',serif;font-size:1.3rem;color:#0E3124;margin-bottom:.5rem;">
+      Recuperar senha
+    </h2>
+    <p style="font-size:.88rem;color:#666;margin-bottom:1.2rem;line-height:1.6;">
+      Digite o e-mail da sua conta. Se ele estiver cadastrado,<br>você receberá um código de verificação.
+    </p>
+
+    <label for="rec-email" style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem;">E-mail</label>
+    <input type="email" id="rec-email" name="rec-email" placeholder="seu@email.com"
+      autocomplete="email" aria-describedby="rec-msg"
+      style="width:100%;padding:.65rem .9rem;border:1.5px solid #e0ddd8;border-radius:10px;font-size:.92rem;outline:none;font-family:'DM Sans',sans-serif;box-sizing:border-box;margin-bottom:.4rem;" />
+    <output id="rec-msg" role="alert"
+      style="display:block;font-size:.82rem;min-height:1.2rem;margin-bottom:.8rem;"></output>
+
+    <section class="modal-acoes">
+      <button type="button" id="fechar-modal" class="btn-modal-cancelar">Cancelar</button>
+      <button type="button" id="btn-rec-senha" class="btn btn-second"
+        style="padding:10px 26px;font-size:11.5px;">
+        Enviar código
+      </button>
+    </section>
+  </dialog>
+
+  <%- include("../../partials/layout/footer") %>
+  <script src="/js/conta/forca-senha.js"></script>
+  <script src="/js/conta/login2.js"></script>
+</body>
+</html>

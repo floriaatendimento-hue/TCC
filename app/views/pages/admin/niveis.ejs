@@ -1,0 +1,197 @@
+<%
+/* Níveis de Clientes — configuração da progressão por valor acumulado.
+   `niveis` vem de NivelCliente.findAll() e `resumo` de
+   NivelCliente.contarClientesPorNivel() (contagem real, calculada com a
+   mesma regra que o perfil do cliente usa). CRUD via /api/admin/niveis
+   (fetch, em admin-niveis.js); a página é re-renderizada com reload
+   após cada ação, igual às demais telas do admin.
+
+   A ordem manual (`ordem`) controla a numeração exibida; o cálculo do
+   nível usa sempre `valor_minimo`. Quando os dois discordam, o aviso
+   abaixo aparece — em vez de bloquear o admin, mostramos o problema e
+   oferecemos o conserto em um clique. */
+const brl = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+const ativos = niveis.filter(n => n.ativo);
+const valoresAtivos = ativos.map(n => n.valor_minimo);
+const ordemDivergente = valoresAtivos.some((v, i) => i > 0 && v < valoresAtivos[i - 1]);
+
+/* Dois níveis ativos com o mesmo valor mínimo: o de baixo nunca seria
+   alcançado por ninguém — vale avisar. */
+const valoresDuplicados = ativos
+  .map(n => n.valor_minimo)
+  .filter((v, i, arr) => arr.indexOf(v) !== i);
+
+const contagem = (resumo && resumo.contagem) || {};
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Níveis de Clientes</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'niveis' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Níveis de Clientes' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Níveis de Clientes</h1>
+          <p class="admin-page-header__data">
+            Configure a progressão e os níveis dos clientes da Floria.
+          </p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <% if (ordemDivergente) { %>
+            <button type="button" class="btn-admin btn-admin--secundario" id="btn-reordenar-valor">
+              <i class="fas fa-sort-amount-down" aria-hidden="true"></i>Corrigir ordem pelos valores
+            </button>
+          <% } %>
+          <a class="btn-admin btn-admin--primario" href="/admin/niveis/novo">
+            <i class="fas fa-plus" aria-hidden="true"></i>Adicionar nível
+          </a>
+        </nav>
+      </header>
+
+      <%# Como funciona + números reais %>
+      <article class="painel niveis-resumo">
+        <section class="niveis-resumo__numeros">
+          <section class="niveis-resumo__stat">
+            <strong><%= niveis.length %></strong>
+            <b>níveis cadastrados</b>
+          </section>
+          <section class="niveis-resumo__stat">
+            <strong><%= ativos.length %></strong>
+            <b>ativos na progressão</b>
+          </section>
+          <section class="niveis-resumo__stat">
+            <strong><%= (resumo && resumo.totalClientes) || 0 %></strong>
+            <b>clientes classificados</b>
+          </section>
+        </section>
+        <p class="niveis-resumo__nota">
+          <i class="fas fa-info-circle" aria-hidden="true"></i>
+          O nível de cada cliente é <strong>calculado na hora</strong>, somando os pedidos com
+          pagamento aprovado. Ao alterar um valor aqui, todos os clientes são reclassificados
+          automaticamente. Não é preciso editar cliente por cliente.
+        </p>
+      </article>
+
+      <% if (ordemDivergente) { %>
+        <article class="painel aviso-niveis" role="status">
+          <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+          <p>
+            <strong>A ordem manual não acompanha os valores.</strong>
+            Algum nível está posicionado antes de outro com valor mínimo menor. A numeração
+            exibida segue a ordem manual, mas a progressão real sempre segue o valor.
+            Use <em>“Corrigir ordem pelos valores”</em> para alinhar as duas.
+          </p>
+        </article>
+      <% } %>
+
+      <% if (valoresDuplicados.length) { %>
+        <article class="painel aviso-niveis" role="status">
+          <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+          <p>
+            <strong>Há níveis ativos com o mesmo valor mínimo.</strong>
+            Quando dois níveis exigem o mesmo valor, apenas um deles é alcançável.
+            Defina valores diferentes para que todos participem da progressão.
+          </p>
+        </article>
+      <% } %>
+
+      <%# Lista de níveis %>
+      <% if (!niveis.length) { %>
+        <article class="painel">
+          <p class="tabela-admin__vazia">
+            Nenhum nível cadastrado ainda. Use “Adicionar nível” para criar o primeiro.
+          </p>
+        </article>
+      <% } %>
+
+      <ol class="niveis-lista">
+        <% niveis.forEach((n, indice) => { const clientes = contagem[n.id] || 0; %>
+          <li class="nivel-card <%= n.ativo ? '' : 'is-inativo' %>" data-id="<%= n.id %>">
+            <header class="nivel-card__topo">
+              <p class="nivel-card__posicao">Nível <%= indice + 1 %></p>
+              <section class="nivel-card__identidade">
+                <i class="nivel-card__icone" aria-hidden="true"><i class="fas fa-<%= n.icone || 'seedling' %>" aria-hidden="true"></i></i>
+                <hgroup>
+                  <h2><%= n.nome %></h2>
+                  <p class="nivel-card__valor">A partir de <%= brl(n.valor_minimo) %></p>
+                </hgroup>
+              </section>
+              <% if (!n.ativo) { %>
+                <mark class="badge badge--cinza">Inativo</mark>
+              <% } %>
+            </header>
+
+            <% if (n.descricao) { %>
+              <p class="nivel-card__descricao"><%= n.descricao %></p>
+            <% } %>
+
+            <% const listaBeneficios = (n.beneficios || '').split('\n').map(b => b.trim()).filter(Boolean); %>
+            <% if (listaBeneficios.length) { %>
+              <ul class="nivel-card__beneficios">
+                <% listaBeneficios.forEach(b => { %><li><%= b %></li><% }) %>
+              </ul>
+            <% } %>
+
+            <footer class="nivel-card__rodape">
+              <p class="nivel-card__clientes">
+                <i class="fas fa-users" aria-hidden="true"></i>
+                <strong><%= clientes %></strong>
+                <%= clientes === 1 ? 'cliente neste nível' : 'clientes neste nível' %>
+              </p>
+
+              <section class="acoes-tabela nivel-card__acoes" aria-label="Ações do nível <%= n.nome %>">
+                <label class="toggle" title="<%= n.ativo ? 'Nível ativo na progressão' : 'Nível fora da progressão' %>">
+                  <input type="checkbox" class="js-toggle-ativo" <%= n.ativo ? 'checked' : '' %>
+                         aria-label="Nível ativo na progressão">
+                  <i class="toggle__trilho" aria-hidden="true"></i>
+                </label>
+                <button type="button" class="mover js-mover" data-direcao="cima"
+                        aria-label="Mover <%= n.nome %> para cima" <%= indice === 0 ? 'disabled' : '' %>>
+                  <i class="fas fa-arrow-up" aria-hidden="true"></i>
+                </button>
+                <button type="button" class="mover js-mover" data-direcao="baixo"
+                        aria-label="Mover <%= n.nome %> para baixo" <%= indice === niveis.length - 1 ? 'disabled' : '' %>>
+                  <i class="fas fa-arrow-down" aria-hidden="true"></i>
+                </button>
+                <a href="/admin/niveis/<%= n.id %>/editar">Editar</a>
+                <button type="button" class="excluir js-excluir"
+                        data-id="<%= n.id %>" data-nome="<%= n.nome %>">Excluir</button>
+              </section>
+            </footer>
+          </li>
+        <% }) %>
+      </ol>
+    </main>
+  </section>
+
+  <dialog class="dialog-admin" id="dialog-excluir-nivel">
+    <header class="dialog-admin__cabecalho">
+      <h2>Excluir nível</h2>
+      <button type="button" class="dialog-admin__fechar" id="dialog-excluir-fechar" aria-label="Fechar">×</button>
+    </header>
+    <section class="form-admin">
+      <p class="dialog-admin__texto" id="excluir-resumo">Carregando impacto…</p>
+      <p class="dialog-admin__texto dialog-admin__texto--nota">
+        Nenhum dado de cliente é apagado: os níveis são calculados a partir dos pedidos,
+        então os clientes desta faixa apenas passam a ser classificados no nível de baixo.
+      </p>
+      <output class="form-admin__mensagem" id="form-excluir-msg" role="alert"></output>
+      <footer class="form-admin__acoes">
+        <button type="button" class="btn-admin btn-admin--secundario" id="btn-cancelar-excluir">Cancelar</button>
+        <button type="button" class="btn-admin btn-admin--perigo" id="btn-confirmar-excluir">Excluir nível</button>
+      </footer>
+    </section>
+  </dialog>
+
+  <script src="/js/admin/admin-niveis.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+<%
+/* ═══════════════════════════════════════════════════════════
+   Helpers de apresentação — só formatação/montagem de link,
+   nenhuma regra de negócio nova (contatos vêm de socialLinks,
+   já centralizados em config/socialLinks.js + editáveis em
+   /admin/configuracoes).
+═══════════════════════════════════════════════════════════ */
+const mensagemWhats = socialLinks.whatsappSuporte.mensagemBase
+  + (pedidoContexto ? `Pedido #${pedidoContexto.id}. ` : '')
+  + 'Poderiam me ajudar?';
+const hrefWhatsappSuporte = `https://wa.me/${socialLinks.whatsappSuporte.numero}?text=${encodeURIComponent(mensagemWhats)}`;
+
+const assuntoEmail = 'Solicitação de suporte' + (pedidoContexto ? ` - Pedido #${pedidoContexto.id}` : '');
+const corpoEmail = 'Olá, equipe Floria,\n\n'
+  + (pedidoContexto ? `Estou entrando em contato sobre o pedido #${pedidoContexto.id}.\n\n` : '')
+  + 'Descreva aqui sua dúvida ou problema:\n\n';
+const hrefEmailSuporte = `${socialLinks.email.href}?subject=${encodeURIComponent(assuntoEmail)}&body=${encodeURIComponent(corpoEmail)}`;
+
+const freteGratisAcima = 'R$ ' + Number(frete.gratisAcima).toFixed(2).replace('.', ',');
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suporte - Floria</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/institucional/suporte.css">
+</head>
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main class="suporte-page">
+
+    <section class="suporte-hero">
+      <p class="suporte-eyebrow">Central de Suporte</p>
+      <h1>Como podemos ajudar?</h1>
+      <p class="suporte-hero-texto">Encontre orientações sobre pedidos, pagamentos, entregas e sua conta. Se não resolver por aqui, fale com a nossa equipe pelo WhatsApp ou e-mail.</p>
+    </section>
+
+    <% if (pedidoContexto) { %>
+      <section class="suporte-contexto-pedido" aria-label="Sobre o seu pedido">
+        <section class="suporte-contexto-texto">
+          <p class="suporte-contexto-rotulo">Sobre o pedido #<%= pedidoContexto.id %></p>
+          <p>
+            Status atual: <strong><%= rotulosEtapa[pedidoContexto.status] || pedidoContexto.status %></strong>
+            · Pagamento: <strong><%= rotulosStatusPagamento[pedidoContexto.status_pagamento] || pedidoContexto.status_pagamento %></strong>
+          </p>
+          <% if (pedidoContexto.podeCancelar) { %>
+            <p class="suporte-contexto-dica">Este pedido ainda pode ser cancelado diretamente na página dele, enquanto não sai para entrega.</p>
+          <% } %>
+        </section>
+        <a href="/pedido/<%= pedidoContexto.id %>" class="suporte-contexto-link">Ver pedido completo</a>
+      </section>
+    <% } %>
+
+    <!-- PERGUNTAS FREQUENTES -->
+    <section class="suporte-categorias-secao" aria-labelledby="suporte-categorias-titulo">
+      <h2 id="suporte-categorias-titulo">Perguntas frequentes</h2>
+
+      <section class="suporte-filtro" id="suporte-filtro" role="group" aria-label="Filtrar por categoria">
+        <button type="button" class="suporte-filtro-chip ativa" data-cat="todas" aria-pressed="true">Todas</button>
+        <button type="button" class="suporte-filtro-chip" data-cat="pedido" aria-pressed="false">
+          <i class="fas fa-box" aria-hidden="true"></i> Pedido
+        </button>
+        <button type="button" class="suporte-filtro-chip" data-cat="entrega" aria-pressed="false">
+          <i class="fas fa-truck" aria-hidden="true"></i> Entrega
+        </button>
+        <button type="button" class="suporte-filtro-chip" data-cat="produto" aria-pressed="false">
+          <i class="fas fa-seedling" aria-hidden="true"></i> Produto
+        </button>
+        <button type="button" class="suporte-filtro-chip" data-cat="pagamento" aria-pressed="false">
+          <i class="fas fa-credit-card" aria-hidden="true"></i> Pagamento
+        </button>
+        <button type="button" class="suporte-filtro-chip" data-cat="conta" aria-pressed="false">
+          <i class="far fa-user" aria-hidden="true"></i> Conta
+        </button>
+        <button type="button" class="suporte-filtro-chip" data-cat="outras" aria-pressed="false">
+          <i class="far fa-question-circle" aria-hidden="true"></i> Outras dúvidas
+        </button>
+      </section>
+
+      <section class="suporte-pedido-bloco" id="suporte-pedido-bloco" hidden>
+        <label for="suporte-pedido-select">Pedido relacionado <b>(opcional)</b></label>
+        <select id="suporte-pedido-select" aria-label="Selecionar pedido relacionado ao problema"></select>
+      </section>
+
+      <section class="suporte-lista" id="suporte-lista" aria-live="polite"></section>
+    </section>
+
+    <section class="suporte-formulario-secao" aria-labelledby="suporte-formulario-titulo">
+      <h2 id="suporte-formulario-titulo">Envie sua mensagem</h2>
+      <p class="suporte-formulario-intro">Preencha os campos abaixo. Nossa equipe responde pelo e-mail que você informar.</p>
+
+      <form class="suporte-formulario" id="form-suporte" novalidate>
+        <input type="hidden" id="csrf-suporte" value="<%= csrfToken %>">
+
+        <p class="suporte-campo-armadilha" aria-hidden="true">
+          <label for="suporte-site">Não preencha este campo</label>
+          <input type="text" id="suporte-site" name="site" tabindex="-1" autocomplete="off">
+        </p>
+
+        <section class="suporte-formulario-linha">
+          <fieldset class="campo-suporte">
+            <label for="suporte-nome">Nome</label>
+            <input id="suporte-nome" name="nome" required maxlength="120" autocomplete="name" aria-describedby="erro-suporte-nome">
+            <output id="erro-suporte-nome" class="campo-erro" role="alert"></output>
+          </fieldset>
+          <fieldset class="campo-suporte">
+            <label for="suporte-email">E-mail</label>
+            <input type="email" id="suporte-email" name="email" required maxlength="190" autocomplete="email" aria-describedby="erro-suporte-email">
+            <output id="erro-suporte-email" class="campo-erro" role="alert"></output>
+          </fieldset>
+        </section>
+
+        <section class="suporte-formulario-linha">
+          <fieldset class="campo-suporte">
+            <label for="suporte-categoria">Categoria <small>(opcional)</small></label>
+            <select id="suporte-categoria" name="categoria">
+              <option value="">Selecione…</option>
+              <option value="pedido">Pedido</option>
+              <option value="entrega">Entrega</option>
+              <option value="produto">Produto</option>
+              <option value="pagamento">Pagamento</option>
+              <option value="conta">Conta</option>
+              <option value="outras">Outras dúvidas</option>
+            </select>
+          </fieldset>
+          <fieldset class="campo-suporte">
+            <label for="suporte-assunto">Assunto</label>
+            <input id="suporte-assunto" name="assunto" required maxlength="150" aria-describedby="erro-suporte-assunto">
+            <output id="erro-suporte-assunto" class="campo-erro" role="alert"></output>
+          </fieldset>
+        </section>
+
+        <fieldset class="campo-suporte">
+          <label for="suporte-mensagem">Mensagem</label>
+          <textarea id="suporte-mensagem" name="mensagem" required minlength="10" maxlength="5000" rows="5" aria-describedby="erro-suporte-mensagem suporte-mensagem-contador"></textarea>
+          <output id="suporte-mensagem-contador" class="suporte-contador" aria-live="polite">0/5000</output>
+          <output id="erro-suporte-mensagem" class="campo-erro" role="alert"></output>
+        </fieldset>
+
+        <output id="suporte-msg-geral" class="suporte-msg-geral" role="alert" aria-live="assertive"></output>
+
+        <menu class="suporte-formulario-acoes">
+          <li><button type="submit" class="suporte-contato-btn suporte-contato-btn--whatsapp" id="btn-enviar-suporte">Enviar solicitação</button></li>
+        </menu>
+      </form>
+
+      <section class="suporte-sucesso" id="suporte-sucesso" hidden>
+        <i class="fas fa-check-circle" aria-hidden="true"></i>
+        <p>Recebemos sua solicitação de suporte. Nossa equipe irá analisar o problema e entrar em contato pelo e-mail informado.</p>
+        <p class="suporte-protocolo">Protocolo: <strong id="suporte-protocolo-numero"></strong></p>
+      </section>
+    </section>
+
+    <section class="suporte-contato" aria-labelledby="suporte-contato-titulo">
+      <h2 id="suporte-contato-titulo">Ainda precisa de ajuda?</h2>
+      <p>Se você não encontrou uma solução para o seu problema, fale diretamente com a nossa equipe.</p>
+
+      <section class="suporte-contato-acoes">
+        <a class="suporte-contato-btn suporte-contato-btn--whatsapp"
+           href="<%= hrefWhatsappSuporte %>" target="_blank" rel="noopener noreferrer">
+          <i class="fab fa-whatsapp" aria-hidden="true"></i>
+          Falar pelo WhatsApp
+        </a>
+        <a class="suporte-contato-btn suporte-contato-btn--email"
+           href="<%= hrefEmailSuporte %>">
+          <i class="fas fa-envelope" aria-hidden="true"></i>
+          Enviar um e-mail
+        </a>
+      </section>
+    </section>
+
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+
+  <script>
+    window.__suporteContexto = {
+      logado: <%- locals.usuario ? 'true' : 'false' %>,
+      freteGratisAcima: <%- JSON.stringify(freteGratisAcima) %>,
+      whatsapp: {
+        numero: <%- JSON.stringify(socialLinks.whatsappSuporte.numero) %>,
+        mensagemBase: <%- JSON.stringify(socialLinks.whatsappSuporte.mensagemBase) %>,
+      },
+      email: <%- JSON.stringify(socialLinks.email.valor) %>,
+      pedidoInicial: <%- JSON.stringify(pedidoContexto ? { id: pedidoContexto.id } : null) %>,
+    };
+  </script>
+  <script src="/js/institucional/suporte.js" defer></script>
+  <script src="/js/institucional/suporte-contato.js" defer></script>
+</body>
+</html>

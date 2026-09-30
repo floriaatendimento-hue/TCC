@@ -1,0 +1,33 @@
+<%
+/* Tabela reutilizável do Relatório Geral — espera:
+     colunas [{ chave, rotulo, tipo, alinhar }]
+     linhas  [{ [chave]: { texto, valor, badge? } }]
+   Sem busca/ordenação/paginação client-side de propósito: este
+   documento é feito para ser lido/impresso do topo ao fim, não
+   explorado interativamente como as abas de /admin/relatorios. */
+%>
+<section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+  <table class="tabela-admin">
+    <thead>
+      <tr>
+        <% colunas.forEach(c => { %>
+          <th class="<%= c.alinhar === 'num' ? 'num' : '' %>"><%= c.rotulo %></th>
+        <% }) %>
+      </tr>
+    </thead>
+    <tbody>
+      <% linhas.forEach(linha => { %>
+        <tr>
+          <% colunas.forEach(c => { const cel = linha[c.chave] || { texto: '-', valor: 0 }; %>
+            <td class="<%= c.alinhar === 'num' ? 'num' : '' %>">
+              <% if (cel.badge) { %><b class="badge badge--<%= cel.badge %>"><%= cel.texto %></b><% } else { %><%= cel.texto %><% } %>
+            </td>
+          <% }) %>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <% if (!linhas.length) { %>
+    <p class="tabela-admin__vazia">Nenhum registro encontrado para o período selecionado.</p>
+  <% } %>
+</section>

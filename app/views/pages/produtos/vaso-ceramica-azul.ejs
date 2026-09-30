@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaso de Cerâmica Azul - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'vaso-ceramica-azul',
+      nome: 'Vaso de Cerâmica Azul',
+      sku: 'FLO-VASOCERAMICAAZUL',
+      marca: null,
+      categoriaNome: 'Vasos & Cachepôs',
+      categoriaSlug: 'vasos',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/produtos-fotos/vaso-ceramica-azul-1.webp', alt: 'Vaso de Cerâmica Azul - frente' },
+        { src: '/imagens/produtos-fotos/vaso-ceramica-azul-2.webp', alt: 'Vaso de Cerâmica Azul - detalhe' },
+        { src: '/imagens/produtos-fotos/vaso-ceramica-azul-3.webp', alt: 'Vaso de Cerâmica Azul - lateral' }
+      ],
+      precoAtual: 95.00,
+      precoAntigo: 115.00,
+      parcelasTexto: 'em até 2x sem juros',
+      estoque: 19,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(18 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-star', texto: 'Cerâmica esmaltada' },
+        { icone: 'fas fa-shield-alt', texto: 'Resistente' },
+        { icone: 'fas fa-sun', texto: 'Uso interno' }
+      ],
+      descricao: 'Vaso de cerâmica esmaltada na cor azul cobalto, produzido artesanalmente com argila de alta qualidade. O acabamento vitrificado garante durabilidade e facilidade de limpeza. Ideal para plantas de médio porte como samambaias, orquídeas e pothos. Possui furo de drenagem e prato incluso. Cada peça é única, com pequenas variações que evidenciam o caráter artesanal.',
+      beneficios: 'Acabamento vitrificado durável e de fácil limpeza, com visual elegante para ambientes internos.',
+      comoUtilizar: 'Utilize o prato incluso para coletar o excesso de água drenada pelo furo na base.',
+      recomendacoes: 'Evite impactos que possam trincar o esmalte e não exponha a mudanças bruscas de temperatura.',
+      ficha: [
+        { rotulo: 'Material', valor: 'Cerâmica esmaltada' },
+        { rotulo: 'Cor', valor: 'Azul cobalto' },
+        { rotulo: 'Drenagem', valor: 'Furo de drenagem com prato incluso' },
+        { rotulo: 'Uso', valor: 'Interno' },
+        { rotulo: 'Porte indicado', valor: 'Plantas de médio porte (samambaias, orquídeas, pothos)' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-cube', titulo: 'Material', texto: 'Cerâmica esmaltada: evite impactos que possam trincar o acabamento.' },
+        { icone: 'fas fa-ruler-combined', titulo: 'Capacidade', texto: 'Indicado para samambaias, orquídeas e pothos de médio porte.' },
+        { icone: 'fas fa-tint', titulo: 'Drenagem', texto: 'Furo de drenagem com prato incluso: esvazie o prato após regas intensas.' },
+        { icone: 'fas fa-broom', titulo: 'Limpeza', texto: 'Limpe com pano úmido; o acabamento vitrificado facilita a remoção de resíduos.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

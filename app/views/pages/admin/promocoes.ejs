@@ -1,0 +1,334 @@
+<%
+/* REDESENHO (Promoções e Cupons): página única que reúne as duas
+   modalidades que já existiam separadas — Promoções automáticas
+   (tabela `promocoes`, desconto no preço do produto, sem código; ver
+   app/models/Promocao.js) e Cupons com código (tabela `cupons`,
+   desconto sobre o subtotal do carrinho; ver app/models/Cupom.js).
+   Nenhuma regra de negócio nova: só a apresentação. Criação e edição
+   viraram páginas dedicadas (admin-promocao-form.ejs / admin-cupom-
+   form.ejs), no mesmo padrão já usado por /admin/produtos/novo.
+   `cupons` e `descontoConcedido30d` vêm da rota GET /admin/promocoes
+   em app/routes/router.js (reaproveitando Cupom.relatorioComCodigo). */
+const ROTULO_TIPO = {
+  categoria: 'Categoria',
+  subcategoria: 'Subcategoria',
+  produto: 'Produto específico',
+  valor_minimo_produto: 'Valor mín. do produto',
+  valor_minimo_carrinho: 'Valor mín. do carrinho',
+  todos: 'Todos os produtos',
+};
+const ROTULO_TIPO_CUPOM = { percentual: 'Percentual', fixo: 'Valor fixo', frete_gratis: 'Frete grátis' };
+
+const fmtMoeda = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const fmtData = (d) => d ? new Intl.DateTimeFormat('pt-BR').format(new Date(d)) : '-';
+
+/* SEC-003: JSON.stringify() não escapa aspas simples nem &/</> — embutir
+   o resultado direto num atributo HTML (mesmo entre aspas simples) permite
+   que um nome de promoção/cupom com apóstrofo (ex.: "Dia das Mães") quebre
+   o atributo e injete HTML/atributos arbitrários na página (confirmado:
+   um nome com apóstrofo já corrompia a tag <tr> renderizada). Escapa os 5
+   caracteres especiais de HTML antes de embutir o JSON no atributo. */
+const jsonParaAtributo = (obj) => JSON.stringify(obj)
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#39;');
+
+const fmtRegra = (p) => {
+  if (p.tipo === 'categoria') return p.categoria_nome || '-';
+  if (p.tipo === 'subcategoria') return (p.categoria_nome || '-') + ' → ' + (p.subcategoria_nome || '-');
+  if (p.tipo === 'produto') {
+    const n = (p.produtos || []).length;
+    return n === 1 ? (p.produtos[0].nome) : (n + ' produtos selecionados');
+  }
+  if (p.tipo === 'valor_minimo_produto') return 'Produto ≥ ' + fmtMoeda(p.valor_minimo);
+  if (p.tipo === 'valor_minimo_carrinho') return 'Carrinho ≥ ' + fmtMoeda(p.valor_minimo);
+  return 'Todos os produtos ativos';
+};
+const fmtDesconto = (p) => Number(p.desconto_percentual).toLocaleString('pt-BR') + '% OFF';
+const fmtVigencia = (dataInicio, dataFim) => {
+  if (!dataInicio && !dataFim) return 'Sem prazo definido';
+  return fmtData(dataInicio) + ' – ' + (dataFim ? fmtData(dataFim) : 'sem término');
+};
+const fmtValorCupom = (c) => {
+  if (c.tipo === 'frete_gratis') return 'Frete grátis';
+  if (c.tipo === 'percentual') return Number(c.valor).toLocaleString('pt-BR') + '% OFF';
+  return fmtMoeda(c.valor) + ' OFF';
+};
+
+/* Status unificado — mesma nomenclatura e mesma chave de filtro (usada
+   em data-status) nas duas tabelas: ativa · agendada · pausada · expirada.
+   "Esgotado" (limite de usos do cupom atingido) cai no filtro "expirada"
+   por ser, na prática, um cupom que não pode mais ser usado — mas
+   mantém o rótulo próprio no badge, pra não confundir com data vencida. */
+const hojeStr = new Date().toISOString().slice(0, 10);
+const statusPromocao = (p) => {
+  const inicioStr = p.data_inicio ? new Date(p.data_inicio).toISOString().slice(0, 10) : null;
+  const fimStr = p.data_fim ? new Date(p.data_fim).toISOString().slice(0, 10) : null;
+  if (!p.ativo) return { texto: 'Pausada', classe: 'badge--cinza', chave: 'pausada' };
+  if (inicioStr && inicioStr > hojeStr) return { texto: 'Agendada', classe: 'badge--dourado', chave: 'agendada' };
+  if (fimStr && fimStr < hojeStr) return { texto: 'Expirada', classe: 'badge--vermelho', chave: 'expirada' };
+  return { texto: 'Ativa', classe: 'badge--verde', chave: 'ativa' };
+};
+const statusCupom = (c) => {
+  const inicioStr = c.data_inicio ? new Date(c.data_inicio).toISOString().slice(0, 10) : null;
+  const fimStr = c.data_fim ? new Date(c.data_fim).toISOString().slice(0, 10) : null;
+  if (!c.ativo) return { texto: 'Pausado', classe: 'badge--cinza', chave: 'pausada' };
+  if (inicioStr && inicioStr > hojeStr) return { texto: 'Agendado', classe: 'badge--dourado', chave: 'agendada' };
+  if (fimStr && fimStr < hojeStr) return { texto: 'Expirado', classe: 'badge--vermelho', chave: 'expirada' };
+  if (c.limite_usos && c.usos_atual >= c.limite_usos) return { texto: 'Esgotado', classe: 'badge--vermelho', chave: 'expirada' };
+  return { texto: 'Ativo', classe: 'badge--verde', chave: 'ativa' };
+};
+
+/* ── Indicadores do topo — só contagens sobre os dados já carregados
+   acima (sem nenhuma consulta nova) + o total de desconto concedido em
+   cupons nos últimos 30 dias, que já vem pronto de router.js. ── */
+let promAtivas = 0, promAgendadas = 0, promExpiradas = 0;
+promocoes.forEach((p) => {
+  const chave = statusPromocao(p).chave;
+  if (chave === 'ativa') promAtivas++;
+  else if (chave === 'agendada') promAgendadas++;
+  else if (chave === 'expirada') promExpiradas++;
+});
+let cupAtivos = 0, cupUsos = 0;
+cupons.forEach((c) => {
+  if (statusCupom(c).chave === 'ativa') cupAtivos++;
+  cupUsos += Number(c.usos_atual) || 0;
+});
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Promoções e Cupons</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/admin-promocoes.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'promocoes' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Promoções e Cupons' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Promoções e Cupons</h1>
+          <p class="admin-page-header__data">Crie, gerencie e acompanhe todas as ofertas da sua loja em um único lugar.</p>
+        </hgroup>
+        <nav class="admin-page-header__acoes admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--primario" href="/admin/promocoes/nova">
+            <i class="fas fa-plus" aria-hidden="true"></i>Nova promoção
+          </a>
+          <a class="btn-admin btn-admin--intermedio" href="/admin/cupons/novo">
+            <i class="fas fa-plus" aria-hidden="true"></i>Novo cupom
+          </a>
+        </nav>
+      </header>
+
+      <section class="stats-grid dashboard-v3 painel-dashboard" aria-label="Resumo de promoções e cupons">
+        <article class="stat-card dash-stat">
+          <header class="stat-card__topo">
+            <i class="stat-card__icone stat-card__icone--verde" aria-hidden="true"><i class="fas fa-bolt"></i></i>
+          </header>
+          <p class="stat-card__valor"><%= promAtivas %></p>
+          <p class="dash-stat__titulo">Promoções ativas</p>
+          <p class="dash-stat__legenda">Aplicadas automaticamente agora</p>
+        </article>
+
+        <article class="stat-card dash-stat">
+          <header class="stat-card__topo">
+            <i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-calendar-check"></i></i>
+          </header>
+          <p class="stat-card__valor"><%= promAgendadas %></p>
+          <p class="dash-stat__titulo">Promoções programadas</p>
+          <p class="dash-stat__legenda">Vigência ainda não iniciada</p>
+        </article>
+
+        <article class="stat-card dash-stat">
+          <header class="stat-card__topo">
+            <i class="stat-card__icone stat-card__icone--verde-medio" aria-hidden="true"><i class="fas fa-ticket-alt"></i></i>
+          </header>
+          <p class="stat-card__valor"><%= cupAtivos %></p>
+          <p class="dash-stat__titulo">Cupons ativos</p>
+          <p class="dash-stat__legenda">Prontos para uso no checkout</p>
+        </article>
+
+        <article class="stat-card dash-stat">
+          <header class="stat-card__topo">
+            <i class="stat-card__icone stat-card__icone--azul" aria-hidden="true"><i class="fas fa-sync-alt"></i></i>
+          </header>
+          <p class="stat-card__valor"><%= cupUsos %></p>
+          <p class="dash-stat__titulo">Cupons utilizados</p>
+          <p class="dash-stat__legenda">Resgates somados de todos os cupons</p>
+        </article>
+
+        <article class="stat-card dash-stat">
+          <header class="stat-card__topo">
+            <i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-hand-holding-usd"></i></i>
+          </header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= fmtMoeda(descontoConcedido30d) %></p>
+          <p class="dash-stat__titulo">Desconto concedido</p>
+          <p class="dash-stat__legenda">Em cupons, últimos 30 dias</p>
+        </article>
+
+        <article class="stat-card dash-stat">
+          <header class="stat-card__topo">
+            <i class="stat-card__icone stat-card__icone--erro" aria-hidden="true"><i class="fas fa-hourglass-end"></i></i>
+          </header>
+          <p class="stat-card__valor"><%= promExpiradas %></p>
+          <p class="dash-stat__titulo">Promoções expiradas</p>
+          <p class="dash-stat__legenda">Fora da vigência cadastrada</p>
+        </article>
+      </section>
+
+      <form class="admin-toolbar">
+        <search class="admin-toolbar__busca" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <label for="filtro-busca" class="sr-only">Pesquisar promoção ou cupom</label>
+          <input id="filtro-busca" type="search" placeholder="Pesquisar promoção ou cupom...">
+        </search>
+        <nav class="filtro-abas" aria-label="Filtrar por status">
+          <button type="button" class="filtro-aba is-ativa" data-status="">Todas</button>
+          <button type="button" class="filtro-aba" data-status="ativa">Ativas</button>
+          <button type="button" class="filtro-aba" data-status="agendada">Agendadas</button>
+          <button type="button" class="filtro-aba" data-status="pausada">Pausadas</button>
+          <button type="button" class="filtro-aba" data-status="expirada">Expiradas</button>
+        </nav>
+      </form>
+
+      <!-- PROMOÇÕES AUTOMÁTICAS -->
+      <header class="grupo-cabecalho" id="promocoes">
+        <i class="grupo-cabecalho__icone" aria-hidden="true"><i class="fas fa-bolt"></i></i>
+        <hgroup>
+          <h2>Promoções automáticas</h2>
+          <p>Aplicadas direto no preço, sem código: por categoria, subcategoria, produto ou valor mínimo do carrinho.</p>
+        </hgroup>
+        <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/admin/promocoes/nova">
+          <i class="fas fa-plus" aria-hidden="true"></i>Nova promoção
+        </a>
+      </header>
+
+      <article class="painel painel--tabela">
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin" id="tabela-promocoes">
+            <thead>
+              <tr>
+                <th>Nome</th><th>Tipo</th><th>Regra</th><th class="num">Desconto</th>
+                <th>Vigência</th><th>Status</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="promocoes-tbody">
+              <% promocoes.forEach(p => {
+                const st = statusPromocao(p);
+                const duplicar = { nome: 'Cópia de ' + p.nome, tipo: p.tipo, categoria_id: p.categoria_id || '', subcategoria_id: p.subcategoria_id || '', produtos: p.produtos || [], valor_minimo: p.valor_minimo || '', desconto_percentual: p.desconto_percentual };
+              %>
+                <tr data-id="<%= p.id %>" data-nome="<%= p.nome %>" data-busca="<%= (p.nome || '').toLowerCase() %>" data-status="<%= st.chave %>" data-ativo="<%= p.ativo %>" data-duplicar='<%- jsonParaAtributo(duplicar) %>'>
+                  <td><strong><%= p.nome %></strong></td>
+                  <td><%= ROTULO_TIPO[p.tipo] %></td>
+                  <td><%= fmtRegra(p) %></td>
+                  <td class="num"><%= fmtDesconto(p) %></td>
+                  <td><%= fmtVigencia(p.data_inicio, p.data_fim) %></td>
+                  <td><b class="badge <%= st.classe %>"><%= st.texto %></b></td>
+                  <td class="acoes-tabela">
+                    <a class="btn-icone" href="/admin/promocoes/<%= p.id %>/editar" aria-label="Editar promoção" title="Editar"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                    <details class="acoes-menu">
+                      <summary aria-label="Mais ações"><i class="fas fa-ellipsis-v" aria-hidden="true"></i></summary>
+                      <menu>
+                        <li><button type="button" class="js-detalhes"><i class="fas fa-eye" aria-hidden="true"></i>Ver detalhes</button></li>
+                        <li><button type="button" class="js-duplicar-promocao"><i class="fas fa-copy" aria-hidden="true"></i>Duplicar</button></li>
+                        <li><button type="button" class="js-toggle-ativo-promocao"><i class="fas <%= p.ativo ? 'fa-pause' : 'fa-play' %>" aria-hidden="true"></i><%= p.ativo ? 'Pausar' : 'Ativar' %></button></li>
+                        <li role="separator"></li>
+                        <li><button type="button" class="excluir js-excluir-promocao"><i class="fas fa-trash" aria-hidden="true"></i>Excluir</button></li>
+                      </menu>
+                    </details>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <p class="tabela-admin__vazia" <%= promocoes.length ? 'hidden' : '' %>>Nenhuma promoção automática cadastrada ainda.</p>
+          <p class="tabela-admin__vazia tabela-admin__vazia-filtro" id="promocoes-vazia-filtro">Nenhuma promoção encontrada para este filtro.</p>
+        </section>
+      </article>
+
+      <!-- CUPONS DE DESCONTO -->
+      <header class="grupo-cabecalho grupo-cabecalho--cupons" id="cupons">
+        <i class="grupo-cabecalho__icone" aria-hidden="true"><i class="fas fa-ticket-alt"></i></i>
+        <hgroup>
+          <h2>Cupons de desconto</h2>
+          <p>O cliente digita o código no carrinho ou no checkout para liberar o desconto.</p>
+        </hgroup>
+        <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/admin/cupons/novo">
+          <i class="fas fa-plus" aria-hidden="true"></i>Novo cupom
+        </a>
+      </header>
+
+      <article class="painel painel--tabela">
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin" id="tabela-cupons">
+            <thead>
+              <tr>
+                <th>Código</th><th>Tipo</th><th class="num">Valor</th><th>Vigência</th>
+                <th class="num">Usos</th><th>Status</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="cupons-tbody">
+              <% cupons.forEach(c => {
+                const st = statusCupom(c);
+                const duplicar = { tipo: c.tipo, valor: c.valor || '', valor_minimo: c.valor_minimo || '', data_inicio: c.data_inicio ? new Date(c.data_inicio).toISOString().slice(0,10) : '', data_fim: c.data_fim ? new Date(c.data_fim).toISOString().slice(0,10) : '', limite_usos: c.limite_usos || '' };
+              %>
+                <tr data-id="<%= c.id %>" data-codigo="<%= c.codigo %>" data-busca="<%= (c.codigo || '').toLowerCase() %>" data-status="<%= st.chave %>" data-ativo="<%= c.ativo %>" data-duplicar='<%- jsonParaAtributo(duplicar) %>'>
+                  <td><strong><%= c.codigo %></strong></td>
+                  <td><%= ROTULO_TIPO_CUPOM[c.tipo] %></td>
+                  <td class="num"><%= fmtValorCupom(c) %></td>
+                  <td><%= fmtVigencia(c.data_inicio, c.data_fim) %></td>
+                  <td class="num"><%= c.usos_atual %><%= c.limite_usos ? '/' + c.limite_usos : '' %></td>
+                  <td><b class="badge <%= st.classe %>"><%= st.texto %></b></td>
+                  <td class="acoes-tabela">
+                    <a class="btn-icone" href="/admin/cupons/<%= c.id %>/editar" aria-label="Editar cupom" title="Editar"><i class="fas fa-pen" aria-hidden="true"></i></a>
+                    <details class="acoes-menu">
+                      <summary aria-label="Mais ações"><i class="fas fa-ellipsis-v" aria-hidden="true"></i></summary>
+                      <menu>
+                        <li><button type="button" class="js-detalhes"><i class="fas fa-eye" aria-hidden="true"></i>Ver detalhes</button></li>
+                        <li><button type="button" class="js-ver-pedidos" data-id="<%= c.id %>" data-codigo="<%= c.codigo %>"><i class="fas fa-receipt" aria-hidden="true"></i>Pedidos com este cupom</button></li>
+                        <li><button type="button" class="js-duplicar-cupom"><i class="fas fa-copy" aria-hidden="true"></i>Duplicar</button></li>
+                        <li><button type="button" class="js-toggle-ativo-cupom"><i class="fas <%= c.ativo ? 'fa-pause' : 'fa-play' %>" aria-hidden="true"></i><%= c.ativo ? 'Pausar' : 'Ativar' %></button></li>
+                        <li role="separator"></li>
+                        <li><button type="button" class="excluir js-excluir-cupom"><i class="fas fa-trash" aria-hidden="true"></i>Excluir</button></li>
+                      </menu>
+                    </details>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <p class="tabela-admin__vazia" <%= cupons.length ? 'hidden' : '' %>>Nenhum cupom cadastrado ainda.</p>
+          <p class="tabela-admin__vazia tabela-admin__vazia-filtro" id="cupons-vazia-filtro">Nenhum cupom encontrado para este filtro.</p>
+        </section>
+      </article>
+    </main>
+  </section>
+
+  <!-- DIALOG — VER DETALHES -->
+  <dialog class="dialog-admin" id="dialog-detalhes">
+    <header class="dialog-admin__cabecalho">
+      <h2 id="dialog-detalhes-titulo">Detalhes</h2>
+      <button type="button" class="dialog-admin__fechar" id="dialog-detalhes-fechar" aria-label="Fechar">×</button>
+    </header>
+    <section id="dialog-detalhes-corpo" style="padding: 0 var(--esp-6) var(--esp-6);"></section>
+  </dialog>
+
+  <dialog class="dialog-admin" id="dialog-pedidos-cupom">
+    <header class="dialog-admin__cabecalho">
+      <h2 id="dialog-pedidos-titulo">Pedidos com este cupom</h2>
+      <button type="button" class="dialog-admin__fechar" id="dialog-pedidos-fechar" aria-label="Fechar">×</button>
+    </header>
+    <section id="dialog-pedidos-corpo" style="padding: 0 var(--esp-6) var(--esp-6);"></section>
+  </dialog>
+
+  <script src="/js/admin/admin-toast.js" defer></script>
+  <script src="/js/admin/admin-promocoes.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<%
+/* ADICIONADO (Fase 4): página de Usuários e Permissões.
+   O projeto só tem 2 papéis (cliente/admin) — não existe um sistema de
+   permissões granulares, então esta tela gerencia quem tem acesso ao
+   painel administrativo: promover um cliente a admin, ou rebaixar um
+   admin de volta a cliente. A conta `admin@gmail.com` é protegida. */
+const dataFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR').format(new Date(d)) : '-';
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Usuários e Permissões</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'usuarios' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Usuários e Permissões' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Usuários e Permissões</h1>
+          <p class="admin-page-header__data"><%= admins.length %> administrador(es) com acesso ao painel</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <button type="button" class="btn-admin btn-admin--primario" id="btn-promover-admin">
+            <i class="fas fa-user-plus" aria-hidden="true"></i>Promover cliente a admin
+          </button>
+        </nav>
+      </header>
+
+      <article class="painel painel--tabela">
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin">
+            <thead><tr><th>Administrador</th><th>Desde</th><th>Último acesso</th><th>Status</th><th>Ações</th></tr></thead>
+            <tbody id="admins-tbody">
+              <% if (!admins.length) { %>
+                <tr><td colspan="5" class="tabela-admin__vazia">Nenhum administrador cadastrado.</td></tr>
+              <% } %>
+              <% admins.forEach(a => { const ehPrincipal = a.email === emailAdminPrincipal; %>
+                <tr data-id="<%= a.id %>">
+                  <td>
+                    <b class="celula-produto">
+                      <img src="<%= a.foto_perfil || '/imagens/perfil.png' %>" alt="" data-fallback="/imagens/perfil.png">
+                      <b>
+                        <strong><%= a.nome %></strong>
+                        <small><%= a.email %></small>
+                      </b>
+                    </b>
+                  </td>
+                  <td><%= dataFmt(a.criado_em) %></td>
+                  <td><%= dataFmt(a.ultimo_acesso) %></td>
+                  <td><b class="badge <%= a.ativo ? 'badge--verde' : 'badge--cinza' %>"><%= a.ativo ? 'Ativo' : 'Inativo' %></b></td>
+                  <td class="acoes-tabela">
+                    <% if (ehPrincipal) { %>
+                      <b class="badge badge--dourado">Admin principal</b>
+                    <% } else { %>
+                      <button type="button" class="excluir js-rebaixar" data-id="<%= a.id %>" data-nome="<%= a.nome %>">Remover acesso admin</button>
+                    <% } %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </section>
+      </article>
+    </main>
+  </section>
+
+  <!-- MODAL — PROMOVER CLIENTE A ADMIN -->
+  <dialog class="dialog-admin" id="dialog-promover">
+    <header class="dialog-admin__cabecalho">
+      <h2>Promover cliente a admin</h2>
+      <button type="button" class="dialog-admin__fechar" id="dialog-promover-fechar" aria-label="Fechar">×</button>
+    </header>
+    <section class="form-admin">
+      <label class="campo-admin">
+        <b>Buscar cliente por nome ou e-mail</b>
+        <input type="text" id="promover-busca" placeholder="Digite ao menos 2 letras...">
+      </label>
+      <output class="form-admin__mensagem" id="promover-msg" role="alert"></output>
+      <ul id="promover-resultados" class="lista-ranking" style="max-height: 240px; overflow-y: auto;"></ul>
+    </section>
+  </dialog>
+
+  <script src="/js/admin/admin-usuarios.js" defer></script>
+</body>
+</html>

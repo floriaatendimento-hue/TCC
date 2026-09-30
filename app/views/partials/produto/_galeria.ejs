@@ -1,0 +1,21 @@
+<%
+/* Partial: galeria de imagens da página de produto.
+   Locais esperados:
+     - imagens: array com EXATAMENTE 3 objetos { src, alt }
+     - nome: nome do produto (alt da imagem principal)
+     - descontoPct: número (%) ou null — exibe a fita de desconto sobre a imagem
+*/
+%>
+<section class="galeria">
+  <nav class="miniaturas" aria-label="Miniaturas do produto">
+    <% imagens.forEach(function (img, i) { %>
+      <img src="<%= img.src %>" alt="<%= img.alt %>" class="<%= i === 0 ? 'ativa' : '' %>"
+           tabindex="0" data-fallback="/imagens/image.png" />
+    <% }); %>
+  </nav>
+  <figure class="imagem-principal">
+    <% if (descontoPct) { %><b class="badge-desconto">-<%= descontoPct %>%</b><% } %>
+    <img src="<%= imagens[0].src %>" id="imgPrincipal" alt="<%= nome %>"
+         data-fallback="/imagens/image.png" />
+  </figure>
+</section>

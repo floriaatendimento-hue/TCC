@@ -1,0 +1,15 @@
+<article class="painel" aria-labelledby="config-secao-geral">
+  <header class="painel__cabecalho">
+    <h2 class="painel__titulo" id="config-secao-geral"><i class="fas fa-store" aria-hidden="true"></i> Geral</h2>
+    <p class="painel__subtitulo">Identidade básica da loja exibida no site.</p>
+  </header>
+
+  <fieldset class="form-secao">
+    <legend>Identidade da loja</legend>
+    <p class="form-secao__ajuda">Nome usado no rodapé do site e como título padrão das páginas.</p>
+    <label class="campo-admin campo-largura-media">
+      <b>Nome da loja *</b>
+      <input type="text" id="cfg-loja-nome" maxlength="80" value="<%= val('loja_nome') %>" required>
+    </label>
+  </fieldset>
+</article>

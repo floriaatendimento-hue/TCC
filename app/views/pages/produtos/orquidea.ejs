@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orquídea Phalaenopsis - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'orquidea',
+      nome: 'Orquídea Phalaenopsis',
+      sku: 'FLO-ORQUIDEA',
+      marca: null,
+      categoriaNome: 'Plantas',
+      categoriaSlug: 'plantas',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/orquidea.jpg', alt: 'Orquídea Phalaenopsis - vista frontal' },
+        { src: '/imagens/OrquideaPhalaenopsis.png', alt: 'Orquídea Phalaenopsis - detalhe' },
+        { src: '/imagens/orquidea.jpg', alt: 'Orquídea Phalaenopsis - flores' }
+      ],
+      precoAtual: 99.99,
+      precoAntigo: 120.00,
+      parcelasTexto: 'em até 3x sem juros',
+      estoque: 18,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(87 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-sun', texto: 'Luz indireta brilhante' },
+        { icone: 'fas fa-tint', texto: 'Rega a cada 7–10 dias, por imersão' },
+        { icone: 'fas fa-leaf', texto: 'Floração duradoura (até 4 meses)' }
+      ],
+      descricao: 'A Phalaenopsis, popularmente chamada de Orquídea Borboleta, é a orquídea mais cultivada em todo o mundo. Suas flores elegantes duram de dois a quatro meses e florescem em ciclos anuais quando bem cuidadas. Prefere ambientes iluminados sem sol direto e rega por imersão a cada 7 a 10 dias, apenas quando as raízes internas estiverem prateadas/acinzentadas. Após a floração, corte o pedúnculo floral no segundo nó para estimular nova haste. Com os cuidados corretos, uma phalaenopsis pode durar décadas.',
+      beneficios: 'Flores elegantes e duradouras (até 4 meses), com ciclos de floração que se repetem anualmente quando bem cuidada.',
+      comoUtilizar: 'Regue por imersão rápida a cada 7 a 10 dias, somente quando as raízes internas estiverem prateadas/acinzentadas, e mantenha em luz difusa abundante.',
+      recomendacoes: 'Após a floração, corte o pedúnculo floral no segundo nó para estimular uma nova haste. Use sempre substrato próprio para orquídeas.',
+      ficha: [
+        { rotulo: 'Nome científico', valor: 'Phalaenopsis sp.' },
+        { rotulo: 'Família', valor: 'Orchidaceae' },
+        { rotulo: 'Porte (haste floral)', valor: '40 – 60 cm' },
+        { rotulo: 'Luminosidade', valor: 'Luz difusa abundante (sem sol direto)' },
+        { rotulo: 'Toxicidade', valor: 'Não tóxica: segura para cães e gatos' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-sun', titulo: 'Luz', texto: 'Indireta e filtrada: nunca sol direto.' },
+        { icone: 'fas fa-tint', titulo: 'Rega', texto: 'A cada 7 a 10 dias, por imersão rápida, apenas quando as raízes estiverem prateadas/acinzentadas.' },
+        { icone: 'fas fa-thermometer-half', titulo: 'Temperatura', texto: '18°C – 28°C.' },
+        { icone: 'fas fa-exclamation-triangle', titulo: 'Atenção', texto: 'Use substrato próprio para orquídeas (casca de pinus), nunca terra comum.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

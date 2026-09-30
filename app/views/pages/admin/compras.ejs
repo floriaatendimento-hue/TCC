@@ -1,0 +1,169 @@
+<%
+const ROTULOS_CONTA = { pendente: 'Pendente', parcialmente_paga: 'Parcial', paga: 'Paga', vencida: 'Vencida', cancelada: 'Cancelada' };
+const CLASSE_CONTA = { pendente: 'badge--dourado', parcialmente_paga: 'badge--azul', paga: 'badge--verde', vencida: 'badge--vermelho', cancelada: 'badge--cinza' };
+const ROTULOS_COMPRA = { registrada: 'Registrada', cancelada: 'Cancelada' };
+const moeda = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+/* `d` já chega como objeto Date (driver mysql2 com dateStrings:false em
+   config/db.js) — CORRIGIDO: a versão anterior fazia `d + 'T00:00:00'`,
+   que concatenava o Date como texto (ex.: "Mon Sep 14 2026...T00:00:00")
+   e gerava uma data inválida, quebrando a página inteira com 500. */
+const dataFmt = (d) => new Intl.DateTimeFormat('pt-BR').format(new Date(d));
+/* ADICIONADO (auditoria financeira): mesmo padrão de paginação já usado
+   em /pedidos (ver Pedido.findAllAdmin/contarFiltrado) — os filtros
+   atuais compõem os links de página, pra um não "derrubar" o outro ao
+   navegar. */
+const paramsBase =
+  (fornecedorId ? `&fornecedor_id=${encodeURIComponent(fornecedorId)}` : '') +
+  (statusConta  ? `&status=${encodeURIComponent(statusConta)}`         : '') +
+  (busca        ? `&busca=${encodeURIComponent(busca)}`                : '') +
+  (de           ? `&de=${encodeURIComponent(de)}`                      : '') +
+  (ate          ? `&ate=${encodeURIComponent(ate)}`                    : '');
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Compras e Contas a Pagar</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'compras' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Compras e Contas a Pagar' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Compras e Contas a Pagar</h1>
+          <p class="admin-page-header__data">Quanto a loja compra e paga a fornecedores</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--primario" href="/admin/compras/nova">
+            <i class="fas fa-plus" aria-hidden="true"></i>Nova compra
+          </a>
+        </nav>
+      </header>
+
+      <section class="stats-grid" style="margin-bottom: var(--esp-5);">
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-shopping-cart"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.totalComprado) %></p>
+          <p class="stat-card__legenda">Total comprado</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--verde" aria-hidden="true"><i class="fas fa-hand-holding-usd"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.totalPago) %></p>
+          <p class="stat-card__legenda">Total pago</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-hourglass-half"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.totalEmAberto) %></p>
+          <p class="stat-card__legenda">Em aberto</p>
+        </article>
+        <article class="stat-card">
+          <header class="stat-card__topo"><i class="stat-card__icone stat-card__icone--erro" aria-hidden="true"><i class="fas fa-exclamation-triangle"></i></i></header>
+          <p class="stat-card__valor stat-card__valor--texto"><%= moeda(resumo.totalVencido) %></p>
+          <p class="stat-card__legenda">Vencido</p>
+        </article>
+      </section>
+
+      <form class="admin-toolbar" method="get" action="/admin/compras">
+        <search class="admin-toolbar__busca" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <input type="search" name="busca" value="<%= busca %>" placeholder="Buscar por nº da compra ou fornecedor...">
+        </search>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Fornecedor</b>
+          <select name="fornecedor_id" onchange="this.form.submit()">
+            <option value="">Todos os fornecedores</option>
+            <% fornecedores.forEach(f => { %>
+              <option value="<%= f.id %>" <%= String(fornecedorId) === String(f.id) ? 'selected' : '' %>><%= f.razao_social %></option>
+            <% }) %>
+          </select>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Status da conta</b>
+          <select name="status" onchange="this.form.submit()">
+            <option value="">Todos os status</option>
+            <% Object.keys(ROTULOS_CONTA).forEach(chave => { %>
+              <option value="<%= chave %>" <%= statusConta === chave ? 'selected' : '' %>><%= ROTULOS_CONTA[chave] %></option>
+            <% }) %>
+          </select>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">De</b>
+          <input type="date" name="de" value="<%= de %>" data-br-enhance onchange="this.form.submit()">
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Até</b>
+          <input type="date" name="ate" value="<%= ate %>" data-br-enhance onchange="this.form.submit()">
+        </label>
+        <button type="submit" class="btn-admin btn-admin--secundario">Filtrar</button>
+        <% if (busca || fornecedorId || statusConta || de || ate) { %><a class="btn-admin btn-admin--secundario" href="/admin/compras">Limpar</a><% } %>
+      </form>
+
+      <% if (erro) { %>
+        <article class="painel" role="alert" style="margin-bottom: var(--esp-4);">
+          <p><strong><%= erro %></strong></p>
+        </article>
+      <% } %>
+
+      <article class="painel painel--tabela">
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin">
+            <thead>
+              <tr>
+                <th>Compra</th>
+                <th>Fornecedor</th>
+                <th>Data</th>
+                <th class="num">Total</th>
+                <th>Vencimento</th>
+                <th>Status</th>
+                <th class="num">Saldo</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% compras.forEach(c => { %>
+                <tr>
+                  <td><strong>#<%= c.id %></strong></td>
+                  <td><%= c.fornecedor_nome %></td>
+                  <td><%= dataFmt(c.data_compra) %></td>
+                  <td class="num"><%= moeda(c.total) %></td>
+                  <td><%= c.vencimento ? dataFmt(c.vencimento) : '-' %></td>
+                  <td>
+                    <% if (c.status === 'cancelada') { %>
+                      <b class="badge badge--cinza">Cancelada</b>
+                    <% } else { %>
+                      <b class="badge <%= CLASSE_CONTA[c.conta_status] || 'badge--cinza' %>"><%= ROTULOS_CONTA[c.conta_status] || c.conta_status %></b>
+                    <% } %>
+                  </td>
+                  <td class="num"><%= moeda(c.saldo) %></td>
+                  <td class="acoes-tabela">
+                    <a href="/admin/compras/<%= c.id %>"><i class="fas fa-eye" aria-hidden="true"></i> Detalhes</a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% if (!compras.length) { %><p class="tabela-admin__vazia">Nenhuma compra encontrada.</p><% } %>
+        </section>
+
+        <% if (totalPaginas > 1) { %>
+          <nav class="paginacao" aria-label="Paginação de compras">
+            <% if (pagina > 1) { %><a href="/admin/compras?pagina=<%= pagina - 1 %><%= paramsBase %>">‹</a><% } else { %><b class="desabilitado">‹</b><% } %>
+            <% for (let p = 1; p <= totalPaginas; p++) { %>
+              <% if (p === pagina) { %><b class="atual"><%= p %></b><% } else { %><a href="/admin/compras?pagina=<%= p %><%= paramsBase %>"><%= p %></a><% } %>
+            <% } %>
+            <% if (pagina < totalPaginas) { %><a href="/admin/compras?pagina=<%= pagina + 1 %><%= paramsBase %>">›</a><% } else { %><b class="desabilitado">›</b><% } %>
+          </nav>
+        <% } %>
+      </article>
+    </main>
+  </section>
+
+  <script src="/js/admin/date-picker-br.js" defer></script>
+</body>
+</html>

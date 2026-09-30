@@ -1,0 +1,6 @@
+<svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Barreira Natural contra Insetos">
+  <rect x="0" y="0" width="200" height="280" rx="14" fill="#eef6f0"/>
+  <rect x="6" y="6" width="188" height="268" rx="10" fill="#ffffff" stroke="#e0ece4" stroke-width="1"/>
+  <g transform="translate(0,4)"><circle cx="100" cy="110" r="46" fill="#6a8a4a" opacity="0.18"/><path d="M100 70 C60 90 60 140 100 160 C140 140 140 90 100 70 Z" fill="#6a8a4a"/><circle cx="88" cy="105" r="5" fill="#ffffff"/><circle cx="112" cy="105" r="5" fill="#ffffff"/><path d="M75 70 L60 50 M125 70 L140 50" stroke="#3a3a3a" stroke-width="4" stroke-linecap="round"/></g>
+  <text x="100" y="232" font-family="Verdana, Arial, sans-serif" font-size="15" font-weight="700" fill="#1a3d2b" text-anchor="middle">Barreira Natural</text><text x="100" y="252" font-family="Verdana, Arial, sans-serif" font-size="15" font-weight="700" fill="#1a3d2b" text-anchor="middle">contra Insetos</text>
+</svg>

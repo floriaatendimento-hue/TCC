@@ -1,0 +1,249 @@
+<%
+/* REDESENHO (Promoções e Cupons): página exclusiva de Criar/Editar uma
+   promoção automática, substituindo o antigo <dialog id="dialog-
+   promocao"> apertado de admin-promocoes.ejs (mesmo princípio já usado
+   em /admin/produtos/novo — ver admin-produto-form.ejs). Um único
+   template serve os dois modos: `promocao` vem `null` na criação (rota
+   GET /admin/promocoes/nova) ou populado na edição (rota GET
+   /admin/promocoes/:id/editar, com `produtos` já resolvidos quando
+   tipo === 'produto'). `categorias` vem de Categoria.findAllAtivas().
+   A criação/edição em si continua batendo nos mesmos POST/PUT
+   /api/admin/promocoes de sempre (ver admin-promocao-form.js) —
+   nenhuma regra de negócio, validação ou coluna de banco mudou aqui. */
+const modoEdicao = !!promocao;
+const tituloPagina = modoEdicao ? 'Editar Promoção' : 'Nova Promoção';
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - <%= tituloPagina %></title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/admin-promocoes.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'promocoes' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina }) %>
+
+    <main class="admin-main">
+      <nav class="admin-breadcrumb admin-breadcrumb--pagina" aria-label="Trilha de navegação">
+        <a href="/admin/promocoes#promocoes">Promoções e Cupons</a>
+        <b aria-hidden="true">/</b>
+        <b class="atual"><%= modoEdicao ? ('Editar: ' + promocao.nome) : 'Nova promoção' %></b>
+      </nav>
+
+      <header class="admin-page-header">
+        <hgroup>
+          <h1><%= tituloPagina %> automática</h1>
+          <p class="admin-page-header__data">
+            <%= modoEdicao
+              ? 'Ajuste a regra, o desconto ou a vigência: as alterações valem para toda a loja assim que salvar.'
+              : 'Um assistente rápido em 5 passos: identificação, regra, desconto, vigência e revisão.' %>
+          </p>
+        </hgroup>
+      </header>
+
+      <nav class="wizard-stepper" aria-label="Etapas da promoção">
+        <ol id="wizard-lista">
+          <li class="is-atual" data-passo="1"><b class="wizard-stepper__num">1</b><b>Identificação</b></li>
+          <li data-passo="2"><b class="wizard-stepper__num">2</b><b>Regra</b></li>
+          <li data-passo="3"><b class="wizard-stepper__num">3</b><b>Desconto</b></li>
+          <li data-passo="4"><b class="wizard-stepper__num">4</b><b>Vigência</b></li>
+          <li data-passo="5"><b class="wizard-stepper__num">5</b><b>Revisão</b></li>
+        </ol>
+      </nav>
+
+      <form id="form-promocao" class="produto-form-layout" data-modo="<%= modoEdicao ? 'editar' : 'novo' %>" data-id="<%= modoEdicao ? promocao.id : '' %>">
+        <article class="produto-form-principal">
+
+          <fieldset class="form-secao wizard-step" data-passo="1">
+            <legend><i class="fas fa-id-card" aria-hidden="true"></i>Identificação</legend>
+            <p class="form-secao__ajuda">Um nome claro pra localizar a promoção depois, usado só no painel administrativo.</p>
+            <label class="campo-admin">
+              <b>Nome da promoção *</b>
+              <input type="text" id="f-nome" maxlength="120" placeholder="ex: Plantas - 10% OFF" required>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-secao wizard-step" data-passo="2" hidden>
+            <legend><i class="fas fa-bullseye" aria-hidden="true"></i>Regra da promoção</legend>
+            <p class="form-secao__ajuda">Escolha onde o desconto é aplicado automaticamente no carrinho.</p>
+
+            <ul class="tipo-card-grade" role="radiogroup" aria-label="Aplicação da promoção">
+              <li><label class="tipo-card">
+                <input type="radio" name="f-tipo" value="categoria" checked>
+                <i class="tipo-card__icone" aria-hidden="true"><i class="fas fa-layer-group"></i></i>
+                <strong>Categoria</strong><small>Todos os produtos de uma categoria</small>
+              </label></li>
+              <li><label class="tipo-card">
+                <input type="radio" name="f-tipo" value="subcategoria">
+                <i class="tipo-card__icone" aria-hidden="true"><i class="fas fa-sitemap"></i></i>
+                <strong>Subcategoria</strong><small>Produtos de uma subcategoria específica</small>
+              </label></li>
+              <li><label class="tipo-card">
+                <input type="radio" name="f-tipo" value="produto">
+                <i class="tipo-card__icone" aria-hidden="true"><i class="fas fa-seedling"></i></i>
+                <strong>Produto específico</strong><small>Escolha um ou mais produtos</small>
+              </label></li>
+              <li><label class="tipo-card">
+                <input type="radio" name="f-tipo" value="valor_minimo_produto">
+                <i class="tipo-card__icone" aria-hidden="true"><i class="fas fa-coins"></i></i>
+                <strong>Valor mínimo do produto</strong><small>Produtos com preço acima de um valor</small>
+              </label></li>
+              <li><label class="tipo-card">
+                <input type="radio" name="f-tipo" value="valor_minimo_carrinho">
+                <i class="tipo-card__icone" aria-hidden="true"><i class="fas fa-shopping-cart"></i></i>
+                <strong>Valor mínimo do carrinho</strong><small>Subtotal do carrinho acima de um valor</small>
+              </label></li>
+              <li><label class="tipo-card">
+                <input type="radio" name="f-tipo" value="todos">
+                <i class="tipo-card__icone" aria-hidden="true"><i class="fas fa-tags"></i></i>
+                <strong>Todos os produtos</strong><small>Aplica em todo o catálogo ativo</small>
+              </label></li>
+            </ul>
+
+            <section class="form-admin__linha" id="f-campo-categoria" hidden>
+              <label class="campo-admin">
+                <b>Categoria *</b>
+                <select id="f-categoria">
+                  <option value="">Selecione...</option>
+                  <% categorias.forEach(c => { %>
+                    <option value="<%= c.id %>"><%= c.nome %></option>
+                  <% }) %>
+                </select>
+              </label>
+              <label class="campo-admin" id="f-campo-subcategoria" hidden>
+                <b>Subcategoria *</b>
+                <select id="f-subcategoria"><option value="">Selecione a categoria primeiro...</option></select>
+              </label>
+            </section>
+
+            <section id="f-campo-produtos" hidden>
+              <label class="campo-admin">
+                <b>Buscar produto</b>
+                <input type="search" id="f-produtos-busca" placeholder="Digite para filtrar...">
+              </label>
+              <ul class="lista-selecao" id="f-produtos-lista" aria-label="Produtos disponíveis"></ul>
+              <p class="form-admin__dica" id="f-produtos-contagem">Nenhum produto selecionado.</p>
+            </section>
+
+            <label class="campo-admin" id="f-campo-valor-minimo" hidden>
+              <b id="f-rotulo-valor-minimo">Valor mínimo (R$) *</b>
+              <input type="number" id="f-valor-minimo" min="0.01" step="0.01" placeholder="ex: 100,00">
+            </label>
+
+            <p class="form-admin__dica" id="f-aviso-todos" hidden>
+              Aplica o desconto a todos os produtos ativos da loja. Se um produto também estiver em outra promoção mais
+              específica (produto, subcategoria, categoria ou valor mínimo), vale sempre a mais específica, nunca soma.
+            </p>
+          </fieldset>
+
+          <fieldset class="form-secao wizard-step" data-passo="3" hidden>
+            <legend><i class="fas fa-percent" aria-hidden="true"></i>Desconto</legend>
+            <p class="form-secao__ajuda">Percentual aplicado sobre o preço original do produto (ou do subtotal, no caso de valor mínimo do carrinho).</p>
+            <label class="campo-admin">
+              <b>Desconto (%) *</b>
+              <input type="number" id="f-desconto" min="0.01" max="90" step="0.01" placeholder="ex: 10" required>
+            </label>
+            <output class="desconto-preview" id="f-desconto-preview"><strong>0%</strong><b>OFF</b></output>
+          </fieldset>
+
+          <fieldset class="form-secao wizard-step" data-passo="4" hidden>
+            <legend><i class="fas fa-calendar-alt" aria-hidden="true"></i>Vigência</legend>
+            <section class="form-admin__linha">
+              <label class="campo-admin">
+                <b>Início</b>
+                <input type="date" id="f-data-inicio" data-br-enhance>
+              </label>
+              <label class="campo-admin" id="f-campo-data-fim">
+                <b>Fim</b>
+                <input type="date" id="f-data-fim" data-br-enhance>
+              </label>
+            </section>
+            <label class="campo-admin campo-admin--linha">
+              <input type="checkbox" id="f-sem-data-fim">
+              <b>Promoção sem data de término</b>
+            </label>
+
+            <ul class="lista-status-produto">
+              <li>
+                <label class="lista-status-produto__rotulo" for="f-ativo">
+                  <strong>Promoção ativa</strong>
+                  <small>Desmarque para deixar pausada sem perder a configuração.</small>
+                </label>
+                <label class="toggle">
+                  <input type="checkbox" id="f-ativo" checked>
+                  <i class="toggle__trilho" aria-hidden="true"></i>
+                </label>
+              </li>
+            </ul>
+          </fieldset>
+
+          <fieldset class="form-secao wizard-step" data-passo="5" hidden>
+            <legend><i class="fas fa-check-double" aria-hidden="true"></i>Revisão</legend>
+            <p class="form-secao__ajuda">Confira os dados abaixo. Você pode voltar a qualquer etapa antes de salvar.</p>
+            <article class="resumo-revisao">
+              <p class="resumo-revisao__etiqueta">Resumo da promoção</p>
+              <h3 id="rv-nome">-</h3>
+              <p id="rv-regra">-</p>
+              <ul>
+                <li><small>Desconto</small><strong id="rv-desconto">-</strong></li>
+                <li><small>Vigência</small><strong id="rv-vigencia">-</strong></li>
+                <li><small>Status</small><strong id="rv-status">-</strong></li>
+              </ul>
+            </article>
+          </fieldset>
+
+          <output class="form-admin__mensagem" id="form-promocao-msg" role="alert"></output>
+        </article>
+
+        <aside class="produto-form-painel" aria-label="Prévia da promoção em tempo real">
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-eye" aria-hidden="true"></i>Prévia</legend>
+            <p class="form-secao__ajuda">Atualizada automaticamente conforme você preenche o formulário.</p>
+            <ul class="resumo-movimentacao">
+              <li><small>Nome</small><strong id="pv-nome">-</strong></li>
+              <li><small>Aplicação</small><strong id="pv-tipo">Categoria</strong></li>
+              <li><small>Regra</small><strong id="pv-regra">-</strong></li>
+              <li><small>Desconto</small><strong id="pv-desconto">-</strong></li>
+              <li><small>Vigência</small><strong id="pv-vigencia">Sem prazo definido</strong></li>
+              <li><small>Status</small><strong id="pv-status">Ativa</strong></li>
+            </ul>
+          </fieldset>
+        </aside>
+
+        <footer class="produto-form-acoes">
+          <a class="btn-admin btn-admin--secundario" href="/admin/promocoes#promocoes"><i class="fas fa-times" aria-hidden="true"></i>Cancelar</a>
+          <button type="button" class="btn-admin btn-admin--secundario" id="btn-voltar" hidden><i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar</button>
+          <button type="button" class="btn-admin btn-admin--primario" id="btn-avancar">Avançar<i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+          <button type="submit" class="btn-admin btn-admin--primario" id="btn-salvar" hidden><i class="fas fa-save" aria-hidden="true"></i>Salvar promoção</button>
+        </footer>
+      </form>
+    </main>
+  </section>
+
+  <% const dadosIniciais = JSON.stringify(modoEdicao ? {
+       id: promocao.id,
+       nome: promocao.nome,
+       tipo: promocao.tipo,
+       categoria_id: promocao.categoria_id || null,
+       subcategoria_id: promocao.subcategoria_id || null,
+       produtos: promocao.produtos || [],
+       valor_minimo: promocao.valor_minimo != null ? Number(promocao.valor_minimo) : null,
+       desconto_percentual: Number(promocao.desconto_percentual),
+       data_inicio: promocao.data_inicio ? new Date(promocao.data_inicio).toISOString().slice(0, 10) : null,
+       data_fim: promocao.data_fim ? new Date(promocao.data_fim).toISOString().slice(0, 10) : null,
+       ativo: !!promocao.ativo,
+     } : null);
+     const escapeAbreTag = String.fromCharCode(92) + 'u003c';
+     const dadosIniciaisSeguro = dadosIniciais.split('<').join(escapeAbreTag);
+  %>
+  <script type="application/json" id="promocao-dados-json"><%- dadosIniciaisSeguro %></script>
+  <script src="/js/admin/date-picker-br.js" defer></script>
+  <script src="/js/admin/admin-toast.js" defer></script>
+  <script src="/js/admin/admin-promocao-form.js" defer></script>
+</body>
+</html>

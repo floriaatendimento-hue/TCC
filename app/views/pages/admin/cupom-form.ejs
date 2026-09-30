@@ -1,0 +1,179 @@
+<%
+/* REDESENHO (Promoções e Cupons): página exclusiva de Criar/Editar um
+   cupom com código — substitui o antigo <dialog id="dialog-cupom">
+   apertado de admin-cupons.ejs (mesmo princípio de admin-promocao-
+   form.ejs e /admin/produtos/novo). `cupom` vem `null` na criação
+   (rota GET /admin/cupons/novo) ou populado na edição (rota GET
+   /admin/cupons/:id/editar). A criação/edição em si continua batendo
+   nos mesmos POST/PUT /api/admin/cupons de sempre (ver admin-cupom-
+   form.js) — nenhuma regra de negócio, validação ou coluna de banco
+   mudou aqui. */
+const modoEdicao = !!cupom;
+const tituloPagina = modoEdicao ? 'Editar Cupom' : 'Novo Cupom';
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - <%= tituloPagina %></title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/admin-promocoes.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'promocoes' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina }) %>
+
+    <main class="admin-main">
+      <nav class="admin-breadcrumb admin-breadcrumb--pagina" aria-label="Trilha de navegação">
+        <a href="/admin/promocoes#cupons">Promoções e Cupons</a>
+        <b aria-hidden="true">/</b>
+        <b class="atual"><%= modoEdicao ? ('Editar: ' + cupom.codigo) : 'Novo cupom' %></b>
+      </nav>
+
+      <header class="admin-page-header">
+        <hgroup>
+          <h1><%= tituloPagina %></h1>
+          <p class="admin-page-header__data">
+            <%= modoEdicao
+              ? 'Ajuste o desconto, a vigência ou os limites: vale a partir de quando você salvar.'
+              : 'O cliente digita este código no carrinho ou no checkout para liberar o desconto.' %>
+          </p>
+        </hgroup>
+      </header>
+
+      <form id="form-cupom" class="produto-form-layout" data-modo="<%= modoEdicao ? 'editar' : 'novo' %>" data-id="<%= modoEdicao ? cupom.id : '' %>">
+        <article class="produto-form-principal">
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-ticket-alt" aria-hidden="true"></i>Código do cupom</legend>
+            <p class="form-secao__ajuda">O cliente digita esse código no carrinho para liberar o desconto.</p>
+            <label class="campo-admin">
+              <b>Código *</b>
+              <section class="form-admin__linha">
+                <input type="text" id="f-codigo" maxlength="40" placeholder="ex: BEMVINDO20" style="flex: 1 1 200px;" required>
+                <button type="button" class="btn-admin btn-admin--secundario" id="btn-gerar-codigo"><i class="fas fa-random" aria-hidden="true"></i>Gerar automaticamente</button>
+              </section>
+              <small class="campo-admin__ajuda">Apenas letras, números e hífens, salvo sempre em maiúsculas.</small>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-percent" aria-hidden="true"></i>Desconto</legend>
+            <section class="form-admin__linha">
+              <label class="campo-admin">
+                <b>Tipo de desconto *</b>
+                <select id="f-tipo" required>
+                  <option value="percentual">Percentual (%)</option>
+                  <option value="fixo">Valor fixo (R$)</option>
+                  <option value="frete_gratis">Frete grátis</option>
+                </select>
+              </label>
+              <label class="campo-admin" id="f-campo-valor">
+                <b id="f-rotulo-valor">Valor do desconto (%) *</b>
+                <input type="number" id="f-valor" min="0.01" step="0.01" placeholder="ex: 10" required>
+              </label>
+            </section>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-shopping-cart" aria-hidden="true"></i>Regras de uso</legend>
+            <section class="form-admin__linha">
+              <label class="campo-admin">
+                <b>Valor mínimo da compra (R$)</b>
+                <input type="number" id="f-valor-minimo" min="0" step="0.01" placeholder="sem mínimo">
+              </label>
+              <label class="campo-admin">
+                <b>Limite total de utilização</b>
+                <input type="number" id="f-limite-usos" min="1" step="1" placeholder="sem limite">
+              </label>
+            </section>
+            <p class="form-secao__ajuda">O cupom vale sobre o subtotal do carrinho inteiro. Para restringir o desconto a uma categoria, subcategoria ou produto específico, use uma <a href="/admin/promocoes/nova">promoção automática</a> em vez de um cupom.</p>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-calendar-alt" aria-hidden="true"></i>Vigência</legend>
+            <section class="form-admin__linha">
+              <label class="campo-admin">
+                <b>Início</b>
+                <input type="date" id="f-data-inicio" data-br-enhance>
+              </label>
+              <label class="campo-admin">
+                <b>Fim</b>
+                <input type="date" id="f-data-fim" data-br-enhance>
+              </label>
+            </section>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-toggle-on" aria-hidden="true"></i>Status</legend>
+            <ul class="lista-status-produto">
+              <li>
+                <label class="lista-status-produto__rotulo" for="f-ativo">
+                  <strong>Cupom ativo</strong>
+                  <small>Desmarque para pausar sem perder a configuração.</small>
+                </label>
+                <label class="toggle">
+                  <input type="checkbox" id="f-ativo" checked>
+                  <i class="toggle__trilho" aria-hidden="true"></i>
+                </label>
+              </li>
+            </ul>
+          </fieldset>
+
+          <output class="form-admin__mensagem" id="form-cupom-msg" role="alert"></output>
+        </article>
+
+        <aside class="produto-form-painel" aria-label="Prévia do cupom em tempo real">
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-eye" aria-hidden="true"></i>Prévia</legend>
+            <p class="form-secao__ajuda">Atualizada automaticamente conforme você preenche o formulário.</p>
+            <figure class="cupom-preview">
+              <figcaption>
+                <b class="cupom-preview__marca">Floria</b>
+                <strong class="cupom-preview__codigo" id="cp-codigo">SEUCODIGO</strong>
+                <b class="cupom-preview__desconto" id="cp-desconto">0% OFF</b>
+                <small class="cupom-preview__validade" id="cp-validade">Sem prazo definido</small>
+              </figcaption>
+            </figure>
+            <ul class="resumo-movimentacao">
+              <li><small>Mínimo p/ usar</small><strong id="pv-minimo">Sem mínimo</strong></li>
+              <li><small>Limite de uso</small><strong id="pv-limite">Sem limite</strong></li>
+              <li><small>Status</small><strong id="pv-status">Ativo</strong></li>
+              <% if (modoEdicao) { %>
+                <li><small>Usos até agora</small><strong><%= cupom.usos_atual %><%= cupom.limite_usos ? ' / ' + cupom.limite_usos : '' %></strong></li>
+              <% } %>
+            </ul>
+          </fieldset>
+        </aside>
+
+        <footer class="produto-form-acoes">
+          <a class="btn-admin btn-admin--secundario" href="/admin/promocoes#cupons"><i class="fas fa-times" aria-hidden="true"></i>Cancelar</a>
+          <button type="submit" class="btn-admin btn-admin--primario" id="btn-salvar"><i class="fas fa-save" aria-hidden="true"></i>Salvar cupom</button>
+        </footer>
+      </form>
+    </main>
+  </section>
+
+  <% const dadosIniciais = JSON.stringify(modoEdicao ? {
+       id: cupom.id,
+       codigo: cupom.codigo || '',
+       tipo: cupom.tipo,
+       valor: cupom.valor != null ? Number(cupom.valor) : null,
+       valor_minimo: cupom.valor_minimo != null ? Number(cupom.valor_minimo) : null,
+       data_inicio: cupom.data_inicio ? new Date(cupom.data_inicio).toISOString().slice(0, 10) : null,
+       data_fim: cupom.data_fim ? new Date(cupom.data_fim).toISOString().slice(0, 10) : null,
+       limite_usos: cupom.limite_usos || null,
+       ativo: !!cupom.ativo,
+     } : null);
+     const escapeAbreTag = String.fromCharCode(92) + 'u003c';
+     const dadosIniciaisSeguro = dadosIniciais.split('<').join(escapeAbreTag);
+  %>
+  <script type="application/json" id="cupom-dados-json"><%- dadosIniciaisSeguro %></script>
+  <script src="/js/admin/date-picker-br.js" defer></script>
+  <script src="/js/admin/admin-toast.js" defer></script>
+  <script src="/js/admin/admin-cupom-form.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sobre Nós - Floria</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/institucional/sobre-nos.css">
+</head>
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main>
+    <section class="sobre-hero">
+      <h1>Sobre a Floria</h1>
+      <p>Plantas, vasos e tudo o que eles precisam para se dar bem na sua casa, com orientação de cuidado em cada produto.</p>
+    </section>
+
+    <section class="sobre-grid">
+
+      <article class="sobre-bloco sobre-bloco--verde">
+        <section class="sobre-bloco__texto">
+          <h2>Nossa origem</h2>
+          <p>A Floria começou de um problema simples: achar planta, vaso e ferramenta de jardim em lugares separados, cada um com uma ficha técnica diferente. Reunimos tudo isso com um padrão único de informação, para facilitar a escolha e o cuidado depois da compra.</p>
+        </section>
+        <figure class="sobre-bloco__imagem" aria-hidden="true"><i class="fas fa-seedling"></i></figure>
+      </article>
+
+      <article class="sobre-bloco sobre-bloco--creme">
+        <figure class="sobre-bloco__imagem" aria-hidden="true"><i class="fas fa-layer-group"></i></figure>
+        <section class="sobre-bloco__texto">
+          <h2>O que você encontra aqui</h2>
+          <p>Plantas para dentro e fora de casa, vasos de cerâmica, concreto, vidro e macramê, além de ferramentas, adubos e produtos para controle de pragas. Cada categoria é organizada para você comparar e decidir rápido.</p>
+        </section>
+      </article>
+
+      <article class="sobre-bloco sobre-bloco--verde">
+        <section class="sobre-bloco__texto">
+          <h2>Depois que a planta chega</h2>
+          <p>Toda página de produto traz um guia de cuidados prático (luz, rega, temperatura), com opção de baixar em PDF. E quem compra com frequência evolui de nível na loja, com benefícios reais conforme o histórico de compras.</p>
+        </section>
+        <figure class="sobre-bloco__imagem" aria-hidden="true"><i class="fas fa-medal"></i></figure>
+      </article>
+
+    </section>
+
+    <section class="sobre-cta">
+      <h2>Comece a cultivar hoje</h2>
+      <a href="/plantas" class="btn-ver-mais">Ver plantas</a>
+    </section>
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

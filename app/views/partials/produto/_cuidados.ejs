@@ -1,0 +1,19 @@
+<%
+/* Partial: guia de cuidados (rótulos adaptados por categoria — ver
+   app/helpers/cuidadosPadrao.js, criado na Fase 3).
+   Local esperado: cuidados — array de { icone, titulo, texto } */
+%>
+<% if (cuidados && cuidados.length) { %>
+<section class="cuidados" aria-labelledby="lbl-cuidados">
+  <h2 id="lbl-cuidados">Guia de Cuidados</h2>
+  <ul class="cuidados-grid">
+    <% cuidados.forEach(function (c) { %>
+      <li class="cuidado-card">
+        <i class="<%= c.icone %>" aria-hidden="true"></i>
+        <h3><%= c.titulo %></h3>
+        <p><%= c.texto %></p>
+      </li>
+    <% }); %>
+  </ul>
+</section>
+<% } %>

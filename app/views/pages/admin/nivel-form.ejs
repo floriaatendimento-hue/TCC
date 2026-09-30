@@ -1,0 +1,136 @@
+<%
+/* Página exclusiva de Criar/Editar Nível de Cliente, substituindo o
+   antigo <dialog id="dialog-nivel"> em niveis.ejs — mesmo princípio já
+   usado em /admin/produtos/novo (produto-form.ejs). `nivel` vem `null`
+   na criação (rota GET /admin/niveis/novo) ou populado na edição (rota
+   GET /admin/niveis/:id/editar, via NivelCliente.findById). CRUD
+   continua batendo nos mesmos POST/PUT /api/admin/niveis de sempre
+   (ver admin-nivel-form.js) — nenhuma regra de negócio mudou aqui. */
+const modoEdicao = !!nivel;
+const tituloPagina = modoEdicao ? 'Editar Nível' : 'Novo Nível';
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Floria Admin - <%= tituloPagina %></title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'niveis' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina }) %>
+
+    <main class="admin-main">
+      <nav class="admin-breadcrumb admin-breadcrumb--pagina" aria-label="Trilha de navegação">
+        <a href="/admin/niveis">Níveis de Clientes</a>
+        <b aria-hidden="true">/</b>
+        <b class="atual"><%= modoEdicao ? ('Editar: ' + nivel.nome) : 'Novo nível' %></b>
+      </nav>
+
+      <header class="admin-page-header">
+        <hgroup>
+          <h1><%= tituloPagina %></h1>
+          <p class="admin-page-header__data">
+            <%= modoEdicao
+              ? 'Atualize a faixa de valor e os benefícios deste nível.'
+              : 'Defina o valor necessário e os benefícios para alcançar este nível.' %>
+          </p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--secundario" href="/admin/niveis"><i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar</a>
+        </nav>
+      </header>
+
+      <form id="form-nivel" class="form-pagina-layout form-pagina-layout--duas-colunas" data-modo="<%= modoEdicao ? 'editar' : 'novo' %>" data-id="<%= modoEdicao ? nivel.id : '' %>">
+        <article class="form-pagina-principal">
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-id-card" aria-hidden="true"></i>Identidade do nível</legend>
+            <label class="campo-admin">
+              <b>Nome *</b>
+              <input type="text" id="nivel-nome" maxlength="60" placeholder="ex: Mestre Jardineiro" value="<%= modoEdicao ? nivel.nome : '' %>" required>
+            </label>
+
+            <label class="campo-admin">
+              <b>Ícone</b>
+              <select id="nivel-icone">
+                <% const icones = [['','Padrão (broto)'],['seedling','Broto'],['leaf','Folha'],['tree','Árvore'],['spa','Flor'],['medal','Medalha'],['trophy','Troféu'],['gem','Gema'],['crown','Coroa'],['star','Estrela']]; %>
+                <% icones.forEach(([valor, rotulo]) => { %>
+                  <option value="<%= valor %>" <%= (modoEdicao && (nivel.icone || '') === valor) ? 'selected' : '' %>><%= rotulo %></option>
+                <% }) %>
+              </select>
+              <small class="campo-admin__ajuda">Exibido ao lado do nome do nível no perfil do cliente.</small>
+            </label>
+
+            <label class="campo-admin">
+              <b>Valor necessário (R$) *</b>
+              <input type="number" id="nivel-valor" min="0" step="0.01" placeholder="ex: 600.00" value="<%= modoEdicao && nivel.valor_minimo != null ? nivel.valor_minimo : '' %>" required>
+              <small class="campo-admin__ajuda">
+                Total acumulado em compras (pedidos com pagamento aprovado) para alcançar este nível.
+                Use <strong>0</strong> no nível de entrada.
+              </small>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-align-left" aria-hidden="true"></i>Descrição e benefícios</legend>
+            <label class="campo-admin">
+              <b>Descrição</b>
+              <textarea id="nivel-descricao" rows="2" maxlength="255" placeholder="Uma frase curta que o cliente vê no perfil."><%= modoEdicao ? (nivel.descricao || '') : '' %></textarea>
+            </label>
+            <label class="campo-admin">
+              <b>Benefícios</b>
+              <textarea id="nivel-beneficios" rows="4" maxlength="2000" placeholder="Um benefício por linha"><%= modoEdicao ? (nivel.beneficios || '') : '' %></textarea>
+              <small class="campo-admin__ajuda">Um por linha: cada linha vira um item na lista do perfil.</small>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-toggle-on" aria-hidden="true"></i>Status</legend>
+            <ul class="lista-status-produto">
+              <li>
+                <label class="lista-status-produto__rotulo" for="nivel-ativo">
+                  <strong>Nível ativo</strong>
+                  <small>Participa da progressão de níveis dos clientes.</small>
+                </label>
+                <label class="toggle">
+                  <input type="checkbox" id="nivel-ativo" <%= (!modoEdicao || nivel.ativo) ? 'checked' : '' %>>
+                  <i class="toggle__trilho" aria-hidden="true"></i>
+                </label>
+              </li>
+            </ul>
+          </fieldset>
+
+          <output class="form-admin__mensagem" id="form-nivel-msg" role="alert"></output>
+        </article>
+
+        <aside class="form-pagina-painel" aria-label="Prévia do nível">
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-eye" aria-hidden="true"></i>Prévia</legend>
+            <p class="form-secao__ajuda">Atualizada automaticamente conforme você preenche o formulário.</p>
+            <figure class="produto-resumo" id="pr-nivel">
+              <i class="nivel-card__icone" id="pr-nivel-icone" aria-hidden="true"><i class="fas fa-seedling" aria-hidden="true"></i></i>
+              <figcaption>
+                <strong id="pr-nivel-nome"><%= modoEdicao ? nivel.nome : 'Nome do nível' %></strong>
+                <small id="pr-nivel-valor">A partir de R$ 0,00</small>
+              </figcaption>
+            </figure>
+            <ul class="resumo-movimentacao">
+              <li><small>Status</small><strong id="pr-nivel-status"><%= (!modoEdicao || nivel.ativo) ? 'Ativo' : 'Inativo' %></strong></li>
+            </ul>
+          </fieldset>
+        </aside>
+
+        <footer class="form-pagina-acoes">
+          <a class="btn-admin btn-admin--secundario" href="/admin/niveis"><i class="fas fa-times" aria-hidden="true"></i>Cancelar</a>
+          <button type="submit" class="btn-admin btn-admin--primario" id="btn-salvar-nivel"><i class="fas fa-save" aria-hidden="true"></i>Salvar</button>
+        </footer>
+      </form>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-nivel-form.js" defer></script>
+</body>
+</html>

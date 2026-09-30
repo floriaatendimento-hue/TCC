@@ -1,0 +1,79 @@
+.otp-grupo { border: none; padding: 0; margin: 0; min-width: 0; }
+.otp-legenda {
+  font-size: 0.85rem;
+  color: var(--cinza-texto);
+  text-align: center;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.otp-campos {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.otp-digito {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 48px;
+  height: 56px;
+  padding: 0;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #222;
+  background: var(--branco);
+  border: 1.5px solid var(--cinza-borda);
+  border-radius: 12px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  caret-color: var(--verde-escuro);
+}
+.otp-digito::placeholder { color: #c9c7c2; }
+.otp-digito:focus {
+  border-color: var(--verde-escuro);
+  box-shadow: 0 0 0 3px rgba(21, 64, 48, 0.15);
+}
+.otp-campos.estado-erro .otp-digito { border-color: #b94040; }
+.otp-campos:disabled .otp-digito,
+.otp-digito:disabled { background: var(--cinza-claro); cursor: not-allowed; }
+
+#otp-msg-geral {
+  display: block;
+  min-height: 1.2rem;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.otp-reenvio { text-align: center; }
+.otp-reenvio-texto { font-size: 0.85rem; color: var(--cinza-texto); margin-bottom: 2px; }
+.otp-timer { font-size: 0.8rem; color: var(--cinza-texto); min-height: 1.1rem; margin-bottom: 4px; }
+.otp-reenviar {
+  background: none;
+  border: none;
+  padding: 6px 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--verde-escuro);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.otp-reenviar:disabled { color: var(--cinza-texto); text-decoration: none; cursor: not-allowed; opacity: 0.7; }
+.otp-reenviar:not(:disabled):hover { opacity: 0.75; }
+
+.otp-voltar {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--cinza-texto);
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .otp-campos { gap: 6px; }
+  .otp-digito { height: 50px; font-size: 1.25rem; border-radius: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .otp-digito { transition: none; }
+}

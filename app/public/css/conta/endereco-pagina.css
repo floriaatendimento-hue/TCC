@@ -1,0 +1,147 @@
+@import url("../shared/tokens.css");
+
+#pagina-endereco-novo {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 24px 96px;
+}
+
+.endereco-pagina-trilha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--fonte-corpo);
+  font-size: 12.5px;
+  color: var(--texto-suave);
+  margin-bottom: 28px;
+}
+.endereco-pagina-trilha a { color: var(--texto-suave); text-decoration: none; }
+.endereco-pagina-trilha a:hover { color: var(--verde-escuro); text-decoration: underline; }
+.endereco-pagina-trilha b.atual { color: var(--verde-escuro); font-weight: 600; }
+
+.endereco-pagina-cabecalho { margin-bottom: 32px; }
+.endereco-pagina-cabecalho h1 {
+  font-family: var(--fonte-titulo);
+  font-weight: 400;
+  font-size: 2rem;
+  color: var(--verde-escuro);
+  margin-bottom: 8px;
+}
+.endereco-pagina-cabecalho p {
+  font-family: var(--fonte-corpo);
+  font-size: 14.5px;
+  color: var(--texto-suave);
+}
+
+.endereco-pagina-cartao {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-grande);
+  box-shadow: var(--sombra-sm);
+  padding: 36px 40px;
+}
+
+.endereco-pagina-form footer.form-endereco-acoes {
+  margin-top: 24px;
+  border-top: none;
+  padding: 0;
+}
+
+/* Seções internas */
+.endereco-pagina-secao { border: none; padding: 0; margin: 0 0 36px; }
+.endereco-pagina-secao:last-of-type { margin-bottom: 0; }
+.endereco-pagina-secao legend {
+  font-family: var(--fonte-titulo);
+  font-weight: 400;
+  font-size: 1.2rem;
+  color: var(--verde-escuro);
+  padding: 0;
+  margin-bottom: 4px;
+}
+.endereco-pagina-ajuda {
+  font-family: var(--fonte-corpo);
+  font-size: 12.5px;
+  color: var(--texto-suave);
+  margin-bottom: 16px;
+}
+
+.endereco-pagina-secao > .campo-endereco,
+.endereco-pagina-secao > section > .campo-endereco {
+  border: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.endereco-pagina-secao > .campo-endereco:last-child,
+.endereco-pagina-secao > section:last-child > .campo-endereco:last-child { margin-bottom: 0; }
+.endereco-pagina-secao > section.form-endereco-linha { margin-bottom: 18px; }
+
+.campo-endereco label {
+  font-family: var(--fonte-corpo);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+.campo-endereco label small { font-weight: 400; }
+
+.campo-endereco input,
+.campo-endereco select {
+  border: 1px solid var(--borda);
+  border-radius: var(--raio-sm);
+  padding: 11px 14px;
+  font-family: var(--fonte-corpo);
+  font-size: 14.5px;
+  color: var(--texto);
+  background: var(--branco);
+  width: 100%;
+  transition: border-color var(--transicao);
+}
+.campo-endereco select { cursor: pointer; }
+.campo-endereco input:focus,
+.campo-endereco select:focus { outline: none; border-color: var(--borda-dourada); }
+.campo-endereco input[aria-invalid="true"],
+.campo-endereco select[aria-invalid="true"] { border-color: var(--erro); }
+
+.campo-erro {
+  display: block;
+  font-family: var(--fonte-corpo);
+  font-size: 12px;
+  color: var(--erro);
+  min-height: 0;
+}
+.campo-erro:empty { display: none; }
+
+.endereco-pagina-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--fonte-corpo);
+  font-size: 13px;
+  color: var(--texto);
+  margin-top: 16px;
+  cursor: pointer;
+}
+
+.endereco-pagina-erro-geral {
+  display: block;
+  font-family: var(--fonte-corpo);
+  font-size: 13px;
+  color: var(--erro);
+  background: var(--erro-bg);
+  border-radius: var(--raio-sm);
+  padding: 12px 16px;
+  margin-top: 24px;
+}
+.endereco-pagina-erro-geral[hidden] { display: none; }
+
+.endereco-pagina-erro-geral--aviso { color: #8a5a00; background: #fdf3dd; }
+
+@media (max-width: 640px) {
+  #pagina-endereco-novo { padding: 24px 16px 72px; }
+  .endereco-pagina-cartao { padding: 24px 20px; }
+  .endereco-pagina-cabecalho h1 { font-size: 1.6rem; }
+  .form-endereco-acoes { flex-direction: column-reverse; align-items: stretch; }
+  .form-endereco-acoes button { width: 100%; text-align: center; }
+}

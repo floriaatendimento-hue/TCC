@@ -1,0 +1,194 @@
+<%
+/* ADICIONADO: sidebar administrativa v2 — usada por pages/admin/dashboard.ejs
+   e pages/admin/em-breve.ejs. Recebe `secaoAtual` (string) da rota para
+   destacar o item ativo. Itens sem página própria ainda apontam para
+   /admin/:secao (placeholder "em construção" definido em router.js). */
+const atual = typeof secaoAtual !== 'undefined' ? secaoAtual : '';
+const ativo = (chave) => (atual === chave ? 'is-active' : '');
+const corrente = (chave) => (atual === chave ? 'aria-current="page"' : '');
+const primeiroNome = locals.usuario ? usuario.nome.split(' ')[0] : 'Administrador';
+%>
+<aside class="admin-sidebar" id="admin-sidebar">
+  <header class="admin-sidebar__brand">
+    <a href="/admin" class="admin-sidebar__brand-link" aria-label="Floria Admin: ir para o Dashboard">
+      <img class="admin-sidebar__brand-logo" src="/imagens/logoflor.png" alt="" width="292" height="355" />
+      <section class="admin-sidebar__brand-text">
+        <strong class="admin-sidebar__brand-nome">Floria</strong>
+        <small class="admin-sidebar__brand-desc">Painel administrativo</small>
+      </section>
+    </a>
+  </header>
+
+  <a href="/" class="admin-sidebar__site-link" aria-label="Ver Loja: ir para a página inicial do site">
+    <i class="admin-sidebar__site-link-icone" aria-hidden="true"><i class="fas fa-external-link-alt"></i></i>
+    <b class="admin-sidebar__site-link-texto">Ver Loja</b>
+  </a>
+
+  <%
+  /* REORGANIZADO (estrutura do admin): o agrupamento anterior misturava conceitos diferentes num mesmo grupo
+     ("Sistema" continha Financeiro/Relatório Geral — inteligência de
+     negócio — junto de Configurações/Usuários/Logs — administração
+     técnica; "Conteúdo" separava Banners de Promoções, quando as duas são
+     ferramentas de marketing). Nenhuma rota mudou aqui — só o agrupamento
+     e os rótulos dos grupos. `secaoAtual` continua comparado por chave,
+     não por grupo, então o destaque do item ativo funciona sem alteração. */
+  %>
+  <nav class="admin-sidebar__scroll" aria-label="Navegação administrativa">
+    <section class="admin-sidebar__group">
+      <p class="admin-sidebar__group-title"><b>Visão geral</b></p>
+      <ul>
+        <li>
+          <a href="/admin" class="admin-sidebar__link <%= ativo('dashboard') %>" <%= corrente('dashboard') %>>
+            <i class="fas fa-tachometer-alt" aria-hidden="true"></i><b>Dashboard</b>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="admin-sidebar__group">
+      <p class="admin-sidebar__group-title"><b>Vendas</b></p>
+      <ul>
+        <li>
+          <a href="/pedidos" class="admin-sidebar__link <%= ativo('pedidos') %>" <%= corrente('pedidos') %>>
+            <i class="fas fa-receipt" aria-hidden="true"></i><b>Pedidos</b>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/clientes" class="admin-sidebar__link <%= ativo('clientes') %>" <%= corrente('clientes') %>>
+            <i class="fas fa-users" aria-hidden="true"></i><b>Clientes</b>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/niveis" class="admin-sidebar__link <%= ativo('niveis') %>" <%= corrente('niveis') %>>
+            <i class="fas fa-medal" aria-hidden="true"></i><b>Níveis de Clientes</b>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="admin-sidebar__group">
+      <p class="admin-sidebar__group-title"><b>Catálogo</b></p>
+      <ul>
+        <li>
+          <a href="/admin/produtos" class="admin-sidebar__link <%= ativo('produtos') %>" <%= corrente('produtos') %>>
+            <i class="fas fa-seedling" aria-hidden="true"></i><b>Produtos</b>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/categorias" class="admin-sidebar__link <%= ativo('categorias') %>" <%= corrente('categorias') %>>
+            <i class="fas fa-layer-group" aria-hidden="true"></i><b>Categorias</b>
+          </a>
+        </li>
+        <li>
+          <a href="/estoque" class="admin-sidebar__link <%= ativo('estoque') %>" <%= corrente('estoque') %>>
+            <i class="fas fa-boxes" aria-hidden="true"></i><b>Estoque</b>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="admin-sidebar__group">
+      <p class="admin-sidebar__group-title"><b>Marketing</b></p>
+      <ul>
+        <li>
+          <a href="/admin/promocoes" class="admin-sidebar__link <%= ativo('promocoes') %>" <%= corrente('promocoes') %>>
+            <i class="fas fa-percent" aria-hidden="true"></i><b>Promoções e Cupons</b>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/banners" class="admin-sidebar__link <%= ativo('banners') %>" <%= corrente('banners') %>>
+            <i class="fas fa-image" aria-hidden="true"></i><b>Banners</b>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/avaliacoes" class="admin-sidebar__link <%= ativo('avaliacoes') %>" <%= corrente('avaliacoes') %>>
+            <i class="fas fa-star" aria-hidden="true"></i><b>Avaliações</b>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="admin-sidebar__group">
+      <p class="admin-sidebar__group-title"><b>Fornecedores</b></p>
+      <ul>
+        <li>
+          <a href="/admin/fornecedores" class="admin-sidebar__link <%= ativo('fornecedores') %>" <%= corrente('fornecedores') %>>
+            <i class="fas fa-truck" aria-hidden="true"></i><b>Fornecedores</b>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/compras" class="admin-sidebar__link <%= ativo('compras') %>" <%= corrente('compras') %>>
+            <i class="fas fa-shopping-cart" aria-hidden="true"></i><b>Compras</b>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/contas-pagar" class="admin-sidebar__link <%= ativo('contas-pagar') %>" <%= corrente('contas-pagar') %>>
+            <i class="fas fa-file-invoice-dollar" aria-hidden="true"></i><b>Contas a Pagar</b>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="admin-sidebar__group">
+      <p class="admin-sidebar__group-title"><b>Análises</b></p>
+      <ul>
+        <li>
+          <a href="/admin/relatorios" class="admin-sidebar__link <%= ativo('relatorios') %>" <%= corrente('relatorios') %>>
+            <i class="fas fa-money-bill-wave" aria-hidden="true"></i><b>Financeiro</b>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/relatorios/geral" class="admin-sidebar__link <%= ativo('relatorio-geral') %>" <%= corrente('relatorio-geral') %>>
+            <i class="fas fa-file-invoice" aria-hidden="true"></i><b>Relatório Geral</b>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="admin-sidebar__group">
+      <p class="admin-sidebar__group-title"><b>Sistema</b></p>
+      <ul>
+        <li>
+          <a href="/admin/configuracoes" class="admin-sidebar__link <%= ativo('configuracoes') %>" <%= corrente('configuracoes') %>>
+            <i class="fas fa-cog" aria-hidden="true"></i><b>Configurações</b>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/usuarios" class="admin-sidebar__link <%= ativo('usuarios') %>" <%= corrente('usuarios') %>>
+            <i class="fas fa-user-shield" aria-hidden="true"></i><b>Usuários e Permissões</b>
+          </a>
+        </li>
+        <li>
+          <a href="/admin/logs" class="admin-sidebar__link <%= ativo('logs') %>" <%= corrente('logs') %>>
+            <i class="fas fa-clipboard-list" aria-hidden="true"></i><b>Logs do Sistema</b>
+          </a>
+        </li>
+      </ul>
+    </section>
+  </nav>
+
+  <footer class="admin-sidebar__footer">
+    <details class="admin-sidebar__conta">
+      <summary class="admin-sidebar__conta-resumo">
+        <img class="admin-sidebar__conta-foto"
+             src="<%= (locals.usuario && usuario.foto_perfil) || '/imagens/perfil.png' %>"
+             alt="" data-fallback="/imagens/perfil.png" />
+        <b class="admin-sidebar__conta-info">
+          <strong class="admin-sidebar__conta-nome"><%= primeiroNome %></strong>
+          <small class="admin-sidebar__conta-papel">Administrador</small>
+        </b>
+        <i class="fas fa-chevron-up admin-sidebar__conta-seta" aria-hidden="true"></i>
+      </summary>
+      <menu class="admin-sidebar__conta-menu">
+        <li><a href="/perfil"><i class="fas fa-user" aria-hidden="true"></i><b>Meu perfil</b></a></li>
+        <li><a href="/admin/configuracoes"><i class="fas fa-cog" aria-hidden="true"></i><b>Configurações</b></a></li>
+        <li role="separator" class="admin-sidebar__conta-separador"></li>
+        <li><a href="/logout" class="admin-sidebar__conta-sair" data-logout-trigger><i class="fas fa-sign-out-alt" aria-hidden="true"></i><b>Sair</b></a></li>
+      </menu>
+    </details>
+  </footer>
+</aside>
+
+<button type="button" class="admin-sidebar__overlay" id="admin-sidebar-overlay" aria-hidden="true" tabindex="-1"></button>
+
+<%- include("../shared/dialog-logout") %>

@@ -1,0 +1,341 @@
+<%
+/* ═══════════════════════════════════════════════════════════
+   Helpers de apresentação — só formatação, nenhuma regra de
+   negócio nova (isso já vem pronto do model/rota).
+═══════════════════════════════════════════════════════════ */
+const fmt = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+
+const fmtData = (d, comHora) => {
+  if (!d) return '-';
+  const dt = new Date(d);
+  const data = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  if (!comHora) return data;
+  const hora = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  return data + ' · ' + hora;
+};
+
+const ROTULOS_ETAPA = rotulosEtapa;
+
+const ORDEM_ETAPAS = ['confirmado', 'preparando', 'enviado', 'em_transporte', 'saiu_entrega', 'entregue'];
+
+const mapaTimeline = {};
+(pedido.timeline || []).forEach((t) => { if (!mapaTimeline[t.etapa]) mapaTimeline[t.etapa] = t; });
+
+const cancelado = pedido.status === 'cancelado';
+const etapaAtualIdx = cancelado
+  ? ORDEM_ETAPAS.reduce((max, etapa, i) => (mapaTimeline[etapa] ? i : max), 0)
+  : ORDEM_ETAPAS.indexOf(pedido.status);
+
+const CORES_STATUS = {
+  preparando:    { bg: '#f6efe1', fg: '#8a6a2f' },
+  enviado:       { bg: '#e3edfb', fg: '#1565c0' },
+  em_transporte: { bg: '#e3edfb', fg: '#1565c0' },
+  saiu_entrega:  { bg: '#e3edfb', fg: '#1565c0' },
+  entregue:      { bg: '#e8f5ee', fg: '#2d7a58' },
+  cancelado:     { bg: '#fdf0ef', fg: '#c0392b' },
+};
+const corStatus = CORES_STATUS[pedido.status] || CORES_STATUS.preparando;
+
+const itens = pedido.itens || [];
+const temPlanta = itens.some(i => (i.categoria_nome || '').toLowerCase().includes('planta'));
+const podeAvaliar = pedido.status === 'entregue';
+
+const enderecoVazio = !pedido.end_logradouro;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pedido #<%= pedido.id %> - Floria</title>
+  <link rel="stylesheet" href="/css/pedidos/pedido-detalhes.css">
+</head>
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main class="pedido-page">
+    <section class="pedido-container">
+
+      <p class="pedido-breadcrumb">
+        <a href="/perfil">Minha conta</a> / <a href="/perfil#pedidos">Pedidos</a> / <strong>#<%= pedido.id %></strong>
+      </p>
+
+      <section class="pedido-topo">
+        <section>
+          <h1>
+            <% if (cancelado) { %>
+              Pedido cancelado
+            <% } else if (pedido.status === 'entregue') { %>
+              <i class="emoji"><i class="fas fa-check-circle" aria-hidden="true"></i></i> Seu pedido foi entregue!
+            <% } else { %>
+              <i class="emoji"><i class="fas fa-box" aria-hidden="true"></i></i> Estamos preparando seu pedido com carinho
+            <% } %>
+          </h1>
+          <p class="pedido-subtitulo">
+            Pedido <strong>#<%= pedido.id %></strong> · realizado em <strong><%= fmtData(pedido.criado_em, true) %></strong>
+            <% if (!cancelado && pedido.previsao_entrega) { %>
+              · previsão de entrega <strong><%= fmtData(pedido.previsao_entrega) %></strong>
+            <% } %>
+          </p>
+        </section>
+        <b class="badge-etapa" style="background:<%= corStatus.bg %>;color:<%= corStatus.fg %>;">
+          <%= ROTULOS_ETAPA[pedido.status] || pedido.status %>
+        </b>
+      </section>
+
+      <% if (cancelado) { %>
+        <section class="faixa-cancelado" role="alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          <p>
+            <strong>Este pedido foi cancelado.</strong>
+            <%= pedido.motivo_cancelamento || 'Se você não reconhece este cancelamento, entre em contato com o nosso suporte.' %>
+          </p>
+        </section>
+      <% } %>
+
+      <!-- TIMELINE -->
+      <section class="pedido-timeline" aria-label="Linha do tempo do pedido">
+        <ol class="timeline-lista">
+          <% ORDEM_ETAPAS.forEach((etapa, i) => {
+               const evento = mapaTimeline[etapa];
+               const feito = !cancelado && i <= etapaAtualIdx;
+               const atual = !cancelado && i === etapaAtualIdx;
+               const classes = cancelado
+                 ? (evento ? 'cancelada' : '')
+                 : (feito ? (atual ? 'feito atual' : 'feito') : '');
+          %>
+            <li class="<%= classes %>">
+              <b class="timeline-bolha">
+                <% if (feito && !atual) { %><i class="fas fa-check" aria-hidden="true"></i><% } else { %><%= i + 1 %><% } %>
+              </b>
+              <b class="timeline-rotulo"><%= ROTULOS_ETAPA[etapa] %></b>
+              <small class="timeline-data"><%= evento ? fmtData(evento.criado_em, true) : (feito ? '' : '-') %></small>
+            </li>
+          <% }); %>
+        </ol>
+      </section>
+
+      <section class="pedido-layout">
+
+        <!-- COLUNA ESQUERDA -->
+        <section class="pedido-coluna-principal">
+
+          <section class="pedido-card" aria-label="Produtos do pedido">
+            <h2 class="pedido-card-titulo">
+              Produtos do Pedido
+              <small><%= itens.length %> <%= itens.length === 1 ? 'item' : 'itens' %></small>
+            </h2>
+
+            <% itens.forEach((item) => { %>
+              <article class="item-pedido">
+                <figure class="item-pedido-foto">
+                  <% if (item.produto_imagem) { %>
+                    <img src="<%= item.produto_imagem %>" alt="" loading="lazy"
+                         data-fallback-icon="fas fa-seedling">
+                  <% } else { %>
+                    <i class="fas fa-seedling" aria-hidden="true"></i>
+                  <% } %>
+                </figure>
+                <section class="item-pedido-info">
+                  <h4><%= item.produto_nome || 'Produto' %></h4>
+                  <% if (item.categoria_nome) { %><p class="categoria"><%= item.categoria_nome %></p><% } %>
+                  <section class="item-pedido-tags">
+                    <b>Qtd: <%= item.quantidade %></b>
+                    <% if (item.cor) { %><b>Variação: <%= item.cor %></b><% } %>
+                  </section>
+                  <% if (item.promocao_nome) { %>
+                    <p class="item-pedido-promocao">Promoção: <%= item.promocao_nome %></p>
+                  <% } %>
+                </section>
+                <section class="item-pedido-valores">
+                  <p class="subtotal-item"><%= fmt(item.preco_unit * item.quantidade) %></p>
+                  <% if (item.preco_original) { %>
+                    <p class="unit-item-riscado"><s><%= fmt(item.preco_original) %></s></p>
+                  <% } %>
+                  <p class="unit-item"><%= item.quantidade %> × <%= fmt(item.preco_unit) %></p>
+                  <% if (podeAvaliar && item.produto_slug) { %>
+                    <a href="/produto/<%= item.produto_slug %>#comentarios" class="item-avaliar-link"><i class="fas fa-star" aria-hidden="true"></i> Avaliar</a>
+                  <% } %>
+                  <% if (item.produto_slug && ['Plantas', 'Adubos', 'Controle de Pragas'].includes(item.categoria_nome)) { %>
+                    <a href="/produto/<%= item.produto_slug %>/guia.pdf?baixar=1" target="_blank" rel="noopener" class="item-guia-link">
+                      <i class="fas fa-file-pdf" aria-hidden="true"></i> Guia de utilização
+                    </a>
+                  <% } %>
+                </section>
+              </article>
+            <% }); %>
+
+            <% if (temPlanta && !cancelado) { %>
+              <section class="dica-cuidado">
+                <i class="emoji"><i class="fas fa-seedling" aria-hidden="true"></i></i>
+                <p><strong>Enquanto ela não chega:</strong> escolha um cantinho com luz indireta e clara. Borrife as folhas nos dias mais secos e regue quando os 2 primeiros dedos de solo estiverem secos.</p>
+              </section>
+            <% } %>
+          </section>
+
+          <section class="pedido-card endereco-detalhe" aria-label="Endereço de entrega">
+            <h2 class="pedido-card-titulo">Endereço de Entrega</h2>
+            <% if (enderecoVazio) { %>
+              <p style="color:var(--texto-fraco);font-size:var(--texto-sm);">
+                Endereço não disponível para este pedido.
+              </p>
+            <% } else { %>
+              <b class="endereco-rotulo-chip"><%= pedido.end_rotulo || 'Endereço' %></b>
+              <dl>
+                <dt>Destinatário</dt><dd><%= pedido.end_destinatario %></dd>
+                <dt>Telefone</dt><dd><%= pedido.end_telefone %></dd>
+                <dt>Rua</dt><dd><%= pedido.end_logradouro %></dd>
+                <dt>Número</dt><dd><%= pedido.end_numero %></dd>
+                <% if (pedido.end_complemento) { %><dt>Complemento</dt><dd><%= pedido.end_complemento %></dd><% } %>
+                <dt>Bairro</dt><dd><%= pedido.end_bairro %></dd>
+                <dt>Cidade</dt><dd><%= pedido.end_cidade %></dd>
+                <dt>Estado</dt><dd><%= pedido.end_uf %></dd>
+                <dt>CEP</dt><dd><%= pedido.end_cep %></dd>
+              </dl>
+            <% } %>
+          </section>
+
+        </section>
+
+        <!-- COLUNA DIREITA -->
+        <section class="pedido-coluna-lateral">
+
+          <section class="resumo-financeiro" aria-label="Resumo financeiro">
+            <h2>Resumo Financeiro</h2>
+            <p class="resumo-linha"><b>Subtotal</b><b><%= fmt(pedido.subtotal) %></b></p>
+            <p class="resumo-linha">
+              <b>Frete</b>
+              <b><%= Number(pedido.frete) > 0 ? fmt(pedido.frete) : 'Grátis' %></b>
+            </p>
+            <% if (Number(pedido.desconto) > 0) { %>
+              <p class="resumo-linha desconto"><b>Desconto</b><b>− <%= fmt(pedido.desconto) %></b></p>
+            <% } %>
+            <% if (pedido.cupom) { %>
+              <p class="resumo-linha cupom"><b>Cupom utilizado</b><b><%= pedido.cupom %></b></p>
+            <% } %>
+            <% if (pedido.promocao_carrinho_nome) { %>
+              <p class="resumo-linha cupom">
+                <b>Promoção aplicada</b>
+                <b><%= pedido.promocao_carrinho_nome %> (− <%= fmt(pedido.desconto_promocao_carrinho) %>)</b>
+              </p>
+            <% } %>
+            <p class="resumo-total">
+              <b>Total</b>
+              <strong><%= fmt(pedido.total) %></strong>
+            </p>
+            <p class="resumo-pagamento">
+              <strong><%= (pedido.forma_pagto || '-').charAt(0).toUpperCase() + (pedido.forma_pagto || '-').slice(1) %></strong>
+              <% if (pedido.parcelas > 1) { %>
+                · <%= pedido.parcelas %>× de <%= fmt(pedido.total / pedido.parcelas) %>
+              <% } else { %>
+                · à vista
+              <% } %>
+              <% if (pedido.cartao_final) { %> · final <%= pedido.cartao_final %><% } %>
+            </p>
+            <p class="resumo-status-pagamento">
+              <b class="badge-pagamento badge-pagamento--<%= pedido.status_pagamento %>">
+                <%= rotulosStatusPagamento[pedido.status_pagamento] || pedido.status_pagamento %>
+              </b>
+            </p>
+          </section>
+
+          <% if (!cancelado) { %>
+          <section class="pedido-card entrega-card" aria-label="Dados de entrega">
+            <h2 class="pedido-card-titulo">Entrega</h2>
+            <dl>
+              <dt>Transportadora</dt>
+              <dd><%= pedido.transportadora || '-' %></dd>
+              <dt>Previsão de entrega</dt>
+              <dd><%= fmtData(pedido.previsao_entrega) %></dd>
+              <% if (pedido.codigo_rastreio) { %>
+              <dt>Código de rastreio</dt>
+              <dd>
+                <b class="rastreio-chip" id="rastreio-chip">
+                  <%= pedido.codigo_rastreio %>
+                  <button type="button" id="btn-copiar-rastreio" title="Copiar código" aria-label="Copiar código de rastreio">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  </button>
+                </b>
+              </dd>
+              <% } %>
+            </dl>
+          </section>
+          <% } %>
+
+          <section class="pedido-card" aria-label="Ações do pedido">
+            <h2 class="pedido-card-titulo">Ações</h2>
+            <section class="pedido-acoes">
+              <button type="button" class="btn-acao primaria" id="btn-comprar-novamente">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                Comprar novamente
+              </button>
+
+              <button type="button" class="btn-acao" id="btn-avaliar" <%= podeAvaliar ? '' : 'disabled' %>
+                title="<%= podeAvaliar ? '' : 'Disponível após a entrega do pedido' %>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                Avaliar produtos
+              </button>
+
+              <a class="btn-acao" href="/pedido/<%= pedido.id %>/comprovante" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/></svg>
+                Visualizar comprovante
+              </a>
+
+              <a class="btn-acao" href="/pedido/<%= pedido.id %>/comprovante/pdf?baixar=1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Baixar comprovante (PDF)
+              </a>
+
+              <a class="btn-acao" href="/pedido/<%= pedido.id %>/comprovante?imprimir=1" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Imprimir comprovante
+              </a>
+
+              <button type="button" class="btn-acao" id="btn-enviar-comprovante-email" data-pedido-id="<%= pedido.id %>" data-cliente-email="<%= pedido.cliente_email %>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2Z"/><polyline points="22 6 12 13 2 6"/></svg>
+                Enviar comprovante por e-mail
+              </button>
+
+              <a class="btn-acao" href="/suporte?pedido=<%= pedido.id %>">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 2-3 4"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                Preciso de ajuda
+              </a>
+
+              <% if (!cancelado && pedido.status !== 'entregue') { %>
+                <button type="button" class="btn-acao" id="btn-acompanhar">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  Acompanhar entrega
+                </button>
+              <% } %>
+
+              <% if (podeCancelar) { %>
+                <button type="button" class="btn-acao perigo" id="btn-cancelar-pedido" data-pedido-id="<%= pedido.id %>">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  Cancelar pedido
+                </button>
+              <% } %>
+            </section>
+            <output class="pedido-msg" id="pedido-acao-msg" role="status" aria-live="polite"></output>
+          </section>
+
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+
+  <script>
+    window.__pedidoItensParaCompra = <%- JSON.stringify(itens.map(i => ({
+      nome: i.produto_nome, preco: Number(i.preco_unit), quantidade: i.quantidade,
+      imagem: i.produto_imagem || '', cor: i.cor || null,
+      slug: i.produto_slug || null,
+    }))) %>;
+    window.__pedidoPrimeiroProdutoSlug = <%- JSON.stringify(itens[0]?.produto_slug || null) %>;
+  </script>
+  <script src="/js/pedidos/pedido-detalhes.js"></script>
+</body>
+</html>

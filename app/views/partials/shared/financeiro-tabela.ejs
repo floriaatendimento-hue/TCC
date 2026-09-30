@@ -1,0 +1,69 @@
+<%
+/* Tabela reutilizável da página Financeiro — espera:
+     id          string único (liga busca/tabela/paginação — ver admin-financeiro.js)
+     titulo, subtitulo (opcional)
+     colunas     [{ chave, rotulo, tipo, alinhar }]
+     linhas      [{ [chave]: { texto, valor, badge?, link? } }]
+     buscaPlaceholder (opcional)
+     vazioTexto       (opcional)
+     pdfHref          (opcional) — se vier, mostra o botão "Baixar PDF"
+   Busca + ordenação + paginação client-side, no mesmo padrão de
+   admin-relatorios.js — só generalizado para conviver com várias
+   tabelas na mesma página (cada uma com seu próprio `id`).
+*/
+const _placeholder = typeof buscaPlaceholder !== 'undefined' ? buscaPlaceholder : 'Pesquisar...';
+const _vazio = typeof vazioTexto !== 'undefined' ? vazioTexto : 'Nenhum registro encontrado para o período selecionado.';
+const _pdfHref = typeof pdfHref !== 'undefined' ? pdfHref : null;
+const _subtitulo = typeof subtitulo !== 'undefined' ? subtitulo : null;
+%>
+<article class="painel painel--tabela financeiro-tabela-painel" id="secao-<%= id %>">
+  <header class="painel__cabecalho relatorio-cabecalho">
+    <hgroup>
+      <h2 class="painel__titulo"><%= titulo %></h2>
+      <% if (_subtitulo) { %><p class="painel__subtitulo"><%= _subtitulo %></p><% } %>
+    </hgroup>
+    <section class="relatorio-toolbar">
+      <search class="admin-toolbar__busca" role="search" aria-label="Pesquisar em <%= titulo %>">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input type="search" placeholder="<%= _placeholder %>" data-fin-busca="<%= id %>">
+      </search>
+      <% if (_pdfHref) { %>
+        <a class="btn-admin btn-admin--secundario" href="<%= _pdfHref %>">
+          <i class="fas fa-file-pdf" aria-hidden="true"></i> Baixar PDF
+        </a>
+      <% } %>
+    </section>
+  </header>
+
+  <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+    <table class="tabela-admin" data-fin-tabela="<%= id %>">
+      <thead>
+        <tr>
+          <% colunas.forEach((c, i) => { %>
+            <th class="<%= c.alinhar === 'num' ? 'num' : '' %> th-ordenavel" data-ordenavel data-col="<%= i %>" data-tipo="<%= c.tipo %>" tabindex="0" role="button">
+              <%= c.rotulo %><i class="fas fa-sort" aria-hidden="true"></i>
+            </th>
+          <% }) %>
+        </tr>
+      </thead>
+      <tbody>
+        <% linhas.forEach(linha => { %>
+          <tr>
+            <% colunas.forEach(c => { const cel = linha[c.chave] || { texto: '-', valor: 0 }; %>
+              <td class="<%= c.alinhar === 'num' ? 'num' : '' %>" data-valor="<%= cel.valor %>">
+                <% if (cel.link) { %><a class="tabela-link" href="<%= cel.link %>"><%= cel.texto %></a>
+                <% } else if (cel.badge) { %><b class="badge badge--<%= cel.badge %>"><%= cel.texto %></b>
+                <% } else { %><%= cel.texto %><% } %>
+              </td>
+            <% }) %>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+    <% if (!linhas.length) { %>
+      <p class="tabela-admin__vazia"><%= _vazio %></p>
+    <% } %>
+  </section>
+
+  <nav class="paginacao" data-fin-paginacao="<%= id %>" aria-label="Paginação da tabela"></nav>
+</article>

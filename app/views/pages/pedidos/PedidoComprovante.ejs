@@ -1,0 +1,305 @@
+<%
+const fmt = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+const fmtData = (d, comHora) => {
+  if (!d) return '-';
+  const dt = new Date(d);
+  const data = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  if (!comHora) return data;
+  return data + ' · ' + dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+};
+const itens = pedido.itens || [];
+const statusPag = pedido.status_pagamento || 'aprovado';
+const rotuloStatusPag = rotulosStatusPagamento[statusPag] || statusPag;
+const CORES_STATUS_PAG = {
+  pendente:  { bg: '#f6efe1', fg: '#8a6a2f' },
+  aprovado:  { bg: '#e8f5ee', fg: '#2d7a58' },
+  recusado:  { bg: '#fdf0ef', fg: '#c0392b' },
+  estornado: { bg: '#fdf0ef', fg: '#c0392b' },
+};
+const corStatusPag = CORES_STATUS_PAG[statusPag] || CORES_STATUS_PAG.aprovado;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprovante - Pedido #<%= pedido.id %> - Floria</title>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+        integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', Arial, sans-serif;
+      color: #1a1a1a;
+      background: #FFFFFF;
+      padding: 40px 20px;
+    }
+    .barra-acoes {
+      max-width: 680px;
+      margin: 0 auto 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .barra-acoes button, .barra-acoes a {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #0E3124;
+      background: #fff;
+      color: #0E3124;
+      padding: .6rem 1.2rem;
+      border-radius: 8px;
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      text-decoration: none;
+    }
+    .barra-acoes button.primaria, .barra-acoes a.primaria {
+      background: #0E3124;
+      color: #fff;
+    }
+    .barra-acoes button:hover, .barra-acoes a:hover { opacity: .88; }
+    .barra-acoes button:disabled { opacity: .5; cursor: not-allowed; }
+    #comprovante-msg {
+      max-width: 680px;
+      margin: 0 auto 16px;
+      text-align: center;
+      font-size: .85rem;
+      min-height: 1.1em;
+    }
+    #comprovante-msg.sucesso { color: #2d7a58; }
+    #comprovante-msg.erro { color: #c0392b; }
+    .folha {
+      max-width: 680px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      padding: 40px 44px;
+      box-shadow: 0 8px 40px rgba(26,61,43,0.13);
+    }
+    .cabecalho {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      border-bottom: 2px solid #0E3124;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+    }
+    .marca { display: flex; align-items: center; gap: 12px; }
+    .marca img { width: 40px; height: 40px; object-fit: contain; }
+    .marca .marca-texto { font-family: Georgia, serif; font-size: 26px; color: #0E3124; }
+    .marca small { display: block; font-family: 'DM Sans', sans-serif; font-size: 11px; color: #9a9a8a; font-weight: 400; margin-top: 2px; }
+    .cabecalho .info-pedido { text-align: right; font-size: 13px; color: #5a5a4a; }
+    .cabecalho .info-pedido strong { display: block; font-size: 16px; color: #0E3124; }
+    .cabecalho .info-pedido .codigo-comprovante { font-size: 11px; color: #b8945f; margin-top: 2px; }
+    h2.secao {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #b8945f;
+      font-weight: 700;
+      margin: 26px 0 10px;
+    }
+    .bloco-duas-colunas { display: flex; gap: 32px; font-size: 13.5px; }
+    .bloco-duas-colunas > section { flex: 1; }
+    .bloco-duas-colunas p { line-height: 1.6; color: #333; }
+    .chip-status {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 700;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+    thead th {
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: #9a9a8a;
+      padding: 8px 4px;
+      border-bottom: 1px solid #F2F2F0;
+    }
+    thead th.num { text-align: right; }
+    tbody td { padding: 10px 4px; border-bottom: 1px solid #F2F2F0; }
+    tbody td.num { text-align: right; white-space: nowrap; }
+    .totais { margin-top: 18px; margin-left: auto; width: 260px; font-size: 13.5px; }
+    .totais p { display: flex; justify-content: space-between; padding: 4px 0; color: #5a5a4a; }
+    .totais .total-final { border-top: 1px solid #0E3124; margin-top: 8px; padding-top: 10px; font-weight: 700; font-size: 16px; color: #0E3124; }
+    .observacoes { margin-top: 24px; font-size: 13px; color: #333; background: #FFFFFF; border-radius: 8px; padding: 12px 14px; }
+    .rodape {
+      margin-top: 36px;
+      padding-top: 16px;
+      border-top: 1px dashed #F2F2F0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+    .rodape .qrcode img { width: 84px; height: 84px; }
+    .rodape .legal { font-size: 11.5px; color: #9a9a8a; text-align: right; }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .folha { box-shadow: none; border-radius: 0; padding: 0; }
+      .barra-acoes, #comprovante-msg { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <input type="hidden" id="csrf-token" value="<%= csrfToken %>">
+  <input type="hidden" id="pedido-id" value="<%= pedido.id %>">
+  <input type="hidden" id="cliente-email" value="<%= clienteEmail || '' %>">
+
+  <section class="barra-acoes">
+    <a class="primaria" href="/pedido/<%= pedido.id %>/comprovante/pdf?baixar=1"><i class="fas fa-download" aria-hidden="true"></i> Baixar PDF</a>
+    <button type="button" id="btn-imprimir"><i class="fas fa-print" aria-hidden="true"></i> Imprimir</button>
+    <button type="button" id="btn-enviar-email" <%= mailerDisponivel ? '' : 'disabled title="Envio de e-mail não configurado neste servidor."' %>><i class="fas fa-envelope" aria-hidden="true"></i> Enviar por E-mail</button>
+    <a href="/pedido/<%= pedido.id %>">← Voltar ao pedido</a>
+  </section>
+  <output id="comprovante-msg" role="status" aria-live="polite"></output>
+
+  <article class="folha">
+    <header class="cabecalho">
+      <figure class="marca">
+        <img src="/imagens/logoflor.png" alt="Floria">
+        <figcaption>
+          <b class="marca-texto">Floria</b>
+          <small>Comprovante de compra</small>
+        </figcaption>
+      </figure>
+      <p class="info-pedido">
+        <strong>Pedido #<%= pedido.id %></strong>
+        <%= fmtData(pedido.criado_em, true) %>
+        <small class="codigo-comprovante">Comprovante <%= comprovante.codigo %></small>
+      </p>
+    </header>
+
+    <section class="bloco-duas-colunas">
+      <section>
+        <h2 class="secao">Cliente</h2>
+        <p><strong><%= pedido.cliente_nome %></strong><br><%= pedido.cliente_email %><% if (pedido.cliente_telefone) { %><br><%= pedido.cliente_telefone %><% } %></p>
+      </section>
+      <section>
+        <h2 class="secao">Entrega</h2>
+        <p>
+          <%= pedido.end_destinatario || '-' %><br>
+          <% if (pedido.end_logradouro) { %>
+            <%= pedido.end_logradouro %>, <%= pedido.end_numero %><% if (pedido.end_complemento) { %>, <%= pedido.end_complemento %><% } %><br>
+            <%= pedido.end_bairro %>, <%= pedido.end_cidade %> - <%= pedido.end_uf %> · <%= pedido.end_cep %>
+          <% } else { %>
+            Endereço não disponível para este pedido.
+          <% } %>
+        </p>
+      </section>
+    </section>
+
+    <h2 class="secao">Produtos</h2>
+    <table>
+      <thead>
+        <tr><th>Produto</th><th>Variação</th><th class="num">Qtd</th><th class="num">Unit.</th><th class="num">Subtotal</th></tr>
+      </thead>
+      <tbody>
+        <% itens.forEach((item) => { %>
+          <tr>
+            <td><%= item.produto_nome || 'Produto' %></td>
+            <td><%= item.cor || '-' %></td>
+            <td class="num"><%= item.quantidade %></td>
+            <td class="num"><%= fmt(item.preco_unit) %></td>
+            <td class="num"><%= fmt(item.preco_unit * item.quantidade) %></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+
+    <section class="totais">
+      <p><b>Subtotal</b><b><%= fmt(pedido.subtotal) %></b></p>
+      <p><b>Frete</b><b><%= Number(pedido.frete) > 0 ? fmt(pedido.frete) : 'Grátis' %></b></p>
+      <% if (Number(pedido.desconto) > 0) { %><p><b>Desconto<%= pedido.cupom ? ' (' + pedido.cupom + ')' : '' %></b><b>− <%= fmt(pedido.desconto) %></b></p><% } %>
+      <p class="total-final"><b>Total</b><b><%= fmt(pedido.total) %></b></p>
+      <p style="margin-top:6px;">
+        <b>Pagamento</b>
+        <b><%= pedido.forma_pagto || '-' %><%= pedido.parcelas > 1 ? ' · ' + pedido.parcelas + 'x' : '' %></b>
+      </p>
+      <p style="margin-top:2px;align-items:center;">
+        <b>Status do pagamento</b>
+        <b><b class="chip-status" style="background:<%= corStatusPag.bg %>;color:<%= corStatusPag.fg %>;"><%= rotuloStatusPag %></b></b>
+      </p>
+    </section>
+
+    <% if (pedido.observacoes) { %>
+      <h2 class="secao">Observações do pedido</h2>
+      <p class="observacoes"><%= pedido.observacoes %></p>
+    <% } %>
+
+    <footer class="rodape">
+      <% if (qrDataUrl) { %>
+        <figure class="qrcode"><img src="<%= qrDataUrl %>" alt="QR Code de verificação do pedido"></figure>
+      <% } %>
+      <p class="legal">
+        Floria Plantas &amp; Vasos · Este comprovante não possui valor fiscal.<br>
+        Código de rastreio: <%= pedido.codigo_rastreio || '-' %>
+      </p>
+    </footer>
+  </article>
+
+  <script>
+    (function () {
+      var csrf = document.getElementById('csrf-token').value;
+      var pedidoId = document.getElementById('pedido-id').value;
+      var clienteEmail = document.getElementById('cliente-email').value;
+      var msg = document.getElementById('comprovante-msg');
+
+      function mostrarMsg(texto, tipo) {
+        msg.textContent = texto;
+        msg.className = tipo || '';
+      }
+
+      document.getElementById('btn-imprimir').addEventListener('click', function () {
+        window.print();
+      });
+
+      var btnEmail = document.getElementById('btn-enviar-email');
+      if (btnEmail && !btnEmail.disabled) {
+        btnEmail.addEventListener('click', async function () {
+          var destino = window.prompt('Enviar comprovante para qual e-mail?', clienteEmail || '');
+          if (destino === null) return;
+          destino = destino.trim();
+          if (!destino) { mostrarMsg('Informe um e-mail válido.', 'erro'); return; }
+
+          btnEmail.disabled = true;
+          var textoOriginal = btnEmail.textContent;
+          btnEmail.textContent = 'Enviando…';
+          mostrarMsg('', '');
+
+          try {
+            var resp = await fetch('/api/pedidos/' + pedidoId + '/comprovante/email', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+              body: JSON.stringify({ email: destino }),
+            });
+            var data = await resp.json();
+            if (data.ok) {
+              mostrarMsg(data.message || 'Comprovante enviado com sucesso.', 'sucesso');
+            } else {
+              mostrarMsg(data.message || 'Não foi possível enviar o comprovante.', 'erro');
+            }
+          } catch (e) {
+            mostrarMsg('Erro de conexão. Tente novamente.', 'erro');
+          } finally {
+            btnEmail.disabled = false;
+            btnEmail.textContent = textoOriginal;
+          }
+        });
+      }
+
+      <% if (imprimirAuto) { %>
+      window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); });
+      <% } %>
+    })();
+  </script>
+</body>
+</html>

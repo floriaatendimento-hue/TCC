@@ -1,0 +1,75 @@
+<aside id="cookie-banner" role="region" aria-label="Aviso de cookies" hidden>
+  <p>
+    Utilizamos cookies e tecnologias semelhantes para garantir o funcionamento do site e,
+    quando aplicável, melhorar sua experiência. Saiba mais na nossa
+    <a href="/politica-de-cookies">Política de Cookies</a>.
+  </p>
+  <menu class="cookie-banner-acoes">
+    <li><button type="button" class="cookie-btn cookie-btn--link" id="btn-cookie-banner-configurar">Configurar cookies</button></li>
+    <li><button type="button" class="cookie-btn cookie-btn--secundario" id="btn-cookie-banner-recusar">Recusar não essenciais</button></li>
+    <li><button type="button" class="cookie-btn cookie-btn--primario" id="btn-cookie-banner-aceitar">Aceitar todos</button></li>
+  </menu>
+</aside>
+
+<dialog id="dialog-cookie-preferencias" aria-labelledby="cookie-preferencias-titulo" aria-describedby="cookie-preferencias-texto">
+  <header class="cookie-preferencias-cabecalho">
+    <h2 id="cookie-preferencias-titulo">Preferências de Cookies</h2>
+    <button type="button" id="fechar-cookie-preferencias" class="cookie-preferencias-fechar" aria-label="Fechar sem salvar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </header>
+
+  <section class="cookie-preferencias-corpo">
+    <p id="cookie-preferencias-texto">
+      Escolha quais categorias de cookies e tecnologias semelhantes você permite. Cookies necessários
+      não podem ser desativados, pois o site depende deles para funcionar. Detalhes de cada um na
+      <a href="/politica-de-cookies">Política de Cookies</a>.
+    </p>
+
+    <fieldset class="cookie-categoria">
+      <legend>Cookies necessários</legend>
+      <p>Garantem o funcionamento essencial do site: manter sua sessão conectada, proteger contra ataques, guardar o carrinho de compras e concluir pedidos.</p>
+      <label class="cookie-categoria-controle">
+        <input type="checkbox" checked disabled aria-label="Cookies necessários: sempre ativos">
+        Sempre ativos
+      </label>
+    </fieldset>
+
+    <fieldset class="cookie-categoria">
+      <legend>Cookies de preferência</legend>
+      <p>Serviriam para lembrar escolhas feitas por você durante a navegação. O site não utiliza cookies desta categoria no momento.</p>
+      <label class="cookie-categoria-controle">
+        <input type="checkbox" id="pref-cookie-preferencia" disabled aria-label="Cookies de preferência: não utilizados atualmente">
+        Não utilizado atualmente
+      </label>
+    </fieldset>
+
+    <fieldset class="cookie-categoria">
+      <legend>Cookies de análise</legend>
+      <p>Ajudariam a entender como o site é usado, para melhorá-lo. O site não utiliza ferramentas de análise no momento.</p>
+      <label class="cookie-categoria-controle">
+        <input type="checkbox" id="pref-cookie-analise" disabled aria-label="Cookies de análise: não utilizados atualmente">
+        Não utilizado atualmente
+      </label>
+    </fieldset>
+
+    <fieldset class="cookie-categoria">
+      <legend>Cookies de marketing</legend>
+      <p>Serviriam para personalizar anúncios. O site não utiliza cookies de marketing no momento.</p>
+      <label class="cookie-categoria-controle">
+        <input type="checkbox" id="pref-cookie-marketing" disabled aria-label="Cookies de marketing: não utilizados atualmente">
+        Não utilizado atualmente
+      </label>
+    </fieldset>
+
+    <output id="cookie-preferencias-msg" role="status" aria-live="polite"></output>
+  </section>
+
+  <footer class="cookie-preferencias-acoes">
+    <button type="button" class="cookie-btn cookie-btn--link" id="btn-cookie-recusar">Recusar não essenciais</button>
+    <button type="button" class="cookie-btn cookie-btn--secundario" id="btn-cookie-aceitar-todos">Aceitar todos</button>
+    <button type="button" class="cookie-btn cookie-btn--primario" id="btn-cookie-salvar">Salvar preferências</button>
+  </footer>
+</dialog>

@@ -1,0 +1,74 @@
+<%
+/* REESCRITO (Fase 5): Produtos agora é uma página própria, separada de
+   Estoque. Client-rendered (fetch + render da tabela em JS — ver
+   app/public/js/admin/admin-produtos.js). "Novo Produto" e "Editar" navegam
+   para páginas dedicadas (/admin/produtos/novo e
+   /admin/produtos/:id/editar, ver pages/admin/produto-form.ejs) — o
+   cadastro/edição deixou de usar <dialog> por aqui. */
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Produtos</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'produtos' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Produtos' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Produtos</h1>
+          <p class="admin-page-header__data" id="produtos-contagem">Carregando produtos...</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--primario" href="/admin/produtos/novo">
+            <i class="fas fa-plus" aria-hidden="true"></i>Novo Produto
+          </a>
+        </nav>
+      </header>
+
+      <p class="aviso-faixa" id="produtos-aviso-subcategoria" role="alert" hidden>
+        <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+        <b id="produtos-aviso-subcategoria-texto"></b>
+      </p>
+
+      <form class="admin-toolbar">
+        <search class="admin-toolbar__busca" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <label for="produtos-busca" class="sr-only">Buscar produto</label>
+          <input id="produtos-busca" type="search" placeholder="Buscar por nome...">
+        </search>
+        <select id="produtos-filtro-categoria" aria-label="Filtrar por categoria">
+          <option value="">Todas as categorias</option>
+        </select>
+        <select id="produtos-filtro-status" aria-label="Filtrar por status">
+          <option value="">Todos os status</option>
+          <option value="ativo">Ativos</option>
+          <option value="inativo">Inativos</option>
+        </select>
+      </form>
+
+      <article class="painel painel--tabela">
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin">
+            <thead>
+              <tr>
+                <th><b class="sr-only">Imagem</b></th><th>Nome</th><th>Categoria</th><th>Subcategoria</th><th class="num">Preço</th>
+                <th class="num">Estoque</th><th>Status</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="produtos-tbody"><tr><td colspan="8" class="tabela-admin__carregando">Carregando produtos...</td></tr></tbody>
+          </table>
+        </section>
+      </article>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-produtos.js" defer></script>
+</body>
+</html>

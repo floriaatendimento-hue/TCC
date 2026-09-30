@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaso de Cerâmica Rosa - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'vaso-ceramica-rosa',
+      nome: 'Vaso de Cerâmica Rosa',
+      sku: 'FLO-VASOCERAMICAROSA',
+      marca: null,
+      categoriaNome: 'Vasos & Cachepôs',
+      categoriaSlug: 'vasos',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/produtos-fotos/vaso-ceramica-rosa-1.webp', alt: 'Vaso de Cerâmica Rosa - frente' },
+        { src: '/imagens/produtos-fotos/vaso-ceramica-rosa-2.webp', alt: 'Vaso de Cerâmica Rosa - detalhe' },
+        { src: '/imagens/produtos-fotos/vaso-ceramica-rosa-3.webp', alt: 'Vaso de Cerâmica Rosa - lateral' }
+      ],
+      precoAtual: 65.00,
+      precoAntigo: 85.00,
+      parcelasTexto: 'em até 2x sem juros',
+      estoque: 14,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(15 avaliações)',
+      variacoes: [
+        {
+          tipo: 'cor', rotulo: 'Cor',
+          opcoes: [
+            { id: 'rosa', rotulo: 'Rosa', corHex: '#e8a0a0', selecionada: true },
+            { id: 'bege', rotulo: 'Bege', corHex: '#f7f4ef' }
+          ]
+        }
+      ],
+      tags: [
+        { icone: 'fas fa-star', texto: 'Artesanal' },
+        { icone: 'fas fa-sun', texto: 'Uso interno' },
+        { icone: 'fas fa-shield-alt', texto: 'Cerâmica esmaltada' }
+      ],
+      descricao: 'Vaso de cerâmica artesanal em tom rosado suave, com acabamento esmaltado de alta qualidade. Ideal para plantas de pequeno e médio porte, combina perfeitamente com decorações modernas, boho e escandinavas. Possui furo de drenagem e prato incluso. Produzido por artesãos brasileiros com argila de alto grau cerâmico.',
+      beneficios: 'Tom rosado suave que combina com decorações modernas, boho e escandinavas.',
+      comoUtilizar: 'Utilize o prato incluso para coletar o excesso de água drenada pelo furo na base.',
+      recomendacoes: 'Evite impactos que possam trincar o esmalte da cerâmica.',
+      ficha: [
+        { rotulo: 'Material', valor: 'Cerâmica esmaltada artesanal' },
+        { rotulo: 'Cor', valor: 'Rosa suave' },
+        { rotulo: 'Drenagem', valor: 'Furo de drenagem com prato incluso' },
+        { rotulo: 'Uso', valor: 'Interno' },
+        { rotulo: 'Porte indicado', valor: 'Plantas de pequeno a médio porte' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-cube', titulo: 'Material', texto: 'Cerâmica esmaltada: evite impactos que possam trincar o acabamento.' },
+        { icone: 'fas fa-ruler-combined', titulo: 'Capacidade', texto: 'Indicado para plantas de pequeno a médio porte.' },
+        { icone: 'fas fa-tint', titulo: 'Drenagem', texto: 'Furo de drenagem com prato incluso: esvazie após regas intensas.' },
+        { icone: 'fas fa-broom', titulo: 'Limpeza', texto: 'Limpe com pano úmido e sabão neutro, sem produtos abrasivos.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

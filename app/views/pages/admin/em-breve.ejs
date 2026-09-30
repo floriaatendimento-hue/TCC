@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - <%= titulo %></title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual }) %>
+
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: titulo }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1><%= titulo %></h1>
+        </hgroup>
+      </header>
+
+      <article class="admin-em-breve">
+        <i class="fas fa-seedling" aria-hidden="true"></i>
+        <h1><%= titulo %> chega em breve</h1>
+        <p>Esta seção está na próxima fase de desenvolvimento do painel administrativo.
+           O Dashboard já está com dados reais. Fale com a equipe para priorizar este módulo.</p>
+      </article>
+    </main>
+  </section>
+</body>
+</html>

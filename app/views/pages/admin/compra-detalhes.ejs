@@ -1,0 +1,215 @@
+<%
+const ROTULOS_CONTA = { pendente: 'Pendente', parcialmente_paga: 'Parcial', paga: 'Paga', vencida: 'Vencida', cancelada: 'Cancelada' };
+const CLASSE_CONTA = { pendente: 'badge--dourado', parcialmente_paga: 'badge--azul', paga: 'badge--verde', vencida: 'badge--vermelho', cancelada: 'badge--cinza' };
+const ROTULOS_METODO = { transferencia: 'Transferência', pix: 'Pix', boleto: 'Boleto', cartao: 'Cartão', dinheiro: 'Dinheiro', outro: 'Outro' };
+const moeda = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+/* `d` já chega como objeto Date (driver mysql2 com dateStrings:false em
+   config/db.js) — CORRIGIDO: `String(d).slice(0, 10)` presumia uma
+   string "AAAA-MM-DD", mas `String(dateObj)` produz algo como
+   "Mon Sep 14 2026 00:00:00 GMT-0300 (...)"; fatiar os 10 primeiros
+   caracteres disso ("Mon Sep 14") gerava uma data inválida ao
+   reconstruir, quebrando a página com 500. */
+const dataFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR').format(new Date(d)) : '-';
+const dataHoraFmt = (d) => new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(d));
+
+// ADICIONADO (parcelamento — Fase 2): `contas` agora é um array (1
+// elemento numa compra à vista, N numa parcelada) — status/saldo
+// "gerais" da compra viram um resumo agregado das N parcelas.
+const totalPago = contas.reduce((s, c) => s + Number(c.total_pago), 0);
+const saldoTotal = contas.reduce((s, c) => s + Number(c.saldo), 0);
+const statusAgregado = compra.status === 'cancelada' ? 'cancelada'
+  : contas.some(c => c.status_exibicao === 'vencida') ? 'vencida'
+  : contas.some(c => Number(c.total_pago) > 0) && saldoTotal > 0 ? 'parcialmente_paga'
+  : saldoTotal <= 0 ? 'paga' : 'pendente';
+const podeCancelar = compra.status === 'registrada' && totalPago === 0;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Compra #<%= compra.id %></title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'compras' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Compra #' + compra.id }) %>
+
+    <main class="admin-main" id="compra-detalhes" data-compra-id="<%= compra.id %>">
+      <nav class="admin-breadcrumb admin-breadcrumb--pagina" aria-label="Trilha de navegação">
+        <a href="/admin/compras">Compras</a>
+        <b aria-hidden="true">/</b>
+        <b class="atual">#<%= compra.id %></b>
+      </nav>
+
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Compra #<%= compra.id %> - <%= compra.fornecedor_nome %></h1>
+          <p class="admin-page-header__data">
+            <%= dataFmt(compra.data_compra) %> ·
+            <% if (compra.status === 'cancelada') { %>
+              <b class="badge badge--cinza">Cancelada</b>
+            <% } else { %>
+              <b class="badge <%= CLASSE_CONTA[statusAgregado] || 'badge--cinza' %>"><%= ROTULOS_CONTA[statusAgregado] || statusAgregado %></b>
+            <% } %>
+            <% if (contas.length > 1) { %><small>· <%= contas.length %> parcelas</small><% } %>
+          </p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <% if (podeCancelar) { %>
+            <button type="button" class="btn-admin btn-admin--perigo" id="btn-cancelar-compra"><i class="fas fa-ban" aria-hidden="true"></i>Cancelar compra</button>
+          <% } %>
+        </nav>
+      </header>
+
+      <% if (compra.status === 'cancelada') { %>
+        <article class="alerta-card" style="margin-bottom: var(--esp-5);">
+          <h3 class="alerta-card__titulo"><i class="fas fa-ban" aria-hidden="true"></i>Compra cancelada</h3>
+          <% if (compra.motivo_cancelamento) { %><p><%= compra.motivo_cancelamento %></p><% } %>
+        </article>
+      <% } %>
+
+      <article class="painel painel--tabela" style="margin-bottom: var(--esp-5);">
+        <header class="painel__cabecalho" style="padding: var(--esp-5) var(--esp-6) 0;"><h2 class="painel__titulo">Itens</h2></header>
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin">
+            <thead><tr><th>Descrição</th><th>Unid.</th><th class="num">Qtd.</th><th class="num">Preço unit.</th><th class="num">Desconto</th><th class="num">Subtotal</th></tr></thead>
+            <tbody>
+              <% itens.forEach(i => { %>
+                <tr>
+                  <td><%= i.descricao %></td>
+                  <td><%= i.unidade || '-' %></td>
+                  <td class="num"><%= Number(i.quantidade).toLocaleString('pt-BR') %></td>
+                  <td class="num"><%= moeda(i.preco_unit) %></td>
+                  <td class="num"><%= i.desconto > 0 ? '- ' + moeda(i.desconto) : '-' %></td>
+                  <td class="num"><%= moeda(i.subtotal) %></td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </section>
+        <ul class="resumo-movimentacao" style="padding: 0 var(--esp-6) var(--esp-5);">
+          <li><small>Subtotal</small><strong><%= moeda(compra.subtotal) %></strong></li>
+          <li><small>Desconto</small><strong>- <%= moeda(compra.desconto) %></strong></li>
+          <li><small>Frete</small><strong>+ <%= moeda(compra.frete) %></strong></li>
+          <li><small>Impostos</small><strong>+ <%= moeda(compra.impostos) %></strong></li>
+          <li><small>Taxas</small><strong>+ <%= moeda(compra.taxas) %></strong></li>
+          <li><small>Custo real (total)</small><strong><%= moeda(compra.total) %></strong></li>
+        </ul>
+        <% if (compra.observacoes) { %><p style="padding: 0 var(--esp-6) var(--esp-5); color: var(--texto-secundario);"><%= compra.observacoes %></p><% } %>
+      </article>
+
+      <% if (contas.length) { %>
+        <article class="painel" style="margin-bottom: var(--esp-5);">
+          <header class="painel__cabecalho" style="padding: var(--esp-5) var(--esp-6) 0;">
+            <h2 class="painel__titulo"><%= contas.length > 1 ? 'Parcelas' : 'Conta a pagar' %></h2>
+          </header>
+          <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+            <table class="tabela-admin" style="margin: var(--esp-3) var(--esp-6) var(--esp-5);">
+              <thead>
+                <tr>
+                  <% if (contas.length > 1) { %><th>Parcela</th><% } %>
+                  <th>Vencimento</th><th class="num">Valor original</th><th class="num">Pago</th><th class="num">Saldo</th><th>Status</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% contas.forEach(c => { %>
+                  <tr>
+                    <% if (contas.length > 1) { %><td><%= c.parcela_numero %>/<%= c.parcela_total %></td><% } %>
+                    <td><%= dataFmt(c.vencimento) %></td>
+                    <td class="num"><%= moeda(c.valor_original) %></td>
+                    <td class="num"><%= moeda(c.total_pago) %></td>
+                    <td class="num"><%= moeda(c.saldo) %></td>
+                    <td><b class="badge <%= CLASSE_CONTA[c.status_exibicao] || 'badge--cinza' %>"><%= ROTULOS_CONTA[c.status_exibicao] || c.status_exibicao %></b></td>
+                    <td class="acoes-tabela">
+                      <% if (!['paga', 'cancelada'].includes(c.status)) { %>
+                        <a href="#" class="js-abrir-pagamento" data-conta-id="<%= c.id %>" data-saldo="<%= c.saldo %>" data-parcela="<%= contas.length > 1 ? (c.parcela_numero + '/' + c.parcela_total) : '' %>">Registrar pagamento</a>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </section>
+        </article>
+
+        <article class="painel painel--tabela" style="margin-bottom: var(--esp-5);">
+          <header class="painel__cabecalho" style="padding: var(--esp-5) var(--esp-6) 0;">
+            <h2 class="painel__titulo">Pagamentos</h2>
+            <p class="painel__subtitulo"><%= pagamentos.length %> registro(s)</p>
+          </header>
+          <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+            <table class="tabela-admin">
+              <thead><tr><th>Data</th><% if (contas.length > 1) { %><th>Parcela</th><% } %><th class="num">Valor</th><th>Método</th><th>Referência</th><th>Status</th><th>Registrado por</th><th>Ações</th></tr></thead>
+              <tbody>
+                <% pagamentos.forEach(p => { %>
+                  <tr data-id="<%= p.id %>">
+                    <td><%= dataFmt(p.data_pagamento) %></td>
+                    <% if (contas.length > 1) { %><td><%= p.parcela_numero %>/<%= contas[0].parcela_total %></td><% } %>
+                    <td class="num"><%= moeda(p.valor) %></td>
+                    <td><%= ROTULOS_METODO[p.metodo] || p.metodo %></td>
+                    <td><%= p.referencia || '-' %></td>
+                    <td><b class="badge <%= p.status === 'confirmado' ? 'badge--verde' : 'badge--cinza' %>"><%= p.status === 'confirmado' ? 'Confirmado' : 'Estornado' %></b></td>
+                    <td><%= p.usuario_admin_nome || '-' %></td>
+                    <td class="acoes-tabela">
+                      <% if (p.status === 'confirmado') { %>
+                        <a href="#" class="js-estornar-pagamento" data-id="<%= p.id %>">Estornar</a>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+            <% if (!pagamentos.length) { %><p class="tabela-admin__vazia">Nenhum pagamento registrado ainda.</p><% } %>
+          </section>
+        </article>
+
+        <article class="painel painel--tabela" id="painel-form-pagamento" hidden>
+          <header class="painel__cabecalho" style="padding: var(--esp-5) var(--esp-6) 0;">
+            <h2 class="painel__titulo">Registrar pagamento <span id="form-pagamento-parcela-label"></span></h2>
+          </header>
+          <form id="form-pagamento" class="form-admin" style="padding: var(--esp-4) var(--esp-6) var(--esp-6);" data-conta-id="">
+            <label class="campo-admin">
+              <b>Valor (R$) *</b>
+              <input type="number" id="p-valor" min="0.01" step="0.01" required>
+            </label>
+            <label class="campo-admin">
+              <b>Data do pagamento *</b>
+              <input type="date" id="p-data" required data-br-enhance>
+            </label>
+            <label class="campo-admin">
+              <b>Método *</b>
+              <select id="p-metodo" required>
+                <% metodosPagamento.forEach(m => { %>
+                  <option value="<%= m %>"><%= ROTULOS_METODO[m] %></option>
+                <% }) %>
+              </select>
+            </label>
+            <label class="campo-admin">
+              <b>Referência</b>
+              <input type="text" id="p-referencia" maxlength="120" placeholder="Nº do comprovante, transação...">
+            </label>
+            <label class="campo-admin">
+              <b>Observações</b>
+              <textarea id="p-observacoes" maxlength="500" rows="2"></textarea>
+            </label>
+            <output class="form-admin__mensagem" id="form-pagamento-msg" role="alert"></output>
+            <footer class="form-admin__acoes">
+              <button type="button" class="btn-admin btn-admin--secundario" id="btn-cancelar-pagamento">Cancelar</button>
+              <button type="submit" class="btn-admin btn-admin--primario" id="btn-registrar-pagamento">
+                <i class="fas fa-check" aria-hidden="true"></i>Registrar pagamento
+              </button>
+            </footer>
+          </form>
+        </article>
+      <% } %>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-toast.js" defer></script>
+  <script src="/js/admin/date-picker-br.js" defer></script>
+  <script src="/js/admin/admin-compra-detalhes.js" defer></script>
+</body>
+</html>

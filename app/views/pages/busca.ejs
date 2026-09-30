@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= q ? `Busca: "${q}" - Floria` : 'Pesquisa - Floria' %></title>
+  <link rel="stylesheet" href="/css/busca.css">
+  <link rel="stylesheet" href="/css/shared/cards-fix.css">
+</head>
+<body>
+
+  <%- include("../partials/layout/header") %>
+  <%- include("../partials/layout/nav") %>
+
+  <main class="busca-page">
+
+    <!-- HERO -->
+    <section class="busca-hero">
+      <p class="busca-eyebrow">Pesquisa</p>
+      <h1>O que vai reverdecer sua casa hoje?</h1>
+
+      <form class="busca-form" action="/busca" method="get" role="search" aria-label="Busca (página)" id="busca-page-form">
+        <label class="busca-form-campo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="search"
+            name="q"
+            id="busca-page-input"
+            value="<%= q %>"
+            placeholder="Buscar plantas, vasos, cuidados..."
+            autocomplete="off"
+            aria-label="Buscar produtos"
+          >
+        </label>
+        <input type="hidden" name="categoria"   id="busca-page-categoria"   value="<%= categoria %>">
+        <input type="hidden" name="petFriendly" id="busca-page-petfriendly" value="<%= petFriendly ? '1' : '' %>">
+        <input type="hidden" name="poucaLuz"    id="busca-page-poucaluz"    value="<%= poucaLuz ? '1' : '' %>">
+        <button type="submit">Buscar</button>
+      </form>
+
+      <nav class="busca-populares" aria-label="Buscas populares">
+        <b>Populares</b>
+        <a href="/busca?q=Monstera">Monstera</a>
+        <a href="/busca?q=Vaso+de+cerâmica">Vasos de cerâmica</a>
+        <a href="/busca?poucaLuz=1">Pouca luz</a>
+        <a href="/busca?petFriendly=1">Pet friendly</a>
+      </nav>
+    </section>
+
+    <section class="busca-tabs-bar">
+      <nav class="busca-tabs" id="busca-tabs" role="tablist" aria-label="Filtrar por categoria">
+        <button type="button" class="<%= !categoria ? 'ativo' : '' %>" data-filtro="" role="tab" aria-selected="<%= !categoria %>">Tudo</button>
+        <% (locals.categoriasNav || []).forEach(function (c) { %>
+          <button type="button" class="<%= categoria === c.slug ? 'ativo' : '' %>" data-filtro="<%= c.slug %>" role="tab" aria-selected="<%= categoria === c.slug %>"><%= c.nome %></button>
+        <% }) %>
+      </nav>
+      <section class="busca-toggles" id="busca-toggles">
+        <button type="button" class="busca-toggle <%= petFriendly ? 'ativo' : '' %>" data-toggle="petFriendly" aria-pressed="<%= !!petFriendly %>">
+          <i class="fas fa-paw" aria-hidden="true"></i> Pet Friendly
+        </button>
+        <button type="button" class="busca-toggle <%= poucaLuz ? 'ativo' : '' %>" data-toggle="poucaLuz" aria-pressed="<%= !!poucaLuz %>">
+          <i class="fas fa-cloud-moon" aria-hidden="true"></i> Pouca Luz
+        </button>
+      </section>
+      <p class="busca-contagem">
+        <output id="busca-contagem-num"><%= produtos.length %></output>
+        resultado<%= produtos.length !== 1 ? 's' : '' %>
+      </p>
+    </section>
+
+    <section class="busca-resultados" id="busca-resultados-section" aria-label="Resultados" <%= produtos.length === 0 ? 'hidden' : '' %>>
+      <h2 class="sr-only">Resultados da busca</h2>
+      <ul class="busca-grid" id="busca-grid">
+        <% produtos.forEach(function (p) {
+             var preco = p.preco_exibido;
+             var precoFmt = 'R$ ' + Number(preco).toFixed(2).replace('.', ',');
+             var precoAntigo = p.preco_riscado
+               ? 'R$ ' + Number(p.preco_riscado).toFixed(2).replace('.', ',')
+               : null;
+             var slugPagina = p.slug_pagina || p.slug;
+             var href = '/' + slugPagina;
+             var categoriaSlug = (p.categoria_nome || '').toLowerCase()
+               .normalize('NFD').replace(/[̀-ͯ]/g, '');
+             var novo = p.criado_em && (Date.now() - new Date(p.criado_em).getTime()) < 1000 * 60 * 60 * 24 * 30;
+        %>
+        <li class="busca-card-item" data-categoria="<%= categoriaSlug %>">
+          <article class="card card-home">
+            <a href="<%= href %>">
+              <figure>
+                <% if (p.destaque) { %>
+                  <b class="card-badge card-badge-vendida">Mais vendida</b>
+                <% } else if (novo) { %>
+                  <b class="card-badge card-badge-novo">Novo</b>
+                <% } %>
+                <img
+                  src="/imagens/<%= p.imagem || 'image.png' %>"
+                  alt="<%= p.nome %>"
+                  loading="lazy"
+                  data-fallback="/imagens/image.png"
+                >
+                <button type="button" class="btn-favorito btn-favorito--card"
+                  data-slug="<%= slugPagina %>" data-nome="<%= p.nome %>"
+                  data-imagem="/imagens/<%= p.imagem || 'image.png' %>" data-preco="<%= preco %>"
+                  aria-label="Favoritar" aria-pressed="false">
+                  <i class="far fa-heart" aria-hidden="true"></i>
+                </button>
+              </figure>
+              <section class="card-caption">
+                <% if (p.categoria_nome) { %><b class="card-categoria"><%= p.categoria_nome %></b><% } %>
+                <h3><%= p.nome %></h3>
+                <output class="card-rating" data-rating-slot="<%= slugPagina %>" data-rating-pendente>
+                  <i class="card-rating-estrelas" aria-hidden="true"></i>
+                  <b class="card-rating-qtd"></b>
+                </output>
+                <% if (precoAntigo) { %><p class="price-old"><%= precoAntigo %></p><% } %>
+                <p class="price"><%= precoFmt %></p>
+              </section>
+            </a>
+            <footer class="card-footer"><button type="button" class="btn-comprar">Adicionar</button></footer>
+          </article>
+        </li>
+        <% }); %>
+      </ul>
+    </section>
+
+    <!-- ESTADO VAZIO -->
+    <section class="busca-vazio" id="busca-vazio-section" role="status" <%= produtos.length > 0 ? 'hidden' : '' %>>
+      <i class="busca-vazio-icone" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"
+             stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </i>
+      <h2>Nenhum resultado encontrado</h2>
+      <p>Não encontramos produtos <b id="busca-vazio-termo"><% if (q) { %>para <strong>"<%= q %>"</strong><% } else { %>com esses filtros<% } %></b>.</p>
+      <p class="busca-dica">Tente termos como: <em>orquídea, cacto, vaso de cerâmica...</em></p>
+      <nav class="busca-sugestoes">
+        <a href="/plantas" class="busca-sugestao-link">Ver Plantas</a>
+        <a href="/vasos"   class="busca-sugestao-link">Ver Vasos</a>
+        <a href="/maisvendidos" class="busca-sugestao-link">Mais Vendidos</a>
+      </nav>
+    </section>
+
+  </main>
+
+  <%- include("../partials/layout/footer") %>
+
+  <script src="/js/busca-filtros.js"></script>
+
+</body>
+</html>

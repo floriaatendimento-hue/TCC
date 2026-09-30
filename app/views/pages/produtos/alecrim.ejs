@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alecrim - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'alecrim',
+      nome: 'Alecrim',
+      sku: 'FLO-ALECRIM',
+      marca: null,
+      categoriaNome: 'Plantas',
+      categoriaSlug: 'plantas',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/alecrim.jpg', alt: 'Alecrim - vista frontal' },
+        { src: '/imagens/alecrim.jpg', alt: 'Alecrim - detalhe das folhas' },
+        { src: '/imagens/alecrim.jpg', alt: 'Alecrim - ramagem' }
+      ],
+      precoAtual: 35.00,
+      precoAntigo: 45.00,
+      parcelasTexto: 'à vista',
+      estoque: 30,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(19 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-sun', texto: 'Sol pleno' },
+        { icone: 'fas fa-tint', texto: 'Rega moderada' },
+        { icone: 'fas fa-seedling', texto: 'Erva aromática' }
+      ],
+      descricao: 'O Alecrim (Rosmarinus officinalis) é uma erva aromática mediterrânea muito versátil: decora, perfuma ambientes e ainda serve na culinária. Resistente ao calor e à seca, precisa de sol pleno e rega moderada. Ideal para vasos em varandas, janelas ensolaradas e jardins de ervas. Seu aroma característico afasta insetos naturalmente.',
+      beneficios: 'Perfuma o ambiente naturalmente, é comestível e ainda ajuda a afastar insetos ao redor do vaso.',
+      comoUtilizar: 'Posicione em local com sol pleno, regue moderadamente e colha os ramos conforme a necessidade. A poda regular estimula o crescimento.',
+      recomendacoes: 'Evite excesso de água: raízes encharcadas apodrecem facilmente. Prefira vasos com boa drenagem.',
+      ficha: [
+        { rotulo: 'Nome científico', valor: 'Salvia rosmarinus' },
+        { rotulo: 'Família', valor: 'Lamiaceae' },
+        { rotulo: 'Porte (muda vendida)', valor: '20 – 40 cm' },
+        { rotulo: 'Luminosidade', valor: 'Sol pleno' },
+        { rotulo: 'Toxicidade', valor: 'Não tóxica: seguro para cães e gatos' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-sun', titulo: 'Luz', texto: 'Sol pleno, pelo menos 6h de luz direta por dia.' },
+        { icone: 'fas fa-tint', titulo: 'Rega', texto: 'Moderada: deixe o substrato secar entre uma rega e outra.' },
+        { icone: 'fas fa-thermometer-half', titulo: 'Temperatura', texto: '15°C – 28°C. Tolera bem o calor.' },
+        { icone: 'fas fa-exclamation-triangle', titulo: 'Atenção', texto: 'Exige ótima drenagem: evite encharcar o substrato.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<%
+/* Página única de Configurações: Geral/Contato/Frete — os únicos grupos
+   com alguma configuração de fato persistida no banco hoje (ver
+   SEED_CONFIGURACOES em config/migrar.js) — aparecem como seções de uma
+   mesma página dentro de um só <form>, com um só botão de salvar.
+   Sem categorias/abas navegáveis: o pedido foi por uma página única. */
+const val = (chave) => config[chave] || '';
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Configurações</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'configuracoes' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Configurações' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Configurações</h1>
+          <p class="admin-page-header__data">Gerencie as configurações da sua loja.</p>
+        </hgroup>
+      </header>
+
+      <p class="config-alteracoes-pendentes" id="config-alteracoes-pendentes" role="status" hidden>
+        <i class="fas fa-exclamation-circle" aria-hidden="true"></i>
+        Você tem alterações não salvas.
+      </p>
+
+      <form class="config-secoes" id="form-configuracoes" data-config-form>
+        <%- include("../../partials/configuracoes/geral", { val }) %>
+        <%- include("../../partials/configuracoes/contato", { val }) %>
+        <%- include("../../partials/configuracoes/frete", { val }) %>
+
+        <output class="form-admin__mensagem" id="form-configuracoes-msg" role="alert"></output>
+        <footer class="form-admin__acoes">
+          <button type="reset" class="btn-admin btn-admin--secundario">Cancelar</button>
+          <button type="submit" class="btn-admin btn-admin--primario">Salvar alterações</button>
+        </footer>
+      </form>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-configuracoes.js" defer></script>
+</body>
+</html>

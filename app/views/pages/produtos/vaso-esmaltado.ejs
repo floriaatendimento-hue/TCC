@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaso Esmaltado - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'vaso-esmaltado',
+      nome: 'Vaso Esmaltado',
+      sku: 'FLO-VASOESMALTADO',
+      marca: null,
+      categoriaNome: 'Vasos & Cachepôs',
+      categoriaSlug: 'vasos',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/produtos-fotos/vaso-esmaltado-1.webp', alt: 'Vaso Esmaltado - frente' },
+        { src: '/imagens/produtos-fotos/vaso-esmaltado-2.webp', alt: 'Vaso Esmaltado - detalhe' },
+        { src: '/imagens/produtos-fotos/vaso-esmaltado-3.webp', alt: 'Vaso Esmaltado - lateral' }
+      ],
+      precoAtual: 72.00,
+      precoAntigo: 90.00,
+      parcelasTexto: 'em até 2x sem juros',
+      estoque: 23,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(12 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-star', texto: 'Esmalte vitrificado' },
+        { icone: 'fas fa-shield-alt', texto: 'Alta durabilidade' },
+        { icone: 'fas fa-sun', texto: 'Uso interno' }
+      ],
+      descricao: 'Vaso de cerâmica com revestimento de esmalte vitrificado que garante um acabamento brilhante e sofisticado. A superfície lisa facilita a limpeza e resiste a manchas. Disponível em tonalidades neutras que harmonizam com qualquer decoração. Ótimo para cactos, suculentas e plantas tropicais de pequeno porte. Inclui prato de mesmo material.',
+      beneficios: 'Superfície lisa e brilhante que facilita a limpeza e resiste a manchas do dia a dia.',
+      comoUtilizar: 'Utilize o prato incluso, do mesmo material, para coletar o excesso de água drenada.',
+      recomendacoes: 'Evite impactos que possam trincar o esmalte vitrificado.',
+      ficha: [
+        { rotulo: 'Material', valor: 'Cerâmica com esmalte vitrificado' },
+        { rotulo: 'Acabamento', valor: 'Brilhante, tonalidades neutras' },
+        { rotulo: 'Uso', valor: 'Interno' },
+        { rotulo: 'Drenagem', valor: 'Furo de drenagem com prato incluso' },
+        { rotulo: 'Porte indicado', valor: 'Cactos, suculentas e plantas tropicais de pequeno porte' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-cube', titulo: 'Material', texto: 'Esmalte vitrificado de alta durabilidade: evite impactos fortes.' },
+        { icone: 'fas fa-ruler-combined', titulo: 'Capacidade', texto: 'Indicado para cactos, suculentas e plantas tropicais de pequeno porte.' },
+        { icone: 'fas fa-tint', titulo: 'Drenagem', texto: 'Furo de drenagem com prato do mesmo material incluso.' },
+        { icone: 'fas fa-broom', titulo: 'Limpeza', texto: 'A superfície lisa facilita a limpeza: basta um pano úmido.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

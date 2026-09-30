@@ -1,0 +1,28 @@
+<%
+/* Partial: variações (cor/tamanho/modelo/volume). Cada grupo vira um
+   fieldset.cores independente — cores-produto.js liga automaticamente
+   qualquer fieldset.cores presente na página.
+   Local esperado: variacoes — array de
+     { tipo: 'cor'|'tamanho'|'modelo'|'volume', rotulo, opcoes: [
+         { id, rotulo, corHex, preco, imagem, disponivel, selecionada }
+     ]}
+*/
+%>
+<% (variacoes || []).forEach(function (grupo) { %>
+<fieldset class="cores" data-tipo="<%= grupo.tipo %>">
+  <legend><%= grupo.rotulo %>:</legend>
+  <% grupo.opcoes.forEach(function (op) { %>
+    <button
+      type="button"
+      class="cor<%= op.selecionada ? ' selecionada' : '' %>"
+      <% if (grupo.tipo === 'cor' && op.corHex) { %>style="background:<%= op.corHex %>;"<% } %>
+      title="<%= op.rotulo %>"
+      aria-label="<%= op.rotulo %>"
+      data-cor="<%= op.id %>"
+      <% if (op.preco != null) { %>data-preco="<%= op.preco %>"<% } %>
+      <% if (op.imagem) { %>data-imagem="<%= op.imagem %>"<% } %>
+      <% if (op.disponivel === false) { %>data-disponivel="false"<% } %>
+    ><%= grupo.tipo !== 'cor' ? op.rotulo : '' %></button>
+  <% }); %>
+</fieldset>
+<% }); %>

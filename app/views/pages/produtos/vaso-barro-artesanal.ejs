@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaso de Barro Artesanal - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'vaso-barro-artesanal',
+      nome: 'Vaso de Barro Artesanal',
+      sku: 'FLO-VASOBARROARTESANAL',
+      marca: null,
+      categoriaNome: 'Vasos & Cachepôs',
+      categoriaSlug: 'vasos',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/produtos-fotos/vaso-barro-artesanal-1.webp', alt: 'Vaso de Barro Artesanal - frente' },
+        { src: '/imagens/produtos-fotos/vaso-barro-artesanal-2.webp', alt: 'Vaso de Barro Artesanal - detalhe' },
+        { src: '/imagens/produtos-fotos/vaso-barro-artesanal-3.webp', alt: 'Vaso de Barro Artesanal - lateral' }
+      ],
+      precoAtual: 45.00,
+      precoAntigo: 60.00,
+      parcelasTexto: 'à vista',
+      estoque: 22,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(24 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-star', texto: 'Feito à mão' },
+        { icone: 'fas fa-shield-alt', texto: 'Barro nobre' },
+        { icone: 'fas fa-sun', texto: 'Interno e externo' }
+      ],
+      descricao: 'Peça única feita à mão por artesãos do interior de São Paulo, usando barro extraído de jazidas naturais certificadas. O acabamento rústico e irregular é intencional: cada vaso é uma obra singular. A textura porosa do barro regula naturalmente a umidade do substrato, prevenindo o apodrecimento das raízes. Compatível com plantas de pequeno e médio porte.',
+      beneficios: 'A porosidade natural do barro regula a umidade do substrato, prevenindo o apodrecimento das raízes.',
+      comoUtilizar: 'Posicione em local firme e nivelado; por ser peça artesanal, pequenas variações de forma e cor são esperadas.',
+      recomendacoes: 'Evite impactos e mudanças bruscas de temperatura, que podem trincar o barro.',
+      ficha: [
+        { rotulo: 'Material', valor: 'Barro natural, feito à mão' },
+        { rotulo: 'Acabamento', valor: 'Rústico artesanal' },
+        { rotulo: 'Uso', valor: 'Interno e externo' },
+        { rotulo: 'Drenagem', valor: 'Porosidade natural do barro' },
+        { rotulo: 'Porte indicado', valor: 'Plantas de pequeno a médio porte' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-cube', titulo: 'Material', texto: 'Barro natural poroso: evite impactos e mudanças bruscas de temperatura.' },
+        { icone: 'fas fa-ruler-combined', titulo: 'Capacidade', texto: 'Indicado para plantas de pequeno a médio porte.' },
+        { icone: 'fas fa-tint', titulo: 'Drenagem', texto: 'A porosidade natural do barro já ajuda a regular a umidade do substrato.' },
+        { icone: 'fas fa-broom', titulo: 'Limpeza', texto: 'Limpe com pano úmido; evite produtos químicos que possam manchar o barro.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

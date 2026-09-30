@@ -1,0 +1,19 @@
+<%
+/* ADICIONADO (integração loja/produto): filtro de subcategoria das
+   páginas de categoria da loja (Plantas, Vasos, Categoria.ejs). Só
+   subcategorias ATIVAS chegam aqui (Subcategoria.findByCategoria com
+   somenteAtivas:true, nas rotas de router.js). Os links usam querystring
+   relativa (?subcategoria=slug) — funcionam em qualquer página que
+   inclua este partial, sem precisar saber a própria URL. Só renderiza
+   se a categoria tiver ao menos uma subcategoria ativa. */
+%>
+<% if (typeof subcategorias !== 'undefined' && subcategorias && subcategorias.length) { %>
+  <nav class="subcategorias-filtro" aria-label="Filtrar por subcategoria">
+    <ul>
+      <li><a href="?" class="<%= !subcategoriaAtiva ? 'ativo' : '' %>" aria-current="<%= !subcategoriaAtiva ? 'true' : 'false' %>">Todas</a></li>
+      <% subcategorias.forEach(function (s) { %>
+        <li><a href="?subcategoria=<%= s.slug %>" class="<%= subcategoriaAtiva === s.slug ? 'ativo' : '' %>" aria-current="<%= subcategoriaAtiva === s.slug ? 'true' : 'false' %>"><%= s.nome %></a></li>
+      <% }) %>
+    </ul>
+  </nav>
+<% } %>

@@ -1,0 +1,156 @@
+<%
+/* ADICIONADO (Fase 3): página de moderação de Avaliações.
+   `avaliacoes` vem de Comentario.findAllAdmin(). A resposta do lojista
+   usa <details>/<summary> como acordeão nativo (sem JS de toggle).
+   ADICIONADO (Fase 6): aprovar/reprovar avaliação + moderar mídia
+   (fotos/vídeos) anexada a cada uma — `av.midias` vem junto da rota. */
+const dataFmt = (d) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(d));
+const paramsBase = (nota ? `&nota=${nota}` : '') + (status ? `&status=${status}` : '');
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Avaliações</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'avaliacoes' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Avaliações' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Avaliações</h1>
+          <p class="admin-page-header__data"><%= total %> avaliação(ões) recebida(s)</p>
+        </hgroup>
+      </header>
+
+      <form class="admin-toolbar" method="get" action="/admin/avaliacoes">
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Filtrar por nota</b>
+          <select name="nota" onchange="this.form.submit()">
+            <option value="">Todas as notas</option>
+            <% [5,4,3,2,1].forEach(n => { %>
+              <option value="<%= n %>" <%= String(nota) === String(n) ? 'selected' : '' %>><%= n %> estrela(s)</option>
+            <% }) %>
+          </select>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Filtrar por status</b>
+          <select name="status" onchange="this.form.submit()">
+            <option value="">Todos os status</option>
+            <option value="aprovado"  <%= status === 'aprovado'  ? 'selected' : '' %>>Aprovadas</option>
+            <option value="reprovado" <%= status === 'reprovado' ? 'selected' : '' %>>Reprovadas</option>
+          </select>
+        </label>
+        <% if (nota || status) { %><a class="btn-admin btn-admin--secundario" href="/admin/avaliacoes">Limpar filtros</a><% } %>
+      </form>
+
+      <% if (!avaliacoes.length) { %>
+        <article class="painel"><p class="tabela-admin__vazia">Nenhuma avaliação encontrada.</p></article>
+      <% } else { %>
+        <% avaliacoes.forEach(av => { %>
+          <article class="painel" style="margin-bottom: var(--esp-4);" data-id="<%= av.id %>">
+            <header class="painel__cabecalho">
+              <hgroup>
+                <h2 class="painel__titulo" style="font-size: var(--texto-base);">
+                  <%= av.usuario_nome %>
+                  <b class="badge badge--dourado"><%= av.avaliacao %> <i class="fas fa-star" aria-hidden="true"></i></b>
+                  <b class="badge <%= av.status === 'reprovado' ? 'badge--vermelho' : 'badge--verde' %> js-status-badge">
+                    <%= av.status === 'reprovado' ? 'Reprovada' : 'Aprovada' %>
+                  </b>
+                </h2>
+                <p class="painel__subtitulo">
+                  Produto: <%= av.produto_slug %> · <%= dataFmt(av.criado_em) %>
+                  <% if (av.editado_em) { %> · editado em <%= dataFmt(av.editado_em) %><% } %>
+                </p>
+              </hgroup>
+              <menu class="admin-avaliacao-acoes">
+                <li><button type="button"
+                        class="btn-admin btn-admin--secundario js-toggle-status"
+                        data-id="<%= av.id %>"
+                        data-proximo-status="<%= av.status === 'reprovado' ? 'aprovado' : 'reprovado' %>">
+                  <%= av.status === 'reprovado' ? 'Aprovar' : 'Reprovar' %>
+                </button></li>
+                <li><button type="button" class="btn-admin btn-admin--perigo js-excluir-avaliacao" data-id="<%= av.id %>"><i class="fas fa-trash" aria-hidden="true"></i>Excluir avaliação</button></li>
+              </menu>
+            </header>
+            <p style="margin: var(--esp-3) 0; font-size: var(--texto-sm);"><%= av.comentario %></p>
+
+            <% if (av.midias && av.midias.length) { %>
+              <ul class="admin-midia-grid">
+                <% av.midias.forEach(m => { %>
+                  <li class="admin-midia-item <%= m.oculto ? 'is-oculta' : '' %>" data-midia-id="<%= m.id %>">
+                    <% if (m.tipo === 'video') { %>
+                      <video src="<%= m.arquivo %>" <% if (m.thumbnail) { %>poster="<%= m.thumbnail %>"<% } %> controls preload="metadata"></video>
+                      <b class="admin-midia-tipo">Vídeo</b>
+                    <% } else { %>
+                      <img src="<%= m.thumbnail || m.arquivo %>" alt="Foto enviada por <%= av.usuario_nome %>">
+                    <% } %>
+                    <% if (m.oculto) { %><b class="admin-midia-oculta-aviso">Oculta</b><% } %>
+                    <footer class="admin-midia-acoes">
+                      <button type="button" class="admin-midia-btn js-midia-ocultar"
+                              data-id="<%= m.id %>" data-oculto="<%= m.oculto ? '1' : '0' %>">
+                        <%= m.oculto ? 'Reexibir' : 'Ocultar' %>
+                      </button>
+                      <button type="button" class="admin-midia-btn admin-midia-btn--excluir js-midia-excluir" data-id="<%= m.id %>">
+                        Excluir
+                      </button>
+                    </footer>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } %>
+
+            <% if (av.resposta) { %>
+              <details style="margin-top: var(--esp-3);">
+                <summary style="cursor:pointer; font-size: var(--texto-xs); color: var(--verde-medio); font-weight:700;">
+                  Resposta do lojista (<%= dataFmt(av.resposta_em) %>) - editar
+                </summary>
+                <form class="form-admin js-form-resposta" data-id="<%= av.id %>" style="padding: var(--esp-3) 0 0;">
+                  <label class="campo-admin">
+                    <textarea rows="2" maxlength="1000" class="js-resposta-texto"><%= av.resposta %></textarea>
+                  </label>
+                  <output class="form-admin__mensagem js-resposta-msg" role="alert"></output>
+                  <footer class="form-admin__acoes" style="border-top:none; padding-top:0;">
+                    <button type="button" class="btn-admin btn-admin--secundario js-remover-resposta" data-id="<%= av.id %>">Remover resposta</button>
+                    <button type="submit" class="btn-admin btn-admin--primario">Atualizar resposta</button>
+                  </footer>
+                </form>
+              </details>
+            <% } else { %>
+              <details style="margin-top: var(--esp-3);">
+                <summary style="cursor:pointer; font-size: var(--texto-xs); color: var(--dourado-hover); font-weight:700;">Responder avaliação</summary>
+                <form class="form-admin js-form-resposta" data-id="<%= av.id %>" style="padding: var(--esp-3) 0 0;">
+                  <label class="campo-admin">
+                    <textarea rows="2" maxlength="1000" class="js-resposta-texto" placeholder="Escreva sua resposta pública..."></textarea>
+                  </label>
+                  <output class="form-admin__mensagem js-resposta-msg" role="alert"></output>
+                  <footer class="form-admin__acoes" style="border-top:none; padding-top:0;">
+                    <button type="submit" class="btn-admin btn-admin--primario">Enviar resposta</button>
+                  </footer>
+                </form>
+              </details>
+            <% } %>
+          </article>
+        <% }) %>
+      <% } %>
+
+      <% if (totalPaginas > 1) { %>
+        <nav class="paginacao" aria-label="Paginação de avaliações">
+          <% if (pagina > 1) { %><a href="/admin/avaliacoes?pagina=<%= pagina - 1 %><%= paramsBase %>">‹</a><% } else { %><b class="desabilitado">‹</b><% } %>
+          <% for (let p = 1; p <= totalPaginas; p++) { %>
+            <% if (p === pagina) { %><b class="atual"><%= p %></b><% } else { %><a href="/admin/avaliacoes?pagina=<%= p %><%= paramsBase %>"><%= p %></a><% } %>
+          <% } %>
+          <% if (pagina < totalPaginas) { %><a href="/admin/avaliacoes?pagina=<%= pagina + 1 %><%= paramsBase %>">›</a><% } else { %><b class="desabilitado">›</b><% } %>
+        </nav>
+      <% } %>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-avaliacoes.js" defer></script>
+</body>
+</html>

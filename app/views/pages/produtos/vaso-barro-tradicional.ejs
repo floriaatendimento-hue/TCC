@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaso de Barro Tradicional - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'vaso-barro-tradicional',
+      nome: 'Vaso de Barro Tradicional',
+      sku: 'FLO-VASOBARROTRADICIONAL',
+      marca: null,
+      categoriaNome: 'Vasos & Cachepôs',
+      categoriaSlug: 'vasos',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/produtos-fotos/vaso-barro-tradicional-1.webp', alt: 'Vaso de Barro Tradicional - frente' },
+        { src: '/imagens/produtos-fotos/vaso-barro-tradicional-2.webp', alt: 'Vaso de Barro Tradicional - detalhe' },
+        { src: '/imagens/produtos-fotos/vaso-barro-tradicional-3.webp', alt: 'Vaso de Barro Tradicional - lateral' }
+      ],
+      precoAtual: 40.00,
+      precoAntigo: 55.00,
+      parcelasTexto: 'à vista',
+      estoque: 26,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(31 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-star', texto: '100% artesanal' },
+        { icone: 'fas fa-shield-alt', texto: 'Poroso e natural' },
+        { icone: 'fas fa-sun', texto: 'Interno e externo' }
+      ],
+      descricao: 'O Vaso de Barro Tradicional é produzido por ceramistas brasileiros seguindo técnicas ancestrais. Sua porosidade natural favorece a aeração do solo e regula a umidade das raízes, criando condições ideais para o crescimento das plantas. Resistente ao sol e à chuva, é perfeito tanto para jardins externos quanto para ambientes internos com iluminação natural.',
+      beneficios: 'A porosidade natural favorece a aeração do solo e cria condições ideais para o crescimento saudável das raízes.',
+      comoUtilizar: 'Pode ser usado em jardins externos ou ambientes internos com boa iluminação natural, sobre um prato coletor.',
+      recomendacoes: 'Resistente ao sol e à chuva, mas evite impactos que possam trincar a peça.',
+      ficha: [
+        { rotulo: 'Material', valor: 'Barro cozido tradicional' },
+        { rotulo: 'Acabamento', valor: 'Natural, sem esmalte' },
+        { rotulo: 'Uso', valor: 'Interno e externo' },
+        { rotulo: 'Drenagem', valor: 'Porosidade natural do barro' },
+        { rotulo: 'Porte indicado', valor: 'Plantas de pequeno a médio porte' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-cube', titulo: 'Material', texto: 'Barro cozido resistente ao sol e à chuva: evite impactos que possam trincar a peça.' },
+        { icone: 'fas fa-ruler-combined', titulo: 'Capacidade', texto: 'Indicado para plantas de pequeno a médio porte.' },
+        { icone: 'fas fa-tint', titulo: 'Drenagem', texto: 'A porosidade natural do barro favorece a aeração do solo e das raízes.' },
+        { icone: 'fas fa-broom', titulo: 'Limpeza', texto: 'Limpe com pano úmido e escova macia para remover resíduos de terra.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

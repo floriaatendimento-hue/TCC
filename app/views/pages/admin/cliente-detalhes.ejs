@@ -1,0 +1,363 @@
+<%
+/* ADICIONADO (CRM de Clientes): perfil completo do cliente — visão única
+   para o admin prestar suporte sem precisar visitar outras telas.
+   Todos os dados já chegam prontos da rota (GET /admin/clientes/:id);
+   este template só formata e organiza em seções. Nenhuma tag <div> —
+   só HTML semântico, seguindo o padrão do resto do painel admin.
+
+   REDESIGN: a antiga grade de 8 stat-cards saiu do template (os dados
+   de estatisticas/rankingCompras continuam vindo da rota, sem uso aqui,
+   pra não mexer no backend por causa de uma troca visual). No lugar,
+   perfil + nível + endereço viram uma barra lateral, e o histórico de
+   pedidos vira o bloco central da página, como composição de cartões
+   em vez de tabela. */
+const dataFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR').format(new Date(d)) : '-';
+const dataHoraFmt = (d) => d ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(d)) : '-';
+const moeda = (v) => 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',');
+const somenteDigitos = (s) => (s || '').replace(/\D/g, '');
+
+const BADGE_STATUS_PEDIDO = {
+  preparando: 'badge--dourado', enviado: 'badge--azul', em_transporte: 'badge--azul',
+  saiu_entrega: 'badge--azul', entregue: 'badge--verde', cancelado: 'badge--vermelho',
+};
+/* Mesmo mapa de cores usado em admin-pedido-detalhes.ejs e Pedidos.ejs —
+   o mesmo status de pagamento precisa ter a mesma cor em toda página do
+   admin (achado da auditoria de consistência da reimaginação estrutural). */
+const BADGE_STATUS_PAGAMENTO = {
+  pendente: 'badge--dourado', processando: 'badge--azul', aprovado: 'badge--verde',
+  recusado: 'badge--vermelho', expirado: 'badge--cinza', estornado: 'badge--cinza',
+};
+const MARCADOR_TIMELINE = { conta: 'criar', pedido: 'status', cancelamento: 'excluir', avaliacao: 'editar' };
+const ICONE_TIMELINE = { conta: 'fa-user-plus', pedido: 'fa-receipt', cancelamento: 'fa-times-circle', avaliacao: 'fa-star' };
+
+const enderecoPrincipal = enderecos.find(e => e.padrao) || enderecos[0] || null;
+const outrosEnderecos = enderecoPrincipal ? enderecos.filter(e => e !== enderecoPrincipal) : [];
+
+const whatsapp = cliente.telefone && somenteDigitos(cliente.telefone).length >= 10
+  ? '55' + somenteDigitos(cliente.telefone) : null;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - <%= cliente.nome %></title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'clientes' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: cliente.nome }) %>
+
+    <main class="admin-main cliente-detalhes" data-cliente-id="<%= cliente.id %>">
+
+      <header class="cliente-topo">
+        <nav class="admin-breadcrumb-secundaria" aria-label="Trilha de navegação">
+          <a href="/admin/clientes">Clientes</a><b aria-hidden="true">/</b><b class="atual"><%= cliente.nome %></b>
+        </nav>
+        <a class="btn-admin btn-admin--secundario btn-admin--pequeno cliente-topo__voltar" href="/admin/clientes">
+          <i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar para clientes
+        </a>
+      </header>
+
+      <!-- PERFIL DO CLIENTE -->
+      <article class="cliente-perfil-card" aria-label="Perfil do cliente">
+        <figure class="cliente-perfil-avatar">
+          <img src="<%= cliente.foto_perfil || '/imagens/perfil.png' %>" alt="" data-fallback="/imagens/perfil.png">
+        </figure>
+
+        <hgroup class="cliente-perfil-id">
+          <h1><%= cliente.nome %></h1>
+          <p class="cliente-perfil-selos">
+            <b class="badge <%= cliente.ativo ? 'badge--verde' : 'badge--vermelho' %>"><%= cliente.ativo ? 'Conta ativa' : 'Conta bloqueada' %></b>
+            <% if (locals.nivel && nivel.atual) { %>
+              <b class="badge badge--dourado"><i class="fas fa-<%= nivel.atual.icone || 'seedling' %>" aria-hidden="true"></i> Nível <%= nivel.atual.nome %></b>
+            <% } %>
+            <b class="cliente-perfil-desde">Cliente desde <%= dataFmt(cliente.criado_em) %></b>
+          </p>
+        </hgroup>
+
+        <dl class="cliente-perfil-contato">
+          <dt><i class="fas fa-envelope" aria-hidden="true"></i><b class="sr-only">E-mail</b></dt>
+          <dd><a href="mailto:<%= cliente.email %>"><%= cliente.email %></a></dd>
+          <dt><i class="fas fa-phone" aria-hidden="true"></i><b class="sr-only">Telefone</b></dt>
+          <dd><%= cliente.telefone || 'Não informado' %></dd>
+        </dl>
+
+        <nav class="cliente-perfil-acoes" aria-label="Ações do cliente">
+          <label class="toggle" title="Ativar/bloquear conta">
+            <input type="checkbox" id="toggle-ativo-cliente" <%= cliente.ativo ? 'checked' : '' %> aria-label="Cliente ativo">
+            <i class="toggle__trilho" aria-hidden="true"></i>
+          </label>
+          <b class="cliente-perfil-acoes__legenda">Ativar / bloquear conta</b>
+        </nav>
+      </article>
+
+      <!-- ATALHOS DE ATENDIMENTO -->
+      <nav class="cliente-atalhos" aria-label="Ações rápidas de atendimento">
+        <a class="cliente-atalho" href="#historico-pedidos"><i class="fas fa-receipt" aria-hidden="true"></i>Ver pedidos</a>
+        <a class="cliente-atalho" href="#endereco"><i class="fas fa-map-marker-alt" aria-hidden="true"></i>Ver endereço</a>
+        <a class="cliente-atalho" href="#nivel-cliente"><i class="fas fa-seedling" aria-hidden="true"></i>Nível do cliente</a>
+        <a class="cliente-atalho" href="#suporte"><i class="fas fa-headset" aria-hidden="true"></i>Histórico de suporte</a>
+        <a class="cliente-atalho" href="mailto:<%= cliente.email %>"><i class="fas fa-envelope" aria-hidden="true"></i>Enviar e-mail</a>
+        <% if (whatsapp) { %>
+          <a class="cliente-atalho" href="https://wa.me/<%= whatsapp %>" target="_blank" rel="noopener"><i class="fab fa-whatsapp" aria-hidden="true"></i>WhatsApp</a>
+        <% } %>
+      </nav>
+
+      <section class="cliente-layout">
+
+        <!-- COLUNA LATERAL -->
+        <aside class="cliente-lateral" aria-label="Informações do cliente">
+
+          <article class="painel" aria-label="Dados pessoais">
+            <header class="painel__cabecalho"><p class="painel__titulo">Dados pessoais</p></header>
+            <dl class="lista-def">
+              <dt>Nome</dt><dd><%= cliente.nome %></dd>
+              <dt>E-mail</dt><dd><%= cliente.email %></dd>
+              <dt>Telefone</dt><dd><%= cliente.telefone || 'Não informado' %></dd>
+              <dt>CPF</dt>
+              <dd>
+                <% if (cliente.cpf) {
+                     const cpfFmt = cliente.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+                     const cpfMasc = cliente.cpf.replace(/^(\d{3})\d{6}(\d{2})$/, '$1.***.***-$2');
+                %>
+                  <b id="cliente-cpf-valor" data-cheio="<%= cpfFmt %>" data-mascarado="<%= cpfMasc %>"><%= cpfMasc %></b>
+                  <button type="button" id="cliente-cpf-toggle" class="cliente-cpf-toggle" aria-label="Mostrar CPF completo" aria-pressed="false">
+                    <i class="far fa-eye" aria-hidden="true"></i>
+                  </button>
+                <% } else { %>
+                  Não informado
+                <% } %>
+              </dd>
+              <dt>Cadastro</dt><dd><%= dataHoraFmt(cliente.criado_em) %></dd>
+              <dt>Último acesso</dt><dd><%= cliente.ultimo_acesso ? dataHoraFmt(cliente.ultimo_acesso) : 'Nunca acessou' %></dd>
+              <dt>Status</dt><dd><b class="badge <%= cliente.ativo ? 'badge--verde' : 'badge--vermelho' %>"><%= cliente.ativo ? 'Ativa' : 'Bloqueada' %></b></dd>
+            </dl>
+          </article>
+
+          <!-- NÍVEL DO CLIENTE -->
+          <article class="painel cliente-nivel" id="nivel-cliente" aria-label="Nível do cliente">
+            <header class="painel__cabecalho"><p class="painel__titulo">Nível do jardineiro</p></header>
+
+            <% if (!locals.nivel) { %>
+              <p class="tabela-admin__vazia">Nível indisponível no momento.</p>
+            <% } else { %>
+              <p class="cliente-nivel__atual">
+                <i class="cliente-nivel__icone" aria-hidden="true"><i class="fas fa-<%= (nivel.atual && nivel.atual.icone) || 'seedling' %>" aria-hidden="true"></i></i>
+                <%= nivel.atual ? nivel.atual.nome : 'Começando agora' %>
+              </p>
+              <p class="cliente-nivel__total">
+                Total acumulado em compras: <strong><%= moeda(nivel.total_gasto) %></strong>
+              </p>
+
+              <% if (nivel.proximo) { %>
+                <progress class="cliente-nivel__barra" max="100" value="<%= nivel.progresso_percentual %>"><%= nivel.progresso_percentual %>%</progress>
+                <p class="cliente-nivel__proximo">
+                  Faltam <strong><%= moeda(nivel.falta_para_proximo) %></strong> para
+                  <i class="fas fa-<%= nivel.proximo.icone || 'seedling' %>" aria-hidden="true"></i> <strong><%= nivel.proximo.nome %></strong>
+                </p>
+              <% } else { %>
+                <p class="cliente-nivel__proximo cliente-nivel__proximo--topo"><i class="fas fa-trophy" aria-hidden="true"></i> Já está no nível mais alto da Floria.</p>
+              <% } %>
+            <% } %>
+          </article>
+
+          <!-- ENDEREÇO -->
+          <article class="painel" id="endereco" aria-label="Endereço">
+            <header class="painel__cabecalho"><p class="painel__titulo">Endereço</p></header>
+            <% if (!enderecoPrincipal) { %>
+              <p class="tabela-admin__vazia">Nenhum endereço cadastrado.</p>
+            <% } else { %>
+              <address class="cliente-endereco-principal">
+                <p class="cliente-endereco-principal__rotulo">
+                  <%= enderecoPrincipal.rotulo || 'Endereço' %>
+                  <% if (enderecoPrincipal.padrao) { %><b class="badge badge--dourado">Principal</b><% } %>
+                </p>
+                <%= enderecoPrincipal.destinatario %><br>
+                <%= enderecoPrincipal.logradouro %>, <%= enderecoPrincipal.numero %><% if (enderecoPrincipal.complemento) { %>, <%= enderecoPrincipal.complemento %><% } %><br>
+                <%= enderecoPrincipal.bairro %>, <%= enderecoPrincipal.cidade %>/<%= enderecoPrincipal.uf %><br>
+                CEP <%= enderecoPrincipal.cep %><br>
+                <%= enderecoPrincipal.telefone %>
+              </address>
+
+              <% if (outrosEnderecos.length) { %>
+                <details class="cliente-endereco-outros">
+                  <summary>Ver mais <%= outrosEnderecos.length %> endereço<%= outrosEnderecos.length > 1 ? 's' : '' %></summary>
+                  <ul>
+                    <% outrosEnderecos.forEach(e => { %>
+                      <li>
+                        <address>
+                          <strong><%= e.rotulo || 'Endereço' %></strong><br>
+                          <%= e.logradouro %>, <%= e.numero %>, <%= e.bairro %>, <%= e.cidade %>/<%= e.uf %>
+                        </address>
+                      </li>
+                    <% }) %>
+                  </ul>
+                </details>
+              <% } %>
+            <% } %>
+          </article>
+
+        </aside>
+
+        <!-- COLUNA PRINCIPAL -->
+        <section class="cliente-principal">
+
+          <!-- HISTÓRICO DE PEDIDOS -->
+          <article class="painel" id="historico-pedidos" aria-label="Histórico de pedidos">
+            <header class="painel__cabecalho"><p class="painel__titulo">Histórico de Pedidos (<%= pedidos.length %>)</p></header>
+            <% if (!pedidos.length) { %>
+              <p class="tabela-admin__vazia">Este cliente ainda não realizou nenhum pedido.</p>
+            <% } else { %>
+              <ol class="pedidos-lista">
+                <% pedidos.forEach(p => {
+                     const qtdTotal = p.itens.reduce((s, i) => s + Number(i.quantidade || 0), 0);
+                     const nomesProdutos = p.itens.map(i => i.produto_nome).filter(Boolean).join(', ');
+                     const nomesResumo = nomesProdutos.length > 90 ? nomesProdutos.slice(0, 90) + '…' : (nomesProdutos || '-');
+                %>
+                  <li class="pedido-card">
+                    <article>
+                      <header class="pedido-card__topo">
+                        <p class="pedido-card__numero">Pedido <strong>#<%= p.id %></strong></p>
+                        <p class="pedido-card__data"><i class="fas fa-calendar" aria-hidden="true"></i><%= dataFmt(p.criado_em) %></p>
+                        <b class="badge <%= BADGE_STATUS_PEDIDO[p.status] || 'badge--cinza' %>"><%= rotulosEtapa[p.status] || p.status %></b>
+                        <b class="badge <%= BADGE_STATUS_PAGAMENTO[p.status_pagamento] || 'badge--cinza' %>"><%= rotulosStatusPagamento[p.status_pagamento] || p.status_pagamento %></b>
+                      </header>
+
+                      <p class="pedido-card__produtos" title="<%= nomesProdutos %>">
+                        <%= nomesResumo %> <small>(<%= qtdTotal %> <%= qtdTotal === 1 ? 'item' : 'itens' %>)</small>
+                      </p>
+
+                      <footer class="pedido-card__rodape">
+                        <dl class="pedido-card__meta">
+                          <dt>Valor total</dt><dd><%= moeda(p.total) %></dd>
+                          <dt>Pagamento</dt><dd><%= p.forma_pagto || '-' %></dd>
+                          <% if (p.cupom) { %><dt>Cupom</dt><dd><%= p.cupom %></dd><% } %>
+                          <% if (p.codigo_rastreio) { %><dt>Rastreio</dt><dd><%= p.codigo_rastreio %></dd><% } %>
+                        </dl>
+                        <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="/pedido/<%= p.id %>" target="_blank" rel="noopener">
+                          <i class="fas fa-external-link-alt" aria-hidden="true"></i>Ver pedido
+                        </a>
+                      </footer>
+                    </article>
+                  </li>
+                <% }) %>
+              </ol>
+            <% } %>
+          </article>
+
+          <!-- LINHA DO TEMPO -->
+          <article class="painel" aria-label="Linha do tempo da conta">
+            <header class="painel__cabecalho"><p class="painel__titulo">Linha do Tempo</p></header>
+            <% if (!eventosTimeline.length) { %>
+              <p class="tabela-admin__vazia">Nenhum evento registrado ainda.</p>
+            <% } else { %>
+              <ul class="log-timeline">
+                <% eventosTimeline.forEach(ev => { %>
+                  <li class="log-timeline__item">
+                    <i class="log-timeline__marcador <%= 'log-timeline__marcador--' + (MARCADOR_TIMELINE[ev.tipo] || 'status') %>" aria-hidden="true">
+                      <i class="fas <%= ICONE_TIMELINE[ev.tipo] || 'fa-circle' %>"></i>
+                    </i>
+                    <article class="log-card">
+                      <header class="log-card__cabecalho">
+                        <p class="log-card__quando"><%= dataHoraFmt(ev.data) %></p>
+                      </header>
+                      <p class="log-card__acao"><strong><%= ev.titulo %></strong></p>
+                      <% if (ev.descricao) { %><p class="log-card__descricao"><%= ev.descricao %></p><% } %>
+                    </article>
+                  </li>
+                <% }) %>
+              </ul>
+            <% } %>
+          </article>
+
+          <!-- PRODUTOS FAVORITOS E AVALIAÇÕES -->
+          <section class="cliente-secundarias">
+            <article class="painel" aria-label="Produtos favoritos">
+              <header class="painel__cabecalho"><p class="painel__titulo">Produtos Favoritos (<%= favoritos.length %>)</p></header>
+              <% if (!favoritos.length) { %>
+                <p class="tabela-admin__vazia">Nenhum produto favoritado.</p>
+              <% } else { %>
+                <ul class="cliente-favoritos-grid">
+                  <% favoritos.forEach(f => { %>
+                    <li class="cliente-favorito-card">
+                      <figure>
+                        <img src="<%= f.produto_imagem || '/imagens/image.png' %>" alt="" data-fallback="/imagens/image.png">
+                        <figcaption>
+                          <strong><%= f.produto_nome %></strong>
+                          <b><%= moeda(f.produto_preco) %></b>
+                          <small>Favoritado em <%= dataFmt(f.criado_em) %></small>
+                        </figcaption>
+                      </figure>
+                    </li>
+                  <% }) %>
+                </ul>
+              <% } %>
+            </article>
+
+            <article class="painel" aria-label="Avaliações de produtos">
+              <header class="painel__cabecalho"><p class="painel__titulo">Avaliações (<%= avaliacoes.length %>)</p></header>
+              <% if (!avaliacoes.length) { %>
+                <p class="tabela-admin__vazia">Este cliente ainda não avaliou nenhum produto.</p>
+              <% } else { %>
+                <ul class="cliente-avaliacoes-lista">
+                  <% avaliacoes.forEach(a => { %>
+                    <li class="cliente-avaliacao-card">
+                      <header>
+                        <strong><%= a.produto_slug %></strong>
+                        <b class="badge <%= a.status === 'aprovado' ? 'badge--verde' : 'badge--vermelho' %>"><%= a.status === 'aprovado' ? 'Aprovada' : 'Reprovada' %></b>
+                      </header>
+                      <p class="cliente-avaliacao-card__nota"><i class="fas fa-star" aria-hidden="true"></i> <%= a.avaliacao %>/5</p>
+                      <% if (a.comentario) { %><p class="cliente-avaliacao-card__comentario"><%= a.comentario %></p><% } %>
+                      <time><%= dataFmt(a.criado_em) %></time>
+                    </li>
+                  <% }) %>
+                </ul>
+              <% } %>
+            </article>
+          </section>
+
+          <!-- SUPORTE — OBSERVAÇÕES INTERNAS -->
+          <article class="painel" id="suporte" aria-label="Suporte">
+            <header class="painel__cabecalho">
+              <p class="painel__titulo">Suporte: Observações Internas</p>
+              <p class="painel__subtitulo"><i class="fas fa-lock" aria-hidden="true"></i> Visível apenas para administradores. O cliente nunca vê este conteúdo.</p>
+            </header>
+
+            <form class="form-admin" id="form-nota-interna">
+              <label class="campo-admin">
+                <b class="sr-only">Nova observação</b>
+                <textarea name="nota" rows="3" maxlength="2000" placeholder="Registre aqui o motivo do contato, o atendimento prestado, combinados com o cliente..." required></textarea>
+              </label>
+              <button type="submit" class="btn-admin btn-admin--primario">
+                <i class="fas fa-paper-plane" aria-hidden="true"></i>Adicionar observação
+              </button>
+              <output class="form-admin__mensagem" id="nota-interna-msg" role="status" aria-live="polite"></output>
+            </form>
+
+            <ul class="cliente-notas-lista" id="cliente-notas-lista">
+              <% if (!notas.length) { %>
+                <li class="tabela-admin__vazia" id="cliente-notas-vazio">Nenhuma observação registrada ainda.</li>
+              <% } %>
+              <% notas.forEach(n => { %>
+                <li class="cliente-nota-card">
+                  <header>
+                    <strong><%= n.admin_nome || 'Administrador' %></strong>
+                    <time datetime="<%= new Date(n.criado_em).toISOString() %>"><%= dataHoraFmt(n.criado_em) %></time>
+                  </header>
+                  <p><%= n.nota %></p>
+                </li>
+              <% }) %>
+            </ul>
+          </article>
+
+        </section>
+      </section>
+
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-cliente-detalhes.js" defer></script>
+</body>
+</html>

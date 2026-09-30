@@ -1,0 +1,520 @@
+<%
+/* ADICIONADO (Financeiro): a antiga opção "Relatórios" do menu agora abre
+   esta área financeira completa — dados vêm de services/relatorios/financeiroService.js
+   (que só reaproveita Pedido/Cupom/Comprovante, nenhuma tabela nova). O
+   "Relatório Geral" (pages/admin/relatorio-geral.ejs) é outra tela, não
+   foi tocado. Filtro de período por querystring (?de=&ate=&preset=),
+   igual ao padrão já usado em admin-relatorios.ejs — funciona sem JS. */
+const PRESETS = [
+  { chave: 'hoje', rotulo: 'Hoje' },
+  { chave: '7d',   rotulo: 'Últimos 7 dias' },
+  { chave: '30d',  rotulo: 'Últimos 30 dias' },
+  { chave: '6m',   rotulo: 'Últimos 6 meses' },
+  { chave: '1a',   rotulo: 'Último ano' },
+];
+
+function montarQuery(overrides = {}) {
+  const params = new URLSearchParams();
+  params.set('de', overrides.de || de);
+  params.set('ate', overrides.ate || ate);
+  const presetFinal = 'preset' in overrides ? overrides.preset : preset;
+  if (presetFinal && presetFinal !== 'personalizado') params.set('preset', presetFinal);
+  return '?' + params.toString();
+}
+
+const dataFmtBr = (iso) => { const [a, m, d] = String(iso).split('-'); return `${d}/${m}/${a}`; };
+const f = financeiro;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Financeiro</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'relatorios' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Financeiro' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Financeiro</h1>
+          <p class="admin-page-header__data">Período: <%= dataFmtBr(de) %> – <%= dataFmtBr(ate) %></p>
+        </hgroup>
+      </header>
+
+      <form class="admin-toolbar relatorios-periodo" method="get" action="/admin/relatorios">
+        <section class="relatorios-presets" role="group" aria-label="Atalhos de período">
+          <% PRESETS.forEach(p => { %>
+            <a class="chip-periodo <%= preset === p.chave ? 'is-active' : '' %>" href="<%= montarQuery({ preset: p.chave }) %>"><%= p.rotulo %></a>
+          <% }) %>
+        </section>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b style="font-size:11px;">De</b>
+          <input type="date" name="de" value="<%= de %>" data-br-enhance>
+        </label>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b style="font-size:11px;">Até</b>
+          <input type="date" name="ate" value="<%= ate %>" data-br-enhance>
+        </label>
+        <button type="submit" class="btn-admin btn-admin--primario">Período personalizado</button>
+      </form>
+
+      <% if (erro || !f) { %>
+        <article class="painel" role="alert">
+          <p><strong><%= erro || 'Não foi possível carregar os dados financeiros agora.' %></strong>
+             Verifique a conexão com o banco de dados e recarregue a página.</p>
+        </article>
+      <% } else { %>
+
+        <nav class="financeiro-secoes-nav" data-fin-nav-secoes aria-label="Seções do Financeiro">
+          <a href="#secao-resumo">Resumo</a>
+          <a href="#secao-graficos">Gráficos</a>
+          <a href="#secao-entradas-saidas">Entradas e Saídas</a>
+          <a href="#secao-compras">Compras</a>
+          <a href="#secao-pagamentos">Pagamentos</a>
+          <a href="#secao-comprovantes">Comprovantes</a>
+          <a href="#secao-relatorio">Relatório financeiro</a>
+        </nav>
+
+        <section id="secao-resumo" class="financeiro-secao" aria-label="Resumo financeiro">
+          <h2 class="financeiro-secao-titulo"><i class="fas fa-chart-pie" aria-hidden="true"></i>Resumo financeiro</h2>
+          <section class="stats-grid">
+            <article class="stat-card">
+              <header class="stat-card__topo">
+                <i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-balance-scale"></i></i>
+              </header>
+              <p class="stat-card__valor stat-card__valor--texto"><%= f.resumo.saldoFormatado %></p>
+              <p class="stat-card__legenda">Saldo do período (entradas − saídas)</p>
+            </article>
+
+            <article class="stat-card">
+              <header class="stat-card__topo">
+                <i class="stat-card__icone stat-card__icone--verde" aria-hidden="true"><i class="fas fa-arrow-up"></i></i>
+              </header>
+              <p class="stat-card__valor stat-card__valor--texto"><%= f.resumo.entradasFormatado %></p>
+              <p class="stat-card__legenda">Entradas (faturamento aprovado)</p>
+              <b class="stat-card__variacao <%= f.resumo.entradasVariacao >= 0 ? 'stat-card__variacao--alta' : 'stat-card__variacao--baixa' %>">
+                <i class="fas fa-arrow-<%= f.resumo.entradasVariacao >= 0 ? 'up' : 'down' %>" aria-hidden="true"></i>
+                <%= Math.abs(f.resumo.entradasVariacao) %>% vs. período anterior
+              </b>
+            </article>
+
+            <article class="stat-card">
+              <header class="stat-card__topo">
+                <i class="stat-card__icone stat-card__icone--erro" aria-hidden="true"><i class="fas fa-arrow-down"></i></i>
+              </header>
+              <p class="stat-card__valor stat-card__valor--texto"><%= f.resumo.saidasFormatado %></p>
+              <p class="stat-card__legenda">Saídas (reembolsos e estornos)</p>
+              <b class="stat-card__variacao <%= f.resumo.saidasVariacao > 0 ? 'stat-card__variacao--baixa' : 'stat-card__variacao--alta' %>">
+                <i class="fas fa-arrow-<%= f.resumo.saidasVariacao >= 0 ? 'up' : 'down' %>" aria-hidden="true"></i>
+                <%= Math.abs(f.resumo.saidasVariacao) %>% vs. período anterior
+              </b>
+            </article>
+
+            <article class="stat-card">
+              <header class="stat-card__topo">
+                <i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-tags"></i></i>
+              </header>
+              <p class="stat-card__valor stat-card__valor--texto"><%= f.resumo.descontosFormatado %></p>
+              <p class="stat-card__legenda">Descontos concedidos (cupons e promoções)</p>
+            </article>
+
+            <article class="stat-card">
+              <header class="stat-card__topo">
+                <i class="stat-card__icone stat-card__icone--azul" aria-hidden="true"><i class="fas fa-receipt"></i></i>
+              </header>
+              <p class="stat-card__valor stat-card__valor--texto"><%= f.resumo.ticketMedioFormatado %></p>
+              <p class="stat-card__legenda">Ticket médio (pedidos aprovados)</p>
+            </article>
+
+            <article class="stat-card">
+              <header class="stat-card__topo">
+                <i class="stat-card__icone stat-card__icone--dourado" aria-hidden="true"><i class="fas fa-exchange-alt"></i></i>
+              </header>
+              <p class="stat-card__valor stat-card__valor--texto"><%= f.resumo.transacoes %></p>
+              <p class="stat-card__legenda"><%= f.resumo.qtdAprovados %> aprovadas · <%= f.resumo.qtdCancelados %> canceladas/estornadas</p>
+            </article>
+          </section>
+        </section>
+
+        <section id="secao-graficos" class="financeiro-secao" aria-label="Gráficos e evolução financeira">
+          <h2 class="financeiro-secao-titulo"><i class="fas fa-chart-line" aria-hidden="true"></i>Evolução financeira</h2>
+          <section class="dash-charts">
+            <article class="painel dash-chart-card grafico-evolucao">
+              <header class="painel__cabecalho">
+                <hgroup>
+                  <h2 class="painel__titulo">Entradas x Saídas</h2>
+                  <p class="painel__subtitulo">Ao longo do período selecionado</p>
+                </hgroup>
+                <ul class="legenda-grafico" aria-label="Legenda">
+                  <li class="legenda-grafico__item">
+                    <i class="legenda-cor legenda-cor--entradas" aria-hidden="true"></i>
+                    Entradas <b class="legenda-grafico__valor"><%= f.resumo.entradasFormatado %></b>
+                  </li>
+                  <li class="legenda-grafico__item">
+                    <i class="legenda-cor legenda-cor--saidas" aria-hidden="true"></i>
+                    Saídas <b class="legenda-grafico__valor"><%= f.resumo.saidasFormatado %></b>
+                  </li>
+                </ul>
+              </header>
+              <figure>
+                <%
+                  const evLargura = 640, evAltura = 220;
+                  const evMargemEsq = 34, evMargemDir = 12, evMargemTopo = 18, evMargemBase = 28;
+                  const evSerie = f.grafico.serie;
+                  const evN = evSerie.length;
+                  const evAlturaUtil  = evAltura  - evMargemTopo - evMargemBase;
+                  const evLarguraUtil = evLargura - evMargemEsq  - evMargemDir;
+                  const evPassoX = evN > 1 ? evLarguraUtil / (evN - 1) : 0;
+                  const evX = i => evMargemEsq + i * evPassoX;
+                  const evY = (valor, maior) => evMargemTopo + (1 - (maior > 0 ? valor / maior : 0)) * evAlturaUtil;
+                  const evPontosEnt = evSerie.map((d, i) => ({ x: evX(i), y: evY(d.entradas, f.grafico.maiorEntrada) }));
+                  const evPontosSai = evSerie.map((d, i) => ({ x: evX(i), y: evY(d.saidas, f.grafico.maiorSaida) }));
+                  const evPolyEnt = evPontosEnt.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+                  const evPolySai = evPontosSai.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+                  const evMostrarLabel = (i) => evN <= 20 || i % Math.ceil(evN / 20) === 0;
+                %>
+                <svg viewBox="0 0 <%= evLargura %> <%= evAltura %>" role="img" aria-label="Gráfico de linhas com entradas e saídas diárias do período, em percentual do maior valor">
+                  <% [0, 25, 50, 75, 100].forEach(pct => { const y = evMargemTopo + (1 - pct / 100) * evAlturaUtil; %>
+                    <line class="linha-guia" x1="<%= evMargemEsq %>" y1="<%= y.toFixed(1) %>" x2="<%= evLargura - evMargemDir %>" y2="<%= y.toFixed(1) %>"></line>
+                  <% }) %>
+                  <polyline class="linha-serie linha-serie--entradas" points="<%= evPolyEnt %>"></polyline>
+                  <polyline class="linha-serie linha-serie--saidas" points="<%= evPolySai %>"></polyline>
+                  <g>
+                    <% evPontosEnt.forEach((p, i) => { %>
+                      <circle class="ponto-serie ponto-serie--entradas" cx="<%= p.x.toFixed(1) %>" cy="<%= p.y.toFixed(1) %>" r="4">
+                        <title>Entradas em <%= evSerie[i].label %>: <%= evSerie[i].entradas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></title>
+                      </circle>
+                    <% }) %>
+                    <% evPontosSai.forEach((p, i) => { %>
+                      <rect class="ponto-serie ponto-serie--saidas" x="<%= (p.x - 4).toFixed(1) %>" y="<%= (p.y - 4).toFixed(1) %>" width="8" height="8" transform="rotate(45 <%= p.x.toFixed(1) %> <%= p.y.toFixed(1) %>)">
+                        <title>Saídas em <%= evSerie[i].label %>: <%= evSerie[i].saidas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></title>
+                      </rect>
+                    <% }) %>
+                  </g>
+                  <% evSerie.forEach((d, i) => { if (evMostrarLabel(i)) { %>
+                    <text class="eixo-label" x="<%= evX(i).toFixed(1) %>" y="<%= evAltura - 8 %>" text-anchor="middle"><%= d.label %></text>
+                  <% } }) %>
+                </svg>
+                <figcaption>
+                  Passe o cursor sobre um ponto para ver o valor exato do dia.
+                  <% if (f.grafico.truncado) { %> Período muito longo (<%= f.grafico.diasNoPeriodo %> dias): exibindo só os últimos <%= f.grafico.serie.length %> dias no gráfico; os totais do resumo continuam considerando o período completo.<% } %>
+                </figcaption>
+              </figure>
+            </article>
+
+            <article class="painel dash-chart-card grafico-faturamento">
+              <header class="painel__cabecalho">
+                <hgroup>
+                  <h2 class="painel__titulo">Compras por período</h2>
+                  <p class="painel__subtitulo">Quantidade de pedidos por dia</p>
+                </hgroup>
+              </header>
+              <figure>
+                <%
+                  const cpLargura = 640, cpAltura = 220, cpMargemBase = 28, cpMargemTopo = 18;
+                  const cpSerie = f.graficoComprasPorDia.serie;
+                  const cpN = cpSerie.length;
+                  const cpLarguraBarra = Math.min(28, (cpLargura / cpN) * 0.6);
+                  const cpEspacoBarra = cpLargura / cpN;
+                %>
+                <svg viewBox="0 0 <%= cpLargura %> <%= cpAltura %>" role="img" aria-label="Gráfico de barras com a quantidade de compras por dia no período">
+                  <% cpSerie.forEach((dia, i) => {
+                       const alturaUtil = cpAltura - cpMargemBase - cpMargemTopo;
+                       const alturaBarra = f.graficoComprasPorDia.maior > 0 ? (dia.qtd / f.graficoComprasPorDia.maior) * alturaUtil : 0;
+                       const x = i * cpEspacoBarra + (cpEspacoBarra - cpLarguraBarra) / 2;
+                       const y = cpAltura - cpMargemBase - alturaBarra;
+                  %>
+                    <rect class="barra" x="<%= x.toFixed(1) %>" y="<%= y.toFixed(1) %>" width="<%= cpLarguraBarra.toFixed(1) %>" height="<%= Math.max(alturaBarra, 2).toFixed(1) %>" rx="3">
+                      <title><%= dia.label %>: <%= dia.qtd %> compra(s), <%= dia.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></title>
+                    </rect>
+                    <% if (evMostrarLabel(i)) { %>
+                      <text class="eixo-label" x="<%= (x + cpLarguraBarra / 2).toFixed(1) %>" y="<%= cpAltura - 8 %>" text-anchor="middle"><%= dia.label %></text>
+                    <% } %>
+                  <% }) %>
+                </svg>
+                <figcaption>Passe o cursor sobre uma barra para ver o total de compras do dia.</figcaption>
+              </figure>
+            </article>
+          </section>
+
+          <article class="painel dash-insight" style="margin-top: var(--esp-5);">
+            <header class="painel__cabecalho dash-insight__cabecalho">
+              <i class="dash-insight__icone" aria-hidden="true"><i class="fas fa-tags"></i></i>
+              <h2 class="painel__titulo">Distribuição dos descontos concedidos</h2>
+            </header>
+            <% if (f.saidas.descontos.length) {
+                 const hbLargura = 640, hbAltura = f.saidas.descontos.length * 34 + 10, hbMargemEsq = 170, hbMargemDir = 60;
+                 const hbLarguraUtil = hbLargura - hbMargemEsq - hbMargemDir;
+            %>
+              <figure class="grafico-horizontal">
+                <svg viewBox="0 0 <%= hbLargura %> <%= hbAltura %>" role="img" aria-label="Gráfico de barras da distribuição de descontos concedidos">
+                  <% f.saidas.descontos.forEach((desc, i) => {
+                       const y = i * 34 + 4;
+                       const larguraBarra = f.saidas.maiorDesconto > 0 ? (desc.valor / f.saidas.maiorDesconto) * hbLarguraUtil : 0;
+                       const nomeCurto = desc.identificacao.length > 22 ? desc.identificacao.slice(0, 22) + '…' : desc.identificacao;
+                  %>
+                    <text class="eixo-label" x="<%= hbMargemEsq - 8 %>" y="<%= y + 15 %>" text-anchor="end"><%= nomeCurto %></text>
+                    <rect class="barra" x="<%= hbMargemEsq %>" y="<%= y %>" width="<%= Math.max(larguraBarra, 2).toFixed(1) %>" height="22" rx="3">
+                      <title><%= desc.identificacao %> (<%= desc.tipo %>): <%= desc.valorFormatado %> em <%= desc.usos %> uso(s)</title>
+                    </rect>
+                    <text class="eixo-label" x="<%= (hbMargemEsq + larguraBarra + 6).toFixed(1) %>" y="<%= y + 15 %>"><%= desc.valorFormatado %></text>
+                  <% }) %>
+                </svg>
+              </figure>
+            <% } else { %>
+              <p class="financeiro-nota-vazia">
+                <i class="fas fa-info-circle" aria-hidden="true"></i>
+                <b>Nenhum cupom ou promoção concedeu desconto no período selecionado.</b>
+              </p>
+            <% } %>
+          </article>
+        </section>
+
+        <section id="secao-entradas-saidas" class="financeiro-secao" aria-label="Entradas e saídas">
+          <h2 class="financeiro-secao-titulo"><i class="fas fa-exchange-alt" aria-hidden="true"></i>Entradas e Saídas</h2>
+          <section class="financeiro-fluxo-grid">
+            <article class="financeiro-fluxo-card financeiro-fluxo-card--entrada">
+              <header class="financeiro-fluxo-card__topo">
+                <h3 class="financeiro-fluxo-card__titulo"><i class="fas fa-arrow-circle-up" aria-hidden="true"></i>Entradas</h3>
+                <b class="financeiro-fluxo-card__total"><%= f.resumo.entradasFormatado %></b>
+              </header>
+              <% if (f.entradasPorFormaPagamento.length) { %>
+                <section class="financeiro-fluxo-lista">
+                  <% f.entradasPorFormaPagamento.forEach(fp => { %>
+                    <section class="financeiro-fluxo-item">
+                      <section class="financeiro-fluxo-item__linha">
+                        <b class="financeiro-fluxo-item__label"><%= fp.formaRotulo %> · <%= fp.pedidos %> pedido(s)</b>
+                        <b class="financeiro-fluxo-item__valor"><%= fp.totalFormatado %></b>
+                      </section>
+                      <b class="financeiro-fluxo-item__barra"><b style="width:<%= fp.pct.toFixed(1) %>%"></b></b>
+                    </section>
+                  <% }) %>
+                </section>
+              <% } else { %>
+                <p class="financeiro-nota-vazia"><i class="fas fa-info-circle" aria-hidden="true"></i><b>Nenhuma venda aprovada no período.</b></p>
+              <% } %>
+            </article>
+
+            <article class="financeiro-fluxo-card financeiro-fluxo-card--saida">
+              <header class="financeiro-fluxo-card__topo">
+                <h3 class="financeiro-fluxo-card__titulo"><i class="fas fa-arrow-circle-down" aria-hidden="true"></i>Saídas</h3>
+                <b class="financeiro-fluxo-card__total"><%= f.resumo.saidasFormatado %></b>
+              </header>
+              <% if (f.saidas.reembolsos.length) { %>
+                <section class="financeiro-fluxo-lista financeiro-fluxo-lista--linhas">
+                  <% f.saidas.reembolsos.slice(0, 8).forEach(r => { %>
+                    <section class="financeiro-fluxo-item">
+                      <b>
+                        <a class="tabela-link" href="<%= r.href %>">Pedido #<%= r.pedidoId %></a>
+                        <b class="financeiro-fluxo-item__meta"> - <%= r.cliente %> · <%= r.data %></b>
+                      </b>
+                      <b class="financeiro-fluxo-item__valor"><%= r.totalFormatado %></b>
+                    </section>
+                  <% }) %>
+                </section>
+                <% if (f.saidas.reembolsos.length > 8) { %>
+                  <p class="financeiro-secao-subtitulo" style="margin:0;">+<%= f.saidas.reembolsos.length - 8 %> reembolso(s). Ver tabela completa em "Relatório financeiro".</p>
+                <% } %>
+              <% } else { %>
+                <p class="financeiro-nota-vazia"><i class="fas fa-check-circle" aria-hidden="true"></i><b>Nenhum reembolso ou estorno registrado no período.</b></p>
+              <% } %>
+
+              <% /* CORRIGIDO (auditoria financeira): esta seção afirmava que
+                    "despesas e compras de fornecedores" não existiam no
+                    sistema — falso, o módulo em /admin/compras já existe.
+                    Mostra a situação ATUAL com fornecedores (saldo em
+                    aberto, não uma movimentação deste período — ver
+                    comentário em financeiroService.js). */ %>
+              <section class="financeiro-fluxo-lista" style="margin-top: var(--esp-3);">
+                <header class="financeiro-fluxo-card__topo" style="margin-bottom: var(--esp-2);">
+                  <h3 class="financeiro-fluxo-card__titulo" style="font-size: 0.9rem;"><i class="fas fa-truck-loading" aria-hidden="true"></i>Fornecedores (situação atual)</h3>
+                </header>
+                <section class="financeiro-fluxo-item">
+                  <b class="financeiro-fluxo-item__label">Comprado (total)</b>
+                  <b class="financeiro-fluxo-item__valor"><%= f.saidas.fornecedores.totalCompradoFormatado %></b>
+                </section>
+                <section class="financeiro-fluxo-item">
+                  <b class="financeiro-fluxo-item__label">Pago a fornecedores</b>
+                  <b class="financeiro-fluxo-item__valor"><%= f.saidas.fornecedores.totalPagoFormatado %></b>
+                </section>
+                <section class="financeiro-fluxo-item">
+                  <b class="financeiro-fluxo-item__label">Em aberto</b>
+                  <b class="financeiro-fluxo-item__valor"><%= f.saidas.fornecedores.totalEmAbertoFormatado %></b>
+                </section>
+                <% if (f.saidas.fornecedores.totalVencido > 0) { %>
+                  <section class="financeiro-fluxo-item">
+                    <b class="financeiro-fluxo-item__label" style="color: var(--cor-erro, #c0392b);">Vencido</b>
+                    <b class="financeiro-fluxo-item__valor" style="color: var(--cor-erro, #c0392b);"><%= f.saidas.fornecedores.totalVencidoFormatado %></b>
+                  </section>
+                <% } %>
+              </section>
+              <p class="financeiro-secao-subtitulo" style="margin:var(--esp-2) 0 0;">
+                <a class="tabela-link" href="/admin/compras">Ver compras e contas a pagar completas →</a>
+              </p>
+            </article>
+          </section>
+
+          <article class="painel">
+            <header class="painel__cabecalho">
+              <hgroup>
+                <h2 class="painel__titulo">Movimentações recentes</h2>
+                <p class="painel__subtitulo">As <%= f.movimentacoesRecentes.length %> mais recentes de <%= f.totalMovimentacoes %> no período. A lista completa está em "Relatório financeiro"</p>
+              </hgroup>
+            </header>
+            <% if (f.movimentacoesRecentes.length) { %>
+              <section class="financeiro-movimentacoes">
+                <% f.movimentacoesRecentes.forEach(m => { %>
+                  <a class="financeiro-mov-item financeiro-mov-item--<%= m.tipo %>" href="<%= m.href %>">
+                    <i class="financeiro-mov-item__icone" aria-hidden="true"><i class="fas fa-<%= m.tipo === 'entrada' ? 'arrow-down' : 'arrow-up' %>"></i></i>
+                    <b class="financeiro-mov-item__corpo">
+                      <b class="financeiro-mov-item__desc"><%= m.descricao %></b><br>
+                      <b class="financeiro-mov-item__meta"><%= m.cliente %> · <%= m.data %></b>
+                    </b>
+                    <b class="financeiro-mov-item__valor"><%= m.tipo === 'entrada' ? '+' : '−' %> <%= m.totalFormatado %></b>
+                  </a>
+                <% }) %>
+              </section>
+            <% } else { %>
+              <p class="tabela-admin__vazia">Nenhuma movimentação financeira no período selecionado.</p>
+            <% } %>
+          </article>
+        </section>
+
+        <section class="financeiro-secao" aria-label="Compras">
+          <h2 class="financeiro-secao-titulo"><i class="fas fa-shopping-bag" aria-hidden="true"></i>Compras</h2>
+          <%- include("../../partials/shared/financeiro-tabela", {
+            id: 'compras',
+            titulo: 'Todas as compras do período',
+            subtitulo: f.compras.total + ' compra(s). Clique no número para ver os itens completos do pedido.',
+            colunas: f.compras.colunas,
+            linhas: f.compras.linhas,
+            buscaPlaceholder: 'Pesquisar por cliente, status, forma de pagamento...',
+            vazioTexto: 'Nenhuma compra registrada no período selecionado.',
+          }) %>
+        </section>
+
+        <section id="secao-pagamentos" class="financeiro-secao" aria-label="Pagamentos">
+          <h2 class="financeiro-secao-titulo"><i class="fas fa-credit-card" aria-hidden="true"></i>Pagamentos</h2>
+          <section class="financeiro-pagamentos-grid">
+            <article class="painel">
+              <header class="painel__cabecalho"><h2 class="painel__titulo">Por forma de pagamento</h2></header>
+              <% if (f.pagamentos.porFormaPagamento.length) { %>
+                <section class="financeiro-fluxo-lista">
+                  <% f.pagamentos.porFormaPagamento.forEach(fp => { %>
+                    <section class="financeiro-fluxo-item">
+                      <section class="financeiro-fluxo-item__linha">
+                        <b class="financeiro-fluxo-item__label"><%= fp.formaRotulo %></b>
+                        <b class="financeiro-fluxo-item__valor"><%= fp.totalFormatado %> · <%= fp.pedidos %> ped.</b>
+                      </section>
+                      <b class="financeiro-fluxo-item__barra"><b style="width:<%= fp.pct.toFixed(1) %>%; background:var(--dourado);"></b></b>
+                    </section>
+                  <% }) %>
+                </section>
+              <% } else { %>
+                <p class="financeiro-nota-vazia"><i class="fas fa-info-circle" aria-hidden="true"></i><b>Nenhum pagamento aprovado no período.</b></p>
+              <% } %>
+            </article>
+
+            <article class="painel">
+              <header class="painel__cabecalho"><h2 class="painel__titulo">Por status do pagamento</h2></header>
+              <% if (f.pagamentos.porStatus.length) { %>
+                <section class="financeiro-fluxo-lista financeiro-fluxo-lista--linhas">
+                  <% f.pagamentos.porStatus.forEach(s => { %>
+                    <section class="financeiro-fluxo-item">
+                      <b class="badge badge--<%= s.badge %>"><%= s.rotulo %></b>
+                      <b class="financeiro-fluxo-item__valor"><%= s.qtd %> ped. · <%= s.totalFormatado %></b>
+                    </section>
+                  <% }) %>
+                </section>
+              <% } else { %>
+                <p class="financeiro-nota-vazia"><i class="fas fa-info-circle" aria-hidden="true"></i><b>Nenhum pedido no período.</b></p>
+              <% } %>
+            </article>
+          </section>
+        </section>
+
+        <section id="secao-comprovantes" class="financeiro-secao" aria-label="Comprovantes">
+          <h2 class="financeiro-secao-titulo"><i class="fas fa-file-invoice" aria-hidden="true"></i>Comprovantes</h2>
+          <p class="financeiro-secao-subtitulo">
+            <%= f.totalComprovantes %> pedido(s) no período
+            <% if (f.totalComprovantes > f.comprovantes.length) { %>: mostrando os <%= f.comprovantes.length %> mais recentes; estreite o período para ver os demais<% } %>.
+          </p>
+          <% if (f.comprovantes.length) { %>
+            <section class="comprovantes-grid">
+              <% f.comprovantes.forEach(c => { %>
+                <article class="comprovante-card">
+                  <header class="comprovante-card__topo">
+                    <section>
+                      <p class="comprovante-card__pedido">Pedido #<%= c.pedidoId %></p>
+                      <p class="comprovante-card__cliente"><%= c.cliente %></p>
+                    </section>
+                    <b class="badge badge--<%= c.statusPagamentoBadge %>"><%= c.statusPagamentoRotulo %></b>
+                  </header>
+                  <dl class="comprovante-card__meta">
+                    <dt>Data</dt><dd><%= c.data %></dd>
+                    <dt>Valor</dt><dd><%= c.totalFormatado %></dd>
+                  </dl>
+                  <p class="comprovante-card__codigo">
+                    <% if (c.emitido) { %>
+                      Comprovante <strong><%= c.codigo %></strong> · emitido <%= c.emissoes %>x
+                    <% } else { %>
+                      Comprovante ainda não emitido, gerado ao visualizar
+                    <% } %>
+                  </p>
+                  <section class="comprovante-card__acoes">
+                    <a class="btn-admin btn-admin--secundario btn-admin--pequeno" href="<%= c.hrefVisualizar %>" target="_blank" rel="noopener">
+                      <i class="fas fa-eye" aria-hidden="true"></i> Visualizar
+                    </a>
+                    <a class="btn-admin btn-admin--primario btn-admin--pequeno" href="<%= c.hrefBaixar %>">
+                      <i class="fas fa-download" aria-hidden="true"></i> Baixar
+                    </a>
+                  </section>
+                </article>
+              <% }) %>
+            </section>
+          <% } else { %>
+            <article class="log-vazio">
+              <p class="log-vazio__icone" aria-hidden="true"><i class="fas fa-file-invoice"></i></p>
+              <h3>Nenhum comprovante no período</h3>
+              <p>Não há pedidos no período selecionado para gerar comprovantes. Ajuste o filtro de data acima.</p>
+            </article>
+          <% } %>
+        </section>
+
+        <section class="financeiro-secao" aria-label="Relatório financeiro">
+          <h2 class="financeiro-secao-titulo"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i>Relatório financeiro</h2>
+          <% if (f.ledger.resumo && f.ledger.resumo.length) { %>
+            <section class="stats-grid">
+              <% f.ledger.resumo.forEach(r => { %>
+                <article class="stat-card">
+                  <p class="stat-card__valor stat-card__valor--texto"><%= r.valor %></p>
+                  <p class="stat-card__legenda"><%= r.rotulo %></p>
+                </article>
+              <% }) %>
+            </section>
+          <% } %>
+          <%- include("../../partials/shared/financeiro-tabela", {
+            id: 'relatorio',
+            titulo: 'Livro-razão do período',
+            subtitulo: 'Todas as entradas (vendas aprovadas) e saídas (reembolsos/estornos) registradas, em ordem cronológica.',
+            colunas: f.ledger.colunas,
+            linhas: f.ledger.linhas,
+            buscaPlaceholder: 'Pesquisar por cliente, tipo, descrição...',
+            vazioTexto: 'Nenhuma movimentação registrada no período selecionado.',
+            pdfHref: '/admin/relatorios/financeiro/pdf' + montarQuery(),
+          }) %>
+        </section>
+
+      <% } %>
+    </main>
+  </section>
+  <script src="/js/admin/date-picker-br.js" defer></script>
+  <script src="/js/admin/admin-financeiro.js" defer></script>
+</body>
+</html>

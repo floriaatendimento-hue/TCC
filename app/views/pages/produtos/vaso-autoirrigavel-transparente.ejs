@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaso Autoirrigável Transparente - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'vaso-autoirrigavel-transparente',
+      nome: 'Vaso Autoirrigável Transparente',
+      sku: 'FLO-VASOAUTOIRRIGAVELTRANSPARENTE',
+      marca: null,
+      categoriaNome: 'Vasos & Cachepôs',
+      categoriaSlug: 'vasos',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/produtos-fotos/vaso-autoirrigavel-transparente-1.webp', alt: 'Vaso Autoirrigável Transparente - frente' },
+        { src: '/imagens/produtos-fotos/vaso-autoirrigavel-transparente-2.webp', alt: 'Vaso Autoirrigável Transparente - detalhe' },
+        { src: '/imagens/produtos-fotos/vaso-autoirrigavel-transparente-3.webp', alt: 'Vaso Autoirrigável Transparente - lateral' }
+      ],
+      precoAtual: 95.00,
+      precoAntigo: 115.00,
+      parcelasTexto: 'em até 2x sem juros',
+      estoque: 30,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(29 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-star', texto: 'Autoirrigação inteligente' },
+        { icone: 'fas fa-shield-alt', texto: 'Raízes visíveis' },
+        { icone: 'fas fa-sun', texto: 'Uso interno' }
+      ],
+      descricao: 'Vaso autoirrigável com reservatório de água visível pela parede transparente em acrílico de alta resistência. O sistema de irrigação por capilaridade fornece água às raízes conforme a necessidade da planta, podendo durar de 7 a 21 dias sem reabastecimento, ideal para quem viaja ou esquece de regar. O indicador de nível evita tanto o encharcamento quanto a seca. Recomendado para orquídeas, pothos e samambaias.',
+      beneficios: 'Reduz a frequência de rega para até 1 vez a cada 21 dias e evita tanto o encharcamento quanto a seca das raízes.',
+      comoUtilizar: 'Preencha o reservatório pela abertura lateral e acompanhe o indicador de nível transparente para saber quando reabastecer.',
+      recomendacoes: 'Use água filtrada ou decantada para evitar acúmulo de sais minerais nas paredes do reservatório.',
+      ficha: [
+        { rotulo: 'Material', valor: 'Acrílico transparente de alta resistência' },
+        { rotulo: 'Sistema', valor: 'Irrigação por capilaridade' },
+        { rotulo: 'Autonomia', valor: '7 a 21 dias sem reabastecimento' },
+        { rotulo: 'Uso', valor: 'Interno' },
+        { rotulo: 'Porte indicado', valor: 'Plantas de pequeno a médio porte' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-cube', titulo: 'Material', texto: 'Acrílico resistente: limpe com pano macio para não riscar a parede transparente.' },
+        { icone: 'fas fa-ruler-combined', titulo: 'Capacidade', texto: 'Indicado para orquídeas, pothos e samambaias de pequeno a médio porte.' },
+        { icone: 'fas fa-tint', titulo: 'Drenagem', texto: 'Sistema de reservatório próprio: acompanhe o indicador de nível para não deixar secar.' },
+        { icone: 'fas fa-broom', titulo: 'Limpeza', texto: 'Use água filtrada e limpe o reservatório periodicamente para evitar acúmulo de sais.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

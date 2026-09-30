@@ -1,0 +1,9 @@
+<%
+/* Partial: controle de quantidade. Sem locais — sempre igual em toda página. */
+%>
+<fieldset class="quantidade-wrap">
+  <legend class="sr-only">Quantidade</legend>
+  <button class="qty-btn" type="button" data-qty-delta="-1" aria-label="Diminuir">−</button>
+  <input class="qty-input" type="number" id="qtd" value="1" min="1" readonly aria-label="Quantidade" />
+  <button class="qty-btn" type="button" data-qty-delta="1" aria-label="Aumentar">+</button>
+</fieldset>

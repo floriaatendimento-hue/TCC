@@ -1,0 +1,6 @@
+<svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cultivador Manual">
+  <rect x="0" y="0" width="200" height="280" rx="14" fill="#eef6f0"/>
+  <rect x="6" y="6" width="188" height="268" rx="10" fill="#ffffff" stroke="#e0ece4" stroke-width="1"/>
+  <g transform="translate(0,4)"><rect x="92" y="40" width="16" height="95" rx="8" fill="#7a5a3a"/><path d="M60 40 C60 20 140 20 140 40 C140 60 120 65 100 65 C80 65 60 60 60 40 Z" fill="#5a4632"/><circle cx="100" cy="150" r="14" fill="#3a3a3a"/></g>
+  <text x="100" y="232" font-family="Verdana, Arial, sans-serif" font-size="15" font-weight="700" fill="#1a3d2b" text-anchor="middle">Cultivador</text><text x="100" y="252" font-family="Verdana, Arial, sans-serif" font-size="15" font-weight="700" fill="#1a3d2b" text-anchor="middle">Manual</text>
+</svg>

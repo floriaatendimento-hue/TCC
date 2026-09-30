@@ -1,0 +1,109 @@
+<%
+/* ADICIONADO: topbar administrativa v2 — usada por pages/admin/dashboard.ejs
+   e pages/admin/em-breve.ejs. Espera `tituloPagina` (string) do template pai. */
+const titulo = typeof tituloPagina !== 'undefined' ? tituloPagina : 'Dashboard';
+%>
+<script>
+(function () {
+  try {
+    var p = JSON.parse(localStorage.getItem('floria_a11y_prefs') || 'null');
+    if (!p) return;
+    var h = document.documentElement;
+    if (p.tamanho_fonte && p.tamanho_fonte !== 'normal') h.setAttribute('data-a11y-fonte', p.tamanho_fonte);
+    if (p.espacamento_texto && p.espacamento_texto !== 'normal') h.setAttribute('data-a11y-espacamento', p.espacamento_texto);
+    if (p.alto_contraste) h.setAttribute('data-a11y-contraste', '1');
+    if (p.reduzir_movimento) h.setAttribute('data-a11y-movimento', '1');
+    if (p.destacar_links) h.setAttribute('data-a11y-links', '1');
+    if (p.destacar_foco) h.setAttribute('data-a11y-foco', '1');
+    if (p.interface_simplificada) h.setAttribute('data-a11y-simples', '1');
+    if (p.otimizar_leitor_tela) h.setAttribute('data-a11y-leitor', '1');
+    if (p.libras_ativo) h.setAttribute('data-a11y-libras', '1');
+  } catch (e) {}
+})();
+</script>
+<link rel="stylesheet" href="/css/shared/acessibilidade.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+  integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
+<link rel="stylesheet" href="/css/shared/dialog-logout.css">
+<input type="hidden" id="csrf-token" value="<%= csrfToken %>">
+<a href="#conteudo-principal" class="skip-link">Pular para o conteúdo principal</a>
+<script src="/js/shared/acessibilidade.js" defer></script>
+<script src="/js/shared/img-fallback.js" defer></script>
+<script src="/js/shared/avatar-sync.js" defer></script>
+<script src="/js/admin/admin-sidebar.js" defer></script>
+<script src="/js/admin/admin-topbar.js" defer></script>
+<script src="/js/shared/logout.js" defer></script>
+<script src="/js/admin/admin-confirm.js" defer></script>
+
+<header class="admin-topbar">
+  <section class="admin-topbar__esquerda">
+    <button type="button" class="admin-topbar__hamburger" id="admin-hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="admin-sidebar">
+      <i class="fas fa-bars" aria-hidden="true"></i>
+    </button>
+
+    <nav class="admin-breadcrumb" aria-label="Trilha de navegação">
+      <a href="/" class="admin-breadcrumb__home" aria-label="Ir para a Home do site">
+        <i class="fas fa-home" aria-hidden="true"></i>
+      </a>
+      <b aria-hidden="true">/</b>
+      <a href="/admin">Admin</a>
+      <b aria-hidden="true">/</b>
+      <b class="atual"><%= titulo %></b>
+    </nav>
+
+    <search class="admin-busca" role="search" aria-label="Buscar produto ou pedido">
+      <i class="fas fa-search" aria-hidden="true"></i>
+      <label for="admin-busca-input" class="sr-only">Buscar produto, pedido...</label>
+      <input id="admin-busca-input" type="search" placeholder="Buscar produto, pedido..." />
+    </search>
+  </section>
+
+  <section class="admin-topbar__direita">
+    <a href="/" class="admin-topbar__site-btn" aria-label="Ir para a Home do site" title="Ver Loja">
+      <i class="fas fa-home" aria-hidden="true"></i>
+      <b>Ir para o Site</b>
+    </a>
+    <%
+    /* ADICIONADO (reimaginação estrutural do admin): o sino deixou de ser
+       um atalho fixo para /pedidos e virou um resumo real do que precisa
+       de atenção agora — dados de GET /api/admin/dashboard/alertas
+       (mesmas contagens já calculadas para o dashboard: estoque baixo,
+       pedidos parados, avaliações sem resposta, pedidos pendentes).
+       admin-topbar.js preenche a contagem e a lista no carregamento. */
+    %>
+    <section class="admin-notificacoes">
+      <button type="button" class="admin-topbar__icone-btn" id="admin-notif-btn"
+              aria-haspopup="true" aria-expanded="false" aria-controls="admin-notif-painel"
+              aria-label="Notificações">
+        <i class="fas fa-bell" aria-hidden="true"></i>
+        <i class="ponto" id="admin-notif-ponto" aria-hidden="true" hidden></i>
+      </button>
+      <section class="admin-notif-painel" id="admin-notif-painel" role="dialog" aria-label="Notificações" hidden>
+        <header class="admin-notif-painel__cabecalho">
+          <strong>Notificações</strong>
+        </header>
+        <ul class="admin-notif-painel__lista" id="admin-notif-lista">
+          <li class="admin-notif-item admin-notif-item--carregando">Carregando…</li>
+        </ul>
+      </section>
+    </section>
+    <a href="/perfil" class="admin-topbar__avatar" aria-label="Minha conta">
+      <img src="<%= (locals.usuario && usuario.foto_perfil) || '/imagens/perfil.png' %>"
+           alt="" data-fallback="/imagens/perfil.png" />
+    </a>
+  </section>
+</header>
+
+<dialog class="dialog-admin" id="dialog-confirmar-admin" aria-labelledby="confirmar-admin-titulo">
+  <header class="dialog-admin__cabecalho">
+    <h2 id="confirmar-admin-titulo">Confirmar ação</h2>
+    <button type="button" class="dialog-admin__fechar" id="confirmar-admin-fechar" aria-label="Fechar">×</button>
+  </header>
+  <section class="form-admin">
+    <p class="dialog-admin__texto" id="confirmar-admin-texto"></p>
+    <footer class="form-admin__acoes">
+      <button type="button" class="btn-admin btn-admin--secundario" id="btn-cancelar-admin">Cancelar</button>
+      <button type="button" class="btn-admin btn-admin--perigo" id="btn-confirmar-admin">Excluir</button>
+    </footer>
+  </section>
+</dialog>

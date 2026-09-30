@@ -1,0 +1,170 @@
+<%
+/* ADICIONADO: Política de Cookies (GET /politica-de-cookies), integrada à
+   Política de Privacidade e ao sistema de consentimento (partials/
+   cookie-consent.ejs + public/js/cookie-consent.js). Conteúdo levantado
+   direto do código (app.js, config/db.js, carrinho.js, itens.js,
+   cookie-consent.js) — a tabela abaixo lista exatamente o que o site
+   grava no navegador, nada além disso. Mesma convenção de data de
+   /politica-de-privacidade: só editar os 3 números abaixo. */
+const [ANO_ATUALIZACAO, MES_ATUALIZACAO, DIA_ATUALIZACAO] = [2026, 8, 29];
+const ultimaAtualizacao = new Date(ANO_ATUALIZACAO, MES_ATUALIZACAO - 1, DIA_ATUALIZACAO);
+const ultimaAtualizacaoFmt = ultimaAtualizacao.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+const ultimaAtualizacaoISO = `${ANO_ATUALIZACAO}-${String(MES_ATUALIZACAO).padStart(2, '0')}-${String(DIA_ATUALIZACAO).padStart(2, '0')}`;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Cookies - Floria</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/institucional/politica-cookies.css">
+</head>
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main id="politica-cookies">
+
+    <header class="politica-cabecalho">
+      <p class="politica-eyebrow">Privacidade e proteção de dados</p>
+      <h1>Política de Cookies</h1>
+      <p class="politica-intro">
+        Esta página explica o que são cookies, quais o site da Floria realmente utiliza e como você
+        pode controlar essas preferências a qualquer momento. Ela complementa a nossa
+        <a href="/politica-de-privacidade">Política de Privacidade</a>, que trata dos seus dados pessoais de forma mais ampla.
+      </p>
+      <p class="politica-atualizacao">
+        Última atualização: <time datetime="<%= ultimaAtualizacaoISO %>"><%= ultimaAtualizacaoFmt %></time>
+      </p>
+    </header>
+
+    <nav class="politica-sumario" aria-label="Sumário desta política">
+      <h2>Nesta página</h2>
+      <ol>
+        <li><a href="#o-que-sao">O que são cookies</a></li>
+        <li><a href="#para-que-usamos">Para que usamos</a></li>
+        <li><a href="#categorias">Categorias de cookies</a></li>
+        <li><a href="#quais-usamos">Cookies que o site realmente utiliza</a></li>
+        <li><a href="#terceiros">Cookies de terceiros</a></li>
+        <li><a href="#como-alterar">Como alterar suas preferências</a></li>
+        <li><a href="#contato">Contato sobre privacidade</a></li>
+      </ol>
+    </nav>
+
+    <article class="politica-corpo">
+
+      <section id="o-que-sao" aria-labelledby="o-que-sao-titulo">
+        <h2 id="o-que-sao-titulo">1. O que são cookies</h2>
+        <p>Cookies são pequenos arquivos de texto que um site grava no seu navegador para lembrar informações entre uma página e outra, ou entre uma visita e outra. Esta política também trata de tecnologias semelhantes usadas para o mesmo tipo de finalidade: no nosso caso, o armazenamento local do navegador (<i>localStorage</i> e <i>sessionStorage</i>), usado para guardar itens do carrinho e outras informações temporárias sem depender de um cookie.</p>
+      </section>
+
+      <section id="para-que-usamos" aria-labelledby="para-que-usamos-titulo">
+        <h2 id="para-que-usamos-titulo">2. Para que usamos cookies e tecnologias semelhantes</h2>
+        <p>Usamos essas tecnologias apenas para fazer o site funcionar corretamente: manter você conectado à sua conta, proteger o site contra ataques, guardar os itens do seu carrinho de compras e levar essas informações até a finalização do pedido, e lembrar sua própria escolha sobre cookies (a que você faz nesta mesma página ou no banner).</p>
+      </section>
+
+      <section id="categorias" aria-labelledby="categorias-titulo">
+        <h2 id="categorias-titulo">3. Categorias de cookies</h2>
+        <p>Organizamos os cookies e tecnologias semelhantes em quatro categorias, que você também encontra na Central de Preferências:</p>
+
+        <h3>Cookies necessários</h3>
+        <p>Indispensáveis para o funcionamento do site: autenticação, segurança, carrinho de compras e finalização de pedidos. Como o site depende diretamente deles, não é possível desativá-los, e eles não exigem consentimento prévio por serem estritamente necessários.</p>
+
+        <h3>Cookies de preferência</h3>
+        <p>Serviriam para lembrar escolhas feitas por você durante a navegação (por exemplo, uma preferência de exibição). <b>O site não utiliza nenhum cookie desta categoria no momento.</b></p>
+
+        <h3>Cookies de análise</h3>
+        <p>Ajudariam a entender como as pessoas usam o site, para encontrar melhorias. <b>O site não utiliza nenhuma ferramenta de análise (analytics) no momento.</b></p>
+
+        <h3>Cookies de marketing</h3>
+        <p>Seriam usados para personalizar anúncios ou medir campanhas. <b>O site não utiliza nenhum cookie de marketing no momento.</b></p>
+
+        <p>Se qualquer uma dessas duas últimas categorias passar a ser usada de verdade no futuro, esta página e a Central de Preferências serão atualizadas antes disso acontecer, nunca depois.</p>
+      </section>
+
+      <section id="quais-usamos" aria-labelledby="quais-usamos-titulo">
+        <h2 id="quais-usamos-titulo">4. Cookies e tecnologias que o site realmente utiliza</h2>
+        <p>Esta é a lista completa do que é gravado no seu navegador pelo site da Floria, todos da categoria "necessários":</p>
+
+        <figure class="politica-tabela-cookies-scroll" tabindex="0" role="region" aria-label="Tabela de cookies, com rolagem horizontal no celular">
+        <table class="politica-tabela-cookies">
+          <thead>
+            <tr>
+              <th scope="col">Nome</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Finalidade</th>
+              <th scope="col">Duração</th>
+              <th scope="col">Origem</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">floria.sid</th>
+              <td>Cookie HTTP</td>
+              <td>Mantém você conectado à sua conta e protege o site contra ataques (proteção CSRF).</td>
+              <td>Até 7 dias de inatividade, ou até você sair da conta.</td>
+              <td>Próprio (Floria)</td>
+            </tr>
+            <tr>
+              <th scope="row">carrinho</th>
+              <td>localStorage</td>
+              <td>Guarda os produtos adicionados ao seu carrinho de compras.</td>
+              <td>Até você limpar os dados do navegador ou esvaziar o carrinho.</td>
+              <td>Próprio (Floria)</td>
+            </tr>
+            <tr>
+              <th scope="row">floria_cupom_aplicado</th>
+              <td>localStorage</td>
+              <td>Guarda o cupom de desconto aplicado ao seu carrinho.</td>
+              <td>Até você limpar os dados do navegador ou remover o cupom.</td>
+              <td>Próprio (Floria)</td>
+            </tr>
+            <tr>
+              <th scope="row">carrinho_checkout / cupom_checkout</th>
+              <td>sessionStorage</td>
+              <td>Leva os dados do carrinho e do cupom até a tela de finalização da compra.</td>
+              <td>Até você fechar a aba ou o navegador.</td>
+              <td>Próprio (Floria)</td>
+            </tr>
+            <tr>
+              <th scope="row">floria_cookie_consent</th>
+              <td>localStorage</td>
+              <td>Guarda a escolha que você fez nesta Central de Preferências de Cookies.</td>
+              <td>Até você limpar os dados do navegador ou alterar sua escolha.</td>
+              <td>Próprio (Floria)</td>
+            </tr>
+          </tbody>
+        </table>
+        </figure>
+
+        <p>Nenhum desses itens guarda seu nome, e-mail, CPF, senha ou dados de pagamento, apenas identificadores técnicos e os dados de navegação/compra descritos acima.</p>
+      </section>
+
+      <section id="terceiros" aria-labelledby="terceiros-titulo">
+        <h2 id="terceiros-titulo">5. Cookies de terceiros</h2>
+        <p>O site não utiliza, hoje, nenhum cookie de publicidade, redes sociais ou análise de tráfego de terceiros.</p>
+        <p>Duas conexões externas acontecem diretamente pelo seu navegador, sem passar pelo nosso servidor: o carregamento da tipografia (Google Fonts) e dos ícones (Font Awesome) usados no visual do site, e a busca automática de endereço por CEP (ViaCEP), quando você preenche um CEP no cadastro de endereço; nesse caso, apenas o CEP é enviado, sem nenhum outro dado pessoal. Essas conexões podem estar sujeitas às próprias políticas de cookies desses provedores, fora do nosso controle; mais detalhes na seção de compartilhamento da nossa <a href="/politica-de-privacidade#compartilhamento">Política de Privacidade</a>.</p>
+      </section>
+
+      <section id="como-alterar" aria-labelledby="como-alterar-titulo">
+        <h2 id="como-alterar-titulo">6. Como alterar suas preferências</h2>
+        <p>Você pode revisar ou mudar sua escolha sobre cookies a qualquer momento, sem precisar esperar uma nova visita:</p>
+        <ul>
+          <li>Clicando em <b>"Preferências de Cookies"</b>, no rodapé de qualquer página do site.</li>
+          <li>Ou diretamente por aqui: <button type="button" class="politica-cookies-btn-preferencias" data-abrir-preferencias-cookies>Abrir Central de Preferências</button></li>
+        </ul>
+        <p>Você também pode bloquear ou apagar cookies diretamente nas configurações do seu navegador; nesse caso, algumas funcionalidades do site (como manter você conectado ou lembrar o carrinho) podem parar de funcionar corretamente, já que dependem dos cookies necessários descritos acima.</p>
+      </section>
+
+      <section id="contato" aria-labelledby="contato-titulo">
+        <h2 id="contato-titulo">7. Contato sobre privacidade</h2>
+        <p>Para dúvidas sobre cookies ou sobre como seus dados são tratados, fale com a gente por e-mail: <a href="<%= socialLinks.email.href %>"><%= socialLinks.email.valor %></a>, visite nossa <a href="/suporte">Central de Suporte</a>, ou consulte a <a href="/politica-de-privacidade">Política de Privacidade</a> completa.</p>
+      </section>
+
+    </article>
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lavanda - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'lavanda',
+      nome: 'Lavanda',
+      sku: 'FLO-LAVANDA',
+      marca: null,
+      categoriaNome: 'Plantas',
+      categoriaSlug: 'plantas',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/lavanda.jpg', alt: 'Lavanda - vista frontal' },
+        { src: '/imagens/belo.jpeg', alt: 'Lavanda - flores em detalhe' },
+        { src: '/imagens/lavanda.jpg', alt: 'Lavanda - campo' }
+      ],
+      precoAtual: 42.00,
+      precoAntigo: 55.00,
+      parcelasTexto: 'à vista',
+      estoque: 33,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="far fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(52 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-sun', texto: 'Sol pleno' },
+        { icone: 'fas fa-tint', texto: 'Rega moderada: tolera seca' },
+        { icone: 'fas fa-heart', texto: 'Aromática e medicinal' }
+      ],
+      descricao: 'A Lavanda (Lavandula angustifolia) é originária do Mediterrâneo e encanta com suas espigas florais em tons de lilás e roxo. Seu aroma suave é amplamente utilizado em aromaterapia por seus efeitos relaxantes e ansiolíticos. Repele naturalmente mosquitos, mariposas e outros insetos. Prefere solo bem drenado e exposição solar direta. Em vasos, manter substrato levemente arenoso para evitar encharcamento.',
+      beneficios: 'Aroma relaxante usado em aromaterapia e repelente natural de mosquitos e mariposas.',
+      comoUtilizar: 'Cultive em substrato arenoso e bem drenado, com exposição solar direta de pelo menos 6 horas por dia.',
+      recomendacoes: 'Evite encharcar o substrato: a drenagem excelente é essencial para a saúde das raízes.',
+      ficha: [
+        { rotulo: 'Nome científico', valor: 'Lavandula sp.' },
+        { rotulo: 'Família', valor: 'Lamiaceae' },
+        { rotulo: 'Porte (muda vendida)', valor: '30 – 50 cm' },
+        { rotulo: 'Luminosidade', valor: 'Sol pleno (mínimo 6h diárias)' },
+        { rotulo: 'Toxicidade', valor: 'Parcialmente tóxica: o óleo essencial concentrado é tóxico para pets em grande quantidade' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-sun', titulo: 'Luz', texto: 'Sol pleno: no mínimo 6 horas diárias.' },
+        { icone: 'fas fa-tint', titulo: 'Rega', texto: '1 vez por semana, deixando o substrato secar totalmente entre regas.' },
+        { icone: 'fas fa-thermometer-half', titulo: 'Temperatura', texto: '15°C – 25°C. Sensível ao excesso de umidade.' },
+        { icone: 'fas fa-exclamation-triangle', titulo: 'Atenção', texto: 'Drenagem excelente é essencial: raízes não toleram encharcamento.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

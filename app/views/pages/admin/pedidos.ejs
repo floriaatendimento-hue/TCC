@@ -1,0 +1,185 @@
+<%
+/* REESCRITO (Fase 2): página administrativa de Pedidos.
+   `pedidos` vem de Pedido.findAllAdmin(); `porStatus` de Pedido.contarPorStatus()
+   alimenta as abas. A troca de status usa a API que já existia
+   (PATCH /api/pedidos/:id/status), só a interface é nova. */
+const ROTULOS_STATUS = {
+  preparando:     'Preparando',
+  enviado:        'Enviado',
+  em_transporte:  'Em transporte',
+  saiu_entrega:   'Saiu para entrega',
+  entregue:       'Entregue',
+  cancelado:      'Cancelado',
+};
+const CLASSE_BADGE = {
+  preparando:     'badge--dourado',
+  enviado:        'badge--azul',
+  em_transporte:  'badge--azul',
+  saiu_entrega:   'badge--azul',
+  entregue:       'badge--verde',
+  cancelado:      'badge--vermelho',
+};
+/* CORRIGIDO: coluna "Status" era um <select> nativo solto na tabela —
+   sem cor, sem ícone, destoando do resto do painel (badges usados em
+   "Pagamento" e em toda outra tela do admin). Vira o mesmo componente
+   .badge de sempre, só que com um <select> funcional dentro — ver
+   .badge-status-select em admin-dashboard.css e admin-pedidos.js
+   (atualiza a cor/ícone do badge ao vivo, sem recarregar a página). */
+const ICONE_STATUS = {
+  preparando:     'fa-box',
+  enviado:        'fa-truck',
+  em_transporte:  'fa-route',
+  saiu_entrega:   'fa-shipping-fast',
+  entregue:       'fa-check-circle',
+  cancelado:      'fa-ban',
+};
+/* ATUALIZADO (Sistema de Pagamentos — Modo Preparação): 'processando' e
+   'expirado' são novos; rótulos alinhados ao vocabulário do checkout. */
+const ROTULOS_PAGAMENTO = {
+  pendente:    'Aguardando pagamento',
+  processando: 'Processando',
+  aprovado:    'Pago',
+  recusado:    'Recusado',
+  expirado:    'Expirado',
+  estornado:   'Reembolsado',
+};
+const CLASSE_PAGAMENTO = {
+  pendente:    'badge--dourado',
+  processando: 'badge--azul',
+  aprovado:    'badge--verde',
+  recusado:    'badge--vermelho',
+  expirado:    'badge--cinza',
+  estornado:   'badge--cinza',
+};
+const dataFmt = (d) => new Intl.DateTimeFormat('pt-BR').format(new Date(d));
+const moeda   = (v) => Number(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const totalGeral = Object.values(porStatus).reduce((s, n) => s + n, 0);
+/* ADICIONADO: busca (nº/cliente/e-mail) e data agora também compõem os
+   links de aba de status e de paginação, pra um filtro não "derrubar"
+   o outro ao navegar. */
+const paramsBase =
+  (status ? `&status=${encodeURIComponent(status)}` : '') +
+  (busca  ? `&busca=${encodeURIComponent(busca)}`   : '') +
+  (data   ? `&data=${encodeURIComponent(data)}`     : '');
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Pedidos</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'pedidos' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Pedidos' }) %>
+
+    <main class="admin-main">
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Pedidos</h1>
+          <p class="admin-page-header__data"><%= totalGeral %> pedido(s) no total<%= (busca || data) ? ` · ${totalFiltrado} encontrado(s) com o filtro atual` : '' %></p>
+        </hgroup>
+      </header>
+
+      <form class="admin-toolbar" method="get" action="/pedidos">
+        <input type="hidden" name="status" value="<%= status %>">
+        <search class="admin-toolbar__busca" role="search">
+          <i class="fas fa-search" aria-hidden="true"></i>
+          <input type="search" name="busca" value="<%= busca %>" placeholder="Buscar por nº do pedido, cliente ou e-mail...">
+        </search>
+        <label class="campo-admin" style="flex:0 0 auto;">
+          <b class="sr-only">Filtrar por data da compra</b>
+          <input type="date" name="data" value="<%= data %>" data-br-enhance onchange="this.form.submit()">
+        </label>
+        <button type="submit" class="btn-admin btn-admin--secundario">Buscar</button>
+        <% if (busca || data) { %><a class="btn-admin btn-admin--secundario" href="/pedidos<%= status ? '?status=' + status : '' %>">Limpar busca</a><% } %>
+      </form>
+      <% const extraFiltro = (busca ? `&busca=${encodeURIComponent(busca)}` : '') + (data ? `&data=${encodeURIComponent(data)}` : ''); %>
+
+      <nav class="tabs-status" aria-label="Filtrar por status">
+        <a href="/pedidos<%= extraFiltro ? '?' + extraFiltro.slice(1) : '' %>" class="<%= !status ? 'is-active' : '' %>">Todos <b class="contagem">(<%= totalGeral %>)</b></a>
+        <% Object.keys(ROTULOS_STATUS).forEach(chave => { %>
+          <a href="/pedidos?status=<%= chave %><%= extraFiltro %>" class="<%= status === chave ? 'is-active' : '' %>">
+            <%= ROTULOS_STATUS[chave] %> <b class="contagem">(<%= porStatus[chave] || 0 %>)</b>
+          </a>
+        <% }) %>
+      </nav>
+
+      <article class="painel painel--tabela">
+        <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+          <table class="tabela-admin">
+            <thead>
+              <tr>
+                <th>Pedido</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th class="num">Itens</th>
+                <th class="num">Total</th>
+                <th>Pagamento</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="pedidos-tbody">
+              <% pedidos.forEach(p => { %>
+                <tr data-id="<%= p.id %>">
+                  <td><strong>#<%= p.id %></strong></td>
+                  <td>
+                    <b class="celula-produto">
+                      <b>
+                        <strong><%= p.cliente_nome %></strong>
+                        <small><%= p.cliente_email %></small>
+                      </b>
+                    </b>
+                  </td>
+                  <td><%= dataFmt(p.criado_em) %></td>
+                  <td class="num"><%= p.total_itens %></td>
+                  <td class="num"><%= moeda(p.total) %></td>
+                  <td><b class="badge <%= CLASSE_PAGAMENTO[p.status_pagamento] || 'badge--cinza' %>"><%= ROTULOS_PAGAMENTO[p.status_pagamento] || p.status_pagamento %></b></td>
+                  <td>
+                    <b class="badge badge-status-select <%= CLASSE_BADGE[p.status] || 'badge--cinza' %>" data-status-badge>
+                      <i class="fas <%= ICONE_STATUS[p.status] || 'fa-circle' %>" data-status-icone aria-hidden="true"></i>
+                      <select class="js-status" data-id="<%= p.id %>" data-valor-anterior="<%= p.status %>" aria-label="Alterar status do pedido #<%= p.id %>">
+                        <% Object.keys(ROTULOS_STATUS).forEach(chave => { %>
+                          <option value="<%= chave %>" <%= p.status === chave ? 'selected' : '' %>><%= ROTULOS_STATUS[chave] %></option>
+                        <% }) %>
+                      </select>
+                    </b>
+                  </td>
+                  <td class="acoes-tabela">
+                    <a href="/pedidos/<%= p.id %>" aria-label="Visualizar pedido #<%= p.id %>" title="Visualizar pedido completo">
+                      <i class="fas fa-eye" aria-hidden="true"></i> Detalhes
+                    </a>
+                    <a href="/pedido/<%= p.id %>" target="_blank" rel="noopener">Ver como cliente</a>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+          <% if (!pedidos.length) { %>
+            <p class="tabela-admin__vazia">
+              Nenhum pedido <%= status ? `com status "${ROTULOS_STATUS[status] || status}"` : '' %><%= (busca || data) ? ' encontrado para esta busca' : '' %> no momento.
+            </p>
+          <% } %>
+        </section>
+
+        <% if (totalPaginas > 1) { %>
+          <nav class="paginacao" aria-label="Paginação de pedidos">
+            <% if (pagina > 1) { %><a href="/pedidos?pagina=<%= pagina - 1 %><%= paramsBase %>">‹</a><% } else { %><b class="desabilitado">‹</b><% } %>
+            <% for (let p = 1; p <= totalPaginas; p++) { %>
+              <% if (p === pagina) { %><b class="atual"><%= p %></b><% } else { %><a href="/pedidos?pagina=<%= p %><%= paramsBase %>"><%= p %></a><% } %>
+            <% } %>
+            <% if (pagina < totalPaginas) { %><a href="/pedidos?pagina=<%= pagina + 1 %><%= paramsBase %>">›</a><% } else { %><b class="desabilitado">›</b><% } %>
+          </nav>
+        <% } %>
+      </article>
+    </main>
+  </section>
+
+  <script src="/js/admin/date-picker-br.js" defer></script>
+  <script src="/js/admin/admin-pedidos.js" defer></script>
+</body>
+</html>

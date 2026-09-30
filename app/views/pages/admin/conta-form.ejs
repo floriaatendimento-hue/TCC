@@ -1,0 +1,105 @@
+<%
+const ROTULOS_CATEGORIA = { aluguel: 'Aluguel', utilidades: 'Utilidades', servicos: 'Serviços', impostos: 'Impostos', salarios: 'Salários', outro: 'Outro' };
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floria Admin - Nova Conta a Pagar</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'contas-pagar' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Nova Conta a Pagar' }) %>
+
+    <main class="admin-main">
+      <nav class="admin-breadcrumb admin-breadcrumb--pagina" aria-label="Trilha de navegação">
+        <a href="/admin/contas-pagar">Contas a Pagar</a>
+        <b aria-hidden="true">/</b>
+        <b class="atual">Nova conta</b>
+      </nav>
+
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Nova Conta a Pagar</h1>
+          <p class="admin-page-header__data">Para despesas que não vêm de uma compra de mercadoria — aluguel, contas de consumo, serviços etc.</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--secundario" href="/admin/contas-pagar"><i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar</a>
+        </nav>
+      </header>
+
+      <% if (!fornecedores.length) { %>
+        <article class="alerta-card" style="margin-bottom: var(--esp-5);">
+          <h3 class="alerta-card__titulo"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i>Nenhum fornecedor ativo</h3>
+          <p>Cadastre um <a href="/admin/fornecedores/novo">novo fornecedor/beneficiário</a> antes de lançar uma conta.</p>
+        </article>
+      <% } %>
+
+      <form id="form-conta-avulsa" class="form-admin">
+        <fieldset class="form-secao">
+          <legend><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i>Dados da conta</legend>
+
+          <label class="campo-admin">
+            <b>Fornecedor/beneficiário *</b>
+            <select id="c-fornecedor" required <%= fornecedores.length ? '' : 'disabled' %>>
+              <option value="">Selecione...</option>
+              <% fornecedores.forEach(f => { %>
+                <option value="<%= f.id %>"><%= f.razao_social %></option>
+              <% }) %>
+            </select>
+          </label>
+
+          <label class="campo-admin">
+            <b>Descrição *</b>
+            <input type="text" id="c-descricao" maxlength="200" required placeholder="Ex.: Aluguel de setembro">
+          </label>
+
+          <section class="form-admin__linha">
+            <label class="campo-admin">
+              <b>Categoria</b>
+              <select id="c-categoria">
+                <% Object.keys(ROTULOS_CATEGORIA).forEach(chave => { %>
+                  <option value="<%= chave %>"><%= ROTULOS_CATEGORIA[chave] %></option>
+                <% }) %>
+              </select>
+              <small class="campo-admin__ajuda">Usada para filtrar e organizar a listagem de Contas a Pagar.</small>
+            </label>
+
+            <label class="campo-admin">
+              <b>Valor (R$) *</b>
+              <input type="number" id="c-valor" min="0.01" step="0.01" required>
+            </label>
+          </section>
+
+          <label class="campo-admin">
+            <b>Vencimento *</b>
+            <input type="date" id="c-vencimento" required data-br-enhance>
+          </label>
+
+          <label class="campo-admin">
+            <b>Observações</b>
+            <textarea id="c-observacoes" maxlength="500" rows="3"></textarea>
+          </label>
+        </fieldset>
+
+        <output class="form-admin__mensagem" id="form-conta-msg" role="alert"></output>
+
+        <footer class="form-admin__acoes">
+          <a class="btn-admin btn-admin--secundario" href="/admin/contas-pagar">Cancelar</a>
+          <button type="submit" class="btn-admin btn-admin--primario" id="btn-salvar-conta" <%= fornecedores.length ? '' : 'disabled' %>>
+            <i class="fas fa-check" aria-hidden="true"></i>Cadastrar conta
+          </button>
+        </footer>
+      </form>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-toast.js" defer></script>
+  <script src="/js/admin/date-picker-br.js" defer></script>
+  <script src="/js/admin/admin-conta-form.js" defer></script>
+</body>
+</html>

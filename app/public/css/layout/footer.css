@@ -1,0 +1,196 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400&display=swap');
+@import url("../shared/tokens.css");
+
+/* FOOTER */
+footer {
+  background:
+    linear-gradient(160deg, var(--verde-escuro) 0%, var(--verde-sidebar) 100%);
+  color: rgba(255,255,255,0.78);
+  padding: 56px 28px 32px;
+  margin-top: auto;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Textura pontilhada de fundo */
+footer::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 22px 22px;
+  pointer-events: none;
+}
+
+/* Realce dourado sutil */
+footer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(184,148,95,0.6) 30%,
+    rgba(212,180,131,0.8) 50%,
+    rgba(184,148,95,0.6) 70%,
+    transparent 100%);
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 40px 40px;
+  align-items: start;
+  position: relative;
+}
+
+/* Marca / logo */
+.footer-brand img {
+  height: 52px;
+  margin-bottom: 16px;
+  opacity: 0.92;
+}
+.footer-brand p {
+  font-family: 'Fraunces', serif;
+  font-size: 1.05rem;
+  font-style: italic;
+  color: rgba(255,255,255,0.48);
+  line-height: 1.65;
+  max-width: 260px;
+}
+/* Separador dourado decorativo */
+.footer-brand::after {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: rgba(184,148,95,0.5);
+  margin-top: 20px;
+}
+
+/* Redes sociais */
+.footer-social {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 18px;
+}
+.footer-social-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+}
+.footer-social-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.footer-social-links li {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  line-height: 0;
+}
+.footer-social-links a {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  line-height: 0;
+  cursor: pointer;
+  transition: background 0.25s ease, border-color 0.25s ease,
+              transform 0.25s ease, box-shadow 0.25s ease;
+}
+.footer-social-links a:hover,
+.footer-social-links a:focus-visible {
+  background: rgba(184,148,95,0.22);
+  border-color: rgba(184,148,95,0.5);
+  transform: translateY(-3px) scale(1.08);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.22);
+  outline: none;
+}
+.footer-social-links a i {
+  display: block;
+  font-size: 15px;
+  color: #fff;
+  opacity: 0.78;
+  transition: opacity 0.2s ease;
+}
+.footer-social-links a:hover i,
+.footer-social-links a:focus-visible i { opacity: 1; }
+
+/* Rodapé inferior */
+.footer-bottom {
+  grid-column: 1 / -1;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.footer-bottom p {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 0.04em;
+}
+.footer-address {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.28);
+  font-style: italic;
+}
+.footer-legal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
+}
+.footer-legal a,
+.footer-legal-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11.5px;
+  color: rgba(255,255,255,0.5);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.footer-legal-btn { background: none; border: none; padding: 0; cursor: pointer; }
+.footer-legal a:hover,
+.footer-legal-btn:hover { color: rgba(255,255,255,0.8); }
+
+/* RESPONSIVO */
+@media (max-width: 600px) {
+  footer { padding: 44px 20px 28px; }
+  .footer-inner {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .footer-brand::after { display: none; }
+  .footer-social { align-items: flex-start; }
+  .footer-social-links { flex-wrap: wrap; }
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}

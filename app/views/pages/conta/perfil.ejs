@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Floria - Perfil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous" />
+  <link rel="stylesheet" href="/css/conta/perfil.css" />
+  <link rel="stylesheet" href="/css/conta/forca-senha.css" />
+  <link rel="stylesheet" href="/css/shared/endereco.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <section id="conta-banner" aria-label="Minha conta">
+    <p class="conta-banner-eyebrow">Minha conta</p>
+    <h1>Olá, <%= usuario.nome.split(' ')[0] %> <i aria-hidden="true"><i class="fas fa-leaf" aria-hidden="true"></i></i></h1>
+    <p class="conta-banner-tagline">Suas plantas, pedidos e preferências, tudo em um só lugar.</p>
+
+    <section class="conta-banner-badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      <p>
+        Cliente desde
+        <strong>
+          <%= usuario.criado_em
+                ? new Date(usuario.criado_em).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+                : '-' %><% if (locals.nivel && nivel.atual) { %> · <i class="fas fa-<%= nivel.atual.icone || 'seedling' %>" aria-hidden="true"></i> Nível <%= nivel.atual.nome %><% } %>
+        </strong>
+      </p>
+    </section>
+  </section>
+
+  <section id="layout">
+
+    <!-- SIDEBAR -->
+    <section id="sidebar" aria-label="Painel lateral do usuário">
+
+      <nav aria-label="abas">
+        <button class="ativo" type="button" aria-current="page" data-painel="painel-visao-geral">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <b>Visão geral</b>
+        </button>
+
+        <button type="button" data-painel="painel-pedidos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+          </svg>
+          <b>Pedidos</b>
+        </button>
+
+        <button type="button" data-painel="painel-favoritos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <b>Favoritos</b>
+        </button>
+
+        <button type="button" data-painel="painel-enderecos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <b>Endereços</b>
+        </button>
+
+        <button type="button" data-painel="painel-conta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <b>Meus dados</b>
+        </button>
+
+        <button type="button" data-painel="painel-carrinho">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <b>Carrinho</b>
+        </button>
+
+        <% if (usuario.papel === 'admin') { %>
+        <a href="/admin" id="link-painel-admin" data-papel="<%= usuario.papel %>">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+          <b>Admin</b>
+        </a>
+        <% } %>
+      </nav>
+
+    </section><!-- /#sidebar -->
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <section id="conteudo">
+
+      <section class="painel-conteudo ativo" id="painel-visao-geral" aria-label="Visão geral da conta">
+
+        <header class="painel-header">
+          <hgroup>
+            <h2>Visão geral</h2>
+            <p>Um resumo rápido da sua conta</p>
+          </hgroup>
+        </header>
+
+        <section class="vg-corpo">
+
+          <section class="vg-slot" id="vg-pedido-atual"></section>
+
+          <% if (locals.nivel && (nivel.atual || nivel.proximo)) { %>
+          <section class="vg-nivel" aria-label="Seu nível na Floria">
+            <header>
+              <p class="vg-nivel-eyebrow">Seu nível</p>
+              <h3>
+                <% if (nivel.atual) { %>
+                  <i class="vg-nivel-icone" aria-hidden="true"><i class="fas fa-<%= nivel.atual.icone || 'seedling' %>" aria-hidden="true"></i></i><%= nivel.atual.nome %>
+                <% } else { %>
+                  <i class="vg-nivel-icone" aria-hidden="true"><i class="fas fa-seedling" aria-hidden="true"></i></i>Começando agora
+                <% } %>
+              </h3>
+              <% if (nivel.atual && nivel.atual.descricao) { %>
+                <p class="vg-nivel-descricao"><%= nivel.atual.descricao %></p>
+              <% } %>
+            </header>
+
+            <p class="vg-nivel-total">
+              Total em compras:
+              <strong>R$ <%= Number(nivel.total_gasto).toFixed(2).replace('.', ',') %></strong>
+            </p>
+
+            <% if (nivel.proximo) { %>
+              <progress class="vg-nivel-barra" max="100" value="<%= nivel.progresso_percentual %>">
+                <%= nivel.progresso_percentual %>%
+              </progress>
+              <p class="vg-nivel-proximo">
+                Faltam <strong>R$ <%= Number(nivel.falta_para_proximo).toFixed(2).replace('.', ',') %></strong>
+                para <i class="fas fa-<%= nivel.proximo.icone || 'seedling' %>" aria-hidden="true"></i> <strong><%= nivel.proximo.nome %></strong>
+              </p>
+            <% } else { %>
+              <p class="vg-nivel-proximo vg-nivel-topo"><i class="fas fa-trophy" aria-hidden="true"></i> Você alcançou o nível mais alto da Floria.</p>
+            <% } %>
+
+            <% if (nivel.atual && nivel.atual.beneficios) { %>
+              <ul class="vg-nivel-beneficios">
+                <% nivel.atual.beneficios.split('\n').map(b => b.trim()).filter(Boolean).forEach(beneficio => { %>
+                  <li><%= beneficio %></li>
+                <% }) %>
+              </ul>
+            <% } %>
+          </section>
+          <% } %>
+
+          <section class="vg-dica" id="vg-dica" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M9 21h6M12 3a6 6 0 0 0-4 10.472V16a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.528A6 6 0 0 0 12 3z"/>
+            </svg>
+            <p>
+              <strong id="vg-dica-titulo">Dica da semana</strong>
+              <b id="vg-dica-texto"></b>
+            </p>
+            <a href="#" class="vg-dica-link" data-painel-alvo="painel-favoritos">Ver guia completo →</a>
+          </section>
+
+          <section class="vg-duas-colunas">
+            <section class="vg-bloco" aria-label="Favoritos">
+              <header>
+                <h3>Favoritos</h3>
+                <button type="button" class="vg-ver-todos" data-painel-alvo="painel-favoritos">Ver todos</button>
+              </header>
+              <ul class="vg-favoritos-mini" id="vg-favoritos-mini"></ul>
+            </section>
+
+            <section class="vg-bloco" aria-label="Endereço padrão">
+              <header>
+                <h3>Entrega padrão</h3>
+                <button type="button" class="vg-ver-todos" data-painel-alvo="painel-enderecos">Gerenciar</button>
+              </header>
+              <section id="vg-endereco-padrao"></section>
+            </section>
+          </section>
+
+        </section>
+
+      </section><!-- /#painel-visao-geral -->
+
+      <section class="painel-conteudo" id="painel-carrinho" aria-label="Carrinho de compras">
+
+        <header class="painel-header">
+          <hgroup>
+            <h2>Meu Carrinho</h2>
+            <p>Revise os itens antes de finalizar sua compra</p>
+          </hgroup>
+        </header>
+
+        <section id="carrinho-body">
+
+          <main id="lista-carrinho-perfil" aria-label="Itens no carrinho">
+            <p class="msg-carregando">Carregando carrinho…</p>
+          </main>
+
+          <section id="checkout" aria-label="Resumo da compra">
+            <header class="checkout-cabecalho">
+              <i class="conta-secao-icone" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+              </i>
+              <h3 class="checkout-titulo">Resumo da compra</h3>
+            </header>
+
+            <dl class="subtotais" id="checkout-subtotais">
+              <dt>Subtotal</dt>
+              <dd id="checkout-subtotal">R$&thinsp;0,00</dd>
+
+              <dt>Frete</dt>
+              <dd class="checkout-frete">Grátis</dd>
+            </dl>
+
+            <footer>
+              <dl class="checkout-total-linha">
+                <dt>Total</dt>
+                <dd id="checkout-total">R$&thinsp;0,00</dd>
+              </dl>
+              <button type="button" id="btn-ir-pagamento">Finalizar compra</button>
+            </footer>
+          </section>
+
+        </section><!-- /#carrinho-body -->
+
+      </section><!-- /#painel-carrinho -->
+
+      <section class="painel-conteudo" id="painel-pedidos" aria-label="Meus pedidos">
+
+        <header class="painel-header">
+          <hgroup>
+            <h2>Meus pedidos</h2>
+            <p>Acompanhe suas compras, do preparo até a entrega.</p>
+          </hgroup>
+        </header>
+
+        <p class="msg-carregando" id="pedidos-carregando">Carregando pedidos…</p>
+
+        <section class="painel-vazio pedidos-vazio-destaque" id="pedidos-vazio" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="9" y1="13" x2="15" y2="13"/>
+            <line x1="9" y1="17" x2="13" y2="17"/>
+          </svg>
+          <p>Você ainda não fez nenhum pedido</p>
+          <small>Assim que você finalizar sua primeira compra, ela aparece aqui, com status, produtos e todos os detalhes da entrega.</small>
+          <a href="/maisvendidos" class="btn-pedidos-explorar">Explorar produtos</a>
+        </section>
+
+        <section class="pedidos-corpo" id="pedidos-corpo" hidden>
+
+          <ul class="pedidos-resumo" id="pedidos-resumo" aria-label="Resumo dos seus pedidos"></ul>
+
+          <form class="pedidos-filtros" id="pedidos-filtros" aria-label="Filtrar pedidos">
+            <search class="pedidos-busca" role="search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input type="search" id="pedidos-busca-input" placeholder="Buscar pelo número do pedido…" aria-label="Buscar pelo número do pedido">
+            </search>
+            <ul class="pedidos-abas" id="pedidos-abas" aria-label="Filtrar por status">
+              <li><button type="button" class="ativo" data-filtro="todos" aria-pressed="true">Todos</button></li>
+              <li><button type="button" data-filtro="andamento" aria-pressed="false">Em andamento</button></li>
+              <li><button type="button" data-filtro="concluidos" aria-pressed="false">Concluídos</button></li>
+              <li><button type="button" data-filtro="aguardando" aria-pressed="false">Aguardando pagamento</button></li>
+              <li><button type="button" data-filtro="cancelados" aria-pressed="false">Cancelados</button></li>
+            </ul>
+          </form>
+
+          <ul class="lista-pedidos" id="lista-pedidos" aria-label="Seus pedidos"></ul>
+
+          <p class="pedidos-sem-resultado" id="pedidos-sem-resultado" hidden>
+            Nenhum pedido encontrado para este filtro.
+          </p>
+
+        </section>
+
+      </section>
+
+      <section class="painel-conteudo" id="painel-favoritos" aria-label="Meus favoritos">
+
+        <header class="painel-header">
+          <hgroup>
+            <h2>Favoritos</h2>
+            <p>Plantas e vasos que você salvou</p>
+          </hgroup>
+        </header>
+
+        <ul class="favoritos-grid" id="favoritos-grid" hidden></ul>
+
+        <section class="painel-vazio" id="favoritos-vazio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <p>Nenhum favorito salvo ainda</p>
+          <small>Salve plantas e vasos para encontrá-los aqui</small>
+        </section>
+
+      </section>
+
+      <section class="painel-conteudo" id="painel-enderecos" aria-label="Meus endereços">
+
+        <header class="painel-header painel-header-acao">
+          <hgroup>
+            <h2>Endereços</h2>
+            <p>Onde suas plantas chegam.</p>
+          </hgroup>
+          <button type="button" class="btn-endereco-add" id="btn-novo-endereco-header" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Adicionar Endereço
+          </button>
+        </header>
+
+        <ul class="enderecos-grid" id="enderecos-grid" hidden></ul>
+
+        <section class="painel-vazio enderecos-vazio-destaque" id="enderecos-vazio" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+          </svg>
+          <p>Você ainda não possui endereços cadastrados.</p>
+          <button type="button" class="btn-endereco-add" id="btn-novo-endereco-vazio">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Adicionar Endereço
+          </button>
+        </section>
+
+      </section>
+
+      <%- include("../../partials/shared/modal-endereco") %>
+      <%- include("../../partials/shared/modal-remover-endereco") %>
+
+      <section class="painel-conteudo" id="painel-conta" aria-label="Configuração da conta">
+
+        <header class="painel-header">
+          <hgroup>
+            <h2>Configuração da conta</h2>
+            <p>Seus dados pessoais, endereço e segurança, tudo em um só lugar</p>
+          </hgroup>
+        </header>
+
+        <section class="conta-corpo">
+
+          <header class="conta-perfil" aria-label="Seu perfil">
+            <figure class="conta-perfil-avatar">
+              <% if (usuario.foto_perfil) { %>
+                <img data-avatar-usuario src="<%= usuario.foto_perfil %>" alt=""
+                     data-fallback="/imagens/perfil.png" />
+              <% } else { %>
+                <img data-avatar-usuario src="/imagens/perfil.png" alt="" />
+              <% } %>
+            </figure>
+
+            <section class="conta-perfil-identidade">
+              <h3><%= usuario.nome %></h3>
+              <p class="conta-perfil-email"><%= usuario.email %></p>
+
+              <ul class="conta-perfil-badges">
+                <li>
+                  <% if (usuario.papel === 'admin') { %>
+                    <mark class="badge-papel badge-admin-role">Administrador</mark>
+                  <% } else { %>
+                    <mark class="badge-papel badge-user-role">Conta padrão</mark>
+                  <% } %>
+                </li>
+                <li><mark class="badge-papel badge-ativo">Ativo</mark></li>
+              </ul>
+
+              <p class="conta-perfil-plataforma">Floria: Plantas &amp; Vasos</p>
+            </section>
+
+            <section class="conta-perfil-acao-foto">
+              <label for="input-foto" class="btn-secundario btn-secundario-sm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="14" height="14">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+                Alterar foto
+              </label>
+              <input type="hidden" id="csrf-foto" value="<%= csrfToken %>" />
+              <input type="file" id="input-foto" accept="image/jpeg,image/png,image/webp" />
+              <small>JPEG, PNG ou WebP (máx. 2 MB)</small>
+            </section>
+          </header>
+
+          <!-- Dados pessoais -->
+          <section class="conta-secao" aria-labelledby="conta-tit-dados">
+            <header class="conta-secao-cabecalho">
+              <i class="conta-secao-icone" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </i>
+              <hgroup>
+                <h3 id="conta-tit-dados">Dados pessoais</h3>
+                <p>Informações cadastradas na sua conta</p>
+              </hgroup>
+            </header>
+
+            <dl class="conta-dados-grid">
+              <dt>Nome completo</dt>
+              <dd><%= usuario.nome %></dd>
+
+              <dt>E-mail</dt>
+              <dd><%= usuario.email %></dd>
+
+              <dt>Telefone</dt>
+              <dd><%= usuario.telefone || 'Não informado' %></dd>
+
+              <dt>CPF</dt>
+              <dd><%= usuario.cpf || 'Não informado' %></dd>
+
+              <dt>Membro desde</dt>
+              <dd>
+                <%= usuario.criado_em
+                      ? new Date(usuario.criado_em).toLocaleDateString('pt-BR')
+                      : '-' %>
+              </dd>
+
+              <dt>Último acesso</dt>
+              <dd>
+                <%= usuario.ultimo_acesso
+                      ? new Date(usuario.ultimo_acesso).toLocaleString('pt-BR')
+                      : 'Este acesso' %>
+              </dd>
+            </dl>
+          </section>
+
+          <!-- Endereço -->
+          <section class="conta-secao" aria-labelledby="conta-tit-endereco">
+            <header class="conta-secao-cabecalho">
+              <i class="conta-secao-icone" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                  <path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              </i>
+              <hgroup>
+                <h3 id="conta-tit-endereco">Endereço</h3>
+                <p>Seu endereço principal de entrega</p>
+              </hgroup>
+            </header>
+
+            <section class="conta-endereco-resumo" id="conta-endereco-resumo">
+              <p class="msg-carregando">Carregando endereço…</p>
+            </section>
+
+            <menu class="conta-secao-rodape">
+              <li><button type="button" class="btn-secundario" data-painel-alvo="painel-enderecos">Gerenciar endereços</button></li>
+            </menu>
+          </section>
+
+          <section class="conta-secao" id="conta-secao-acessibilidade" aria-labelledby="conta-tit-acessibilidade">
+            <header class="conta-secao-cabecalho">
+              <i class="conta-secao-icone" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                  <circle cx="12" cy="4" r="1.6"/>
+                  <path d="M5 8.5c2.2.9 4.6 1.4 7 1.4s4.8-.5 7-1.4M12 9.9V21M12 14l-3.5 7M12 14l3.5 7"/>
+                </svg>
+              </i>
+              <hgroup>
+                <h3 id="conta-tit-acessibilidade">Acessibilidade</h3>
+                <p>Ajuste como o site aparece e se comporta pra você. As preferências ficam salvas na sua conta e valem em qualquer página.</p>
+              </hgroup>
+            </header>
+
+            <form class="conta-form-acessibilidade" id="form-acessibilidade">
+              <fieldset>
+                <legend>Leitura e visão</legend>
+
+                <p class="campo-select">
+                  <label for="a11y-fonte">Tamanho da fonte</label>
+                  <select id="a11y-fonte" name="tamanho_fonte">
+                    <option value="normal">Normal</option>
+                    <option value="grande">Grande</option>
+                    <option value="muito_grande">Muito grande</option>
+                  </select>
+                </p>
+
+                <p class="campo-select">
+                  <label for="a11y-espacamento">Espaçamento do texto</label>
+                  <select id="a11y-espacamento" name="espacamento_texto">
+                    <option value="normal">Normal</option>
+                    <option value="aumentado">Aumentado</option>
+                    <option value="muito_aumentado">Muito aumentado</option>
+                  </select>
+                </p>
+
+                <label class="campo-check"><input type="checkbox" name="alto_contraste"> Alto contraste</label>
+                <label class="campo-check"><input type="checkbox" name="destacar_links"> Destacar links</label>
+                <label class="campo-check"><input type="checkbox" name="destacar_foco"> Destacar foco do teclado</label>
+              </fieldset>
+
+              <fieldset>
+                <legend>Movimento e interface</legend>
+                <label class="campo-check"><input type="checkbox" name="reduzir_movimento"> Reduzir animações e transições</label>
+                <label class="campo-check"><input type="checkbox" name="interface_simplificada"> Interface simplificada</label>
+                <label class="campo-check"><input type="checkbox" name="otimizar_leitor_tela"> Otimizar para leitor de tela</label>
+                <label class="campo-check"><input type="checkbox" name="pausar_midia_automatica"> Pausar mídia com reprodução automática</label>
+              </fieldset>
+
+              <fieldset>
+                <legend>Libras</legend>
+                <label class="campo-check"><input type="checkbox" name="libras_ativo"> Ativar tradutor de Libras (VLibras)</label>
+                <p class="campo-nota"><small>Widget gratuito e oficial do governo federal (LAViD/UFPB). Nem todo conteúdo do site ainda tem cobertura automática de tradução.</small></p>
+              </fieldset>
+
+              <output id="msg-acessibilidade" role="status" aria-live="polite"></output>
+
+              <menu class="conta-secao-rodape">
+                <li><button type="button" id="btn-restaurar-acessibilidade" class="btn-secundario">Restaurar padrão</button></li>
+              </menu>
+            </form>
+          </section>
+
+          <!-- Segurança -->
+          <section class="conta-secao" aria-labelledby="conta-tit-seguranca">
+            <header class="conta-secao-cabecalho">
+              <i class="conta-secao-icone" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </i>
+              <hgroup>
+                <h3 id="conta-tit-seguranca">Segurança</h3>
+                <p>Mantenha sua senha atualizada para proteger sua conta</p>
+              </hgroup>
+            </header>
+
+            <form class="conta-form-senha" id="form-senha">
+              <input type="hidden" id="csrf-senha" value="<%= csrfToken %>" />
+
+              <fieldset>
+                <label for="senha-atual">Senha atual</label>
+                <input type="password" id="senha-atual" name="senha_atual" placeholder="Digite sua senha atual" required autocomplete="current-password" aria-describedby="erro-senha-atual" />
+                <output id="erro-senha-atual" class="campo-erro" role="alert"></output>
+              </fieldset>
+
+              <fieldset>
+                <label for="nova-senha">Nova senha</label>
+                <input type="password" id="nova-senha" name="nova_senha" placeholder="Digite a nova senha" required
+                  autocomplete="new-password" aria-describedby="nova-senha-forca erro-nova-senha" />
+                <%- include("../../partials/shared/forca-senha", { alvoId: 'nova-senha', secaoId: 'nova-senha-forca' }) %>
+                <output id="erro-nova-senha" class="campo-erro" role="alert"></output>
+              </fieldset>
+
+              <fieldset>
+                <label for="confirmar-nova">Confirmar nova senha</label>
+                <input type="password" id="confirmar-nova" name="confirmar_nova" placeholder="Repita a nova senha" required autocomplete="new-password" aria-describedby="erro-confirmar-nova" />
+                <output id="erro-confirmar-nova" class="campo-erro" role="alert"></output>
+              </fieldset>
+
+              <output id="msg-senha" role="alert"></output>
+
+              <menu class="conta-secao-rodape">
+                <li><button type="submit" id="btn-alterar-senha" class="btn-primario">Salvar nova senha</button></li>
+              </menu>
+            </form>
+          </section>
+
+          <!-- Ações da conta -->
+          <section class="conta-secao conta-secao-acoes" aria-labelledby="conta-tit-acoes">
+            <header class="conta-secao-cabecalho">
+              <i class="conta-secao-icone" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </i>
+              <hgroup>
+                <h3 id="conta-tit-acoes">Ações da conta</h3>
+                <p>Encerrar sua sessão neste dispositivo</p>
+              </hgroup>
+            </header>
+
+            <menu class="conta-secao-rodape">
+              <li>
+                <button type="button" id="btn-logout" class="btn-sair-discreto" data-logout-trigger>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="15" height="15">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                  Sair da conta
+                </button>
+              </li>
+            </menu>
+          </section>
+
+          <!-- Privacidade e meus dados -->
+          <section class="conta-secao conta-secao-acoes" aria-labelledby="conta-tit-privacidade">
+            <header class="conta-secao-cabecalho">
+              <i class="conta-secao-icone" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </i>
+              <hgroup>
+                <h3 id="conta-tit-privacidade">Privacidade e meus dados</h3>
+                <p>Seus direitos sobre os dados que a Floria guarda da sua conta (LGPD)</p>
+              </hgroup>
+            </header>
+
+            <menu class="conta-secao-rodape conta-secao-rodape--privacidade">
+              <li>
+                <a class="btn-secundario" id="btn-exportar-dados" href="/api/perfil/exportar-dados" download="meus-dados-floria.json">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="15" height="15">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Baixar meus dados
+                </a>
+              </li>
+              <li>
+                <button type="button" id="btn-abrir-exclusao-conta" class="btn-sair-discreto btn-excluir-conta">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="15" height="15">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                  </svg>
+                  Excluir minha conta
+                </button>
+              </li>
+            </menu>
+            <p class="conta-privacidade-nota">
+              Consulte a nossa <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>
+              para saber como seus dados são usados, guardados e por quanto tempo.
+            </p>
+          </section>
+
+        </section>
+
+        <dialog id="dialog-excluir-conta" aria-labelledby="dialog-excluir-conta-titulo">
+          <h2 id="dialog-excluir-conta-titulo" style="font-family:'Fraunces',serif;font-size:1.3rem;color:#0E3124;margin-bottom:.5rem;">
+            Excluir sua conta
+          </h2>
+          <p style="font-size:.88rem;color:#666;margin-bottom:1rem;line-height:1.6;">
+            Isso remove permanentemente seus dados pessoais (nome, e-mail, CPF, telefone, endereços, favoritos) e
+            desativa sua conta. Essa ação não pode ser desfeita. Pedidos já realizados são mantidos de forma
+            anônima, sem seus dados pessoais, apenas pelo tempo exigido por obrigação legal.
+          </p>
+          <label for="excluir-conta-senha" style="display:block;font-size:.85rem;font-weight:500;margin-bottom:.4rem;">Confirme sua senha atual</label>
+          <input type="password" id="excluir-conta-senha" name="senha" required autocomplete="current-password" aria-describedby="excluir-conta-msg"
+            style="width:100%;padding:.65rem .9rem;border:1.5px solid #e0ddd8;border-radius:10px;font-size:.92rem;outline:none;font-family:'DM Sans',sans-serif;box-sizing:border-box;margin-bottom:.4rem;" />
+          <output id="excluir-conta-msg" role="alert"
+            style="display:block;font-size:.82rem;min-height:1.2rem;margin-bottom:.8rem;color:#c0392b;"></output>
+          <section class="modal-acoes">
+            <button type="button" id="excluir-conta-cancelar" class="btn-modal-cancelar">Cancelar</button>
+            <button type="button" id="excluir-conta-confirmar" class="btn btn-second" style="padding:10px 26px;font-size:11.5px;background:#c0392b;">
+              Excluir permanentemente
+            </button>
+          </section>
+        </dialog>
+
+      </section><!-- /#painel-conta -->
+
+    </section><!-- /#conteudo -->
+
+  </section><!-- /#layout -->
+
+  <%- include("../../partials/layout/footer") %>
+
+  <output id="perfil-toast" role="status" aria-live="polite" aria-atomic="true"></output>
+
+  <script src="/js/conta/forca-senha.js"></script>
+  <script src="/js/conta/perfil.js"></script>
+  <script src="/js/shared/endereco-modal.js"></script>
+
+  <script>
+  /* Navegação entre painéis */
+  function ativarPainel(idPainel) {
+    const btn = document.querySelector(`nav[aria-label="abas"] button[data-painel="${idPainel}"]`);
+    if (!btn) return;
+    document.querySelectorAll('nav[aria-label="abas"] button').forEach(b => {
+      b.classList.remove('ativo'); b.removeAttribute('aria-current');
+    });
+    document.querySelectorAll('.painel-conteudo').forEach(p => p.classList.remove('ativo'));
+    btn.classList.add('ativo'); btn.setAttribute('aria-current', 'page');
+    document.getElementById(idPainel)?.classList.add('ativo');
+  }
+
+  document.querySelectorAll('nav[aria-label="abas"] button').forEach(btn => {
+    btn.addEventListener('click', () => ativarPainel(btn.dataset.painel));
+  });
+
+  const MAPA_HASH_PAINEL = {
+    favoritos: 'painel-favoritos',
+    pedidos:   'painel-pedidos',
+    conta:     'painel-conta',
+    enderecos: 'painel-enderecos',
+    carrinho:  'painel-carrinho',
+    acessibilidade: 'painel-conta',
+  };
+  const hashAtual = location.hash.replace('#', '');
+  const painelDaHash = MAPA_HASH_PAINEL[hashAtual];
+  if (painelDaHash) ativarPainel(painelDaHash);
+  if (hashAtual === 'acessibilidade') {
+    document.getElementById('conta-secao-acessibilidade')?.scrollIntoView({ block: 'start' });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('form-acessibilidade');
+    if (!form || !window.FloriaA11y) return;
+
+    const msg = document.getElementById('msg-acessibilidade');
+    let msgTimer = null;
+    function avisar(texto, ehErro) {
+      if (!msg) return;
+      msg.textContent = texto;
+      msg.className = ehErro ? 'msg-erro' : 'msg-ok';
+      clearTimeout(msgTimer);
+      msgTimer = setTimeout(() => { msg.textContent = ''; msg.className = ''; }, 3200);
+    }
+
+    function preencherControles(prefs) {
+      form.querySelectorAll('select[name]').forEach(sel => { sel.value = prefs[sel.name]; });
+      form.querySelectorAll('input[type="checkbox"][name]').forEach(chk => { chk.checked = !!prefs[chk.name]; });
+    }
+
+    preencherControles(window.FloriaA11y.obter());
+    document.addEventListener('floria:a11y-aplicado', (ev) => preencherControles(ev.detail));
+
+    form.addEventListener('change', (ev) => {
+      const campo = ev.target.name;
+      if (!campo || !(campo in window.FloriaA11y.PADRAO)) return;
+      const valor = ev.target.type === 'checkbox' ? ev.target.checked : ev.target.value;
+      window.FloriaA11y.definir(campo, valor)
+        .then(() => avisar('Preferência salva.'))
+        .catch(() => avisar('Não foi possível salvar agora. Tente novamente.', true));
+    });
+
+    document.getElementById('btn-restaurar-acessibilidade')?.addEventListener('click', () => {
+      window.FloriaA11y.restaurar()
+        .then(() => avisar('Preferências restauradas ao padrão.'))
+        .catch(() => avisar('Não foi possível restaurar agora. Tente novamente.', true));
+    });
+  });
+
+  document.getElementById('link-painel-admin')?.addEventListener('click', (ev) => {
+    if (ev.currentTarget.dataset.papel !== 'admin') {
+      ev.preventDefault();
+      const toast = document.getElementById('perfil-toast');
+      if (toast) {
+        toast.textContent = 'Área restrita: acesso permitido apenas para administradores.';
+        toast.classList.add('visivel');
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => toast.classList.remove('visivel'), 3200);
+      }
+    }
+  });
+
+  function precoFmt(v) {
+    const n = Number(v);
+    return isNaN(n) ? '' : 'R$ ' + n.toFixed(2).replace('.', ',');
+  }
+
+  function renderizarFavoritos(lista) {
+    const grid  = document.getElementById('favoritos-grid');
+    const vazio = document.getElementById('favoritos-vazio');
+
+    renderizarFavoritosMini(lista);
+
+    if (!grid || !vazio) return;
+
+    if (!lista.length) {
+      grid.hidden = true;
+      vazio.hidden = false;
+      return;
+    }
+
+    vazio.hidden = true;
+    grid.hidden = false;
+    grid.innerHTML = lista.map(f => `
+      <li class="favorito-card">
+        <a href="/${f.produto_slug}">
+          <figure>
+            <img src="${f.produto_imagem || '/imagens/logoflor.png'}" alt="${f.produto_nome}" loading="lazy">
+            <button type="button" class="btn-favorito btn-favorito--card ativo"
+              data-slug="${f.produto_slug}" aria-label="Remover dos favoritos" aria-pressed="true">
+              <i class="fas fa-heart" aria-hidden="true"></i>
+            </button>
+          </figure>
+          <section class="favorito-card-info">
+            <h3>${f.produto_nome}</h3>
+            ${f.produto_preco ? `<p class="preco">${precoFmt(f.produto_preco)}</p>` : ''}
+          </section>
+        </a>
+      </li>
+    `).join('');
+  }
+
+  function renderizarFavoritosMini(lista) {
+    const mini = document.getElementById('vg-favoritos-mini');
+    if (!mini) return;
+    if (!lista.length) {
+      mini.innerHTML = '<li class="vg-vazio-texto">Nenhum favorito ainda.</li>';
+      return;
+    }
+    mini.innerHTML = lista.slice(0, 3).map(f => `
+      <li>
+        <a href="/${f.produto_slug}">
+          <figure><img src="${f.produto_imagem || '/imagens/logoflor.png'}" alt="${f.produto_nome}" loading="lazy"></figure>
+          <b>${f.produto_nome}</b>
+          ${f.produto_preco ? `<b class="preco">${precoFmt(f.produto_preco)}</b>` : ''}
+        </a>
+      </li>
+    `).join('');
+  }
+
+  function carregarPainelFavoritos() {
+    if (!window.__logado) return;
+    fetch('/api/favoritos')
+      .then(r => r.json())
+      .then(data => { if (data.ok) renderizarFavoritos(data.favoritos); })
+      .catch(() => {});
+  }
+  carregarPainelFavoritos();
+
+  document.getElementById('favoritos-grid')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-favorito[data-slug]');
+    if (!btn) return;
+    setTimeout(() => { if (!btn.classList.contains('ativo')) carregarPainelFavoritos(); }, 300);
+  });
+
+  document.getElementById('input-foto')?.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const preview   = document.getElementById('preview-foto');
+    const srcAnterior = preview?.src;
+
+    if (preview) {
+      const reader = new FileReader();
+      reader.onload = ev => { preview.src = ev.target.result; };
+      reader.readAsDataURL(file);
+    }
+
+    const formData = new FormData();
+    formData.append('foto', file);
+    try {
+      const resp = await fetch('/api/perfil/foto', {
+        method: 'POST',
+        headers: { 'X-CSRF-Token': document.getElementById('csrf-foto').value },
+        body: formData,
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        window.FloriaAvatar?.atualizar(data.foto_perfil);
+        mostrarToast('Foto de perfil atualizada!');
+      } else {
+        if (preview && srcAnterior) preview.src = srcAnterior;
+        alert('Erro ao enviar foto: ' + data.message);
+      }
+    } catch {
+      if (preview && srcAnterior) preview.src = srcAnterior;
+      alert('Erro de rede ao enviar foto.');
+    } finally {
+      e.target.value = '';
+    }
+  });
+
+  function limparErrosSenha() {
+    ['erro-senha-atual', 'erro-nova-senha', 'erro-confirmar-nova'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '';
+    });
+    document.getElementById('form-senha')?.querySelectorAll('[aria-invalid="true"]')
+      .forEach(el => el.removeAttribute('aria-invalid'));
+  }
+  function marcarErroSenha(idCampo, idErro, msg) {
+    const erroEl = document.getElementById(idErro);
+    if (erroEl) erroEl.textContent = msg;
+    document.getElementById(idCampo)?.setAttribute('aria-invalid', 'true');
+  }
+
+  document.getElementById('form-senha')?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const msgEl = document.getElementById('msg-senha');
+    msgEl.className = ''; msgEl.textContent = '';
+    limparErrosSenha();
+
+    const senhaAtual = document.getElementById('senha-atual').value;
+    const novaSenha = document.getElementById('nova-senha').value;
+    const confirmarNova = document.getElementById('confirmar-nova').value;
+
+    let temErro = false;
+    if (!senhaAtual) { marcarErroSenha('senha-atual', 'erro-senha-atual', 'Digite sua senha atual.'); temErro = true; }
+    if (!novaSenha) { marcarErroSenha('nova-senha', 'erro-nova-senha', 'Digite a nova senha.'); temErro = true; }
+    if (novaSenha && confirmarNova && novaSenha !== confirmarNova) {
+      marcarErroSenha('confirmar-nova', 'erro-confirmar-nova', 'As senhas não conferem.'); temErro = true;
+    }
+    if (temErro) {
+      (document.getElementById('erro-senha-atual').textContent ? document.getElementById('senha-atual') : document.getElementById('nova-senha')).focus();
+      return;
+    }
+
+    const payload = {
+      senha_atual:    senhaAtual,
+      nova_senha:     novaSenha,
+      confirmar_nova: confirmarNova,
+      _csrf:          document.getElementById('csrf-senha').value,
+    };
+    msgEl.textContent = 'Aguarde...';
+    try {
+      const resp = await fetch('/api/perfil/senha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        msgEl.className = 'msg-ok'; msgEl.textContent = data.message;
+        ['senha-atual', 'nova-senha', 'confirmar-nova'].forEach(id => {
+          const campo = document.getElementById(id);
+          campo.value = '';
+          // Reseta o indicador de força
+          campo.dispatchEvent(new Event('input'));
+        });
+        mostrarToast('Senha alterada com sucesso');
+      } else if (resp.status === 401) {
+        msgEl.textContent = '';
+        marcarErroSenha('senha-atual', 'erro-senha-atual', data.message);
+        document.getElementById('senha-atual').focus();
+      } else if (resp.status === 400) {
+        msgEl.textContent = '';
+        marcarErroSenha('nova-senha', 'erro-nova-senha', data.message);
+        document.getElementById('nova-senha').focus();
+      } else {
+        msgEl.className = 'msg-erro'; msgEl.textContent = data.message;
+      }
+    } catch {
+      msgEl.className = 'msg-erro'; msgEl.textContent = 'Erro de conexão. Tente novamente.';
+    }
+  });
+
+  function csrfGlobal() {
+    return document.getElementById('csrf-token')?.value || '';
+  }
+
+  let enderecosCache = [];
+
+  function renderizarEnderecos(lista) {
+    enderecosCache = lista;
+    const grid       = document.getElementById('enderecos-grid');
+    const vazio       = document.getElementById('enderecos-vazio');
+    const btnHeader   = document.getElementById('btn-novo-endereco-header');
+    if (!grid) return;
+
+    const temEnderecos = lista.length > 0;
+    grid.hidden      = !temEnderecos;
+    vazio.hidden     = temEnderecos;
+    if (btnHeader) btnHeader.hidden = !temEnderecos;
+
+    if (!temEnderecos) { atualizarVisaoGeralEndereco(); return; }
+
+    const { escHtml, formatarTelefone, iconeEndereco } = window.EnderecoUI;
+
+    grid.innerHTML = lista.map(e => `
+      <li class="endereco-card ${e.padrao ? 'padrao' : ''}">
+        ${e.padrao ? '<b class="endereco-card-fita">Principal</b>' : ''}
+        <header>
+          <i class="endereco-card-icone" aria-hidden="true">${iconeEndereco(e.rotulo)}</i>
+          <section class="endereco-card-titulo">
+            <strong>${escHtml(e.rotulo)}</strong>
+            <b>${escHtml(e.destinatario)}</b>
+          </section>
+        </header>
+        <p>${escHtml(e.logradouro)}, ${escHtml(e.numero)}${e.complemento ? ', ' + escHtml(e.complemento) : ''}</p>
+        <p>${escHtml(e.bairro)}, ${escHtml(e.cidade)} - ${escHtml(e.uf)} · ${escHtml(e.cep)}</p>
+        ${e.referencia ? `<p class="endereco-card-referencia">Referência: ${escHtml(e.referencia)}</p>` : ''}
+        <p class="endereco-card-telefone">${escHtml(formatarTelefone(e.telefone))}</p>
+        <footer>
+          ${!e.padrao ? `<button type="button" class="btn-link" data-principal="${e.id}">Tornar principal</button>` : ''}
+          <button type="button" class="btn-link" data-editar="${e.id}">Editar</button>
+          <button type="button" class="btn-link btn-link-perigo" data-remover="${e.id}">Remover</button>
+        </footer>
+      </li>
+    `).join('') + `
+      <li class="endereco-card endereco-card-novo">
+        <button type="button" id="btn-novo-endereco">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          + Novo endereço
+        </button>
+      </li>
+    `;
+
+    document.getElementById('btn-novo-endereco')?.addEventListener('click', () => { window.location.href = '/enderecos/novo'; });
+    grid.querySelectorAll('[data-editar]').forEach(b => {
+      b.addEventListener('click', () => window.EnderecoUI.abrir(enderecosCache.find(e => e.id == b.dataset.editar)));
+    });
+    grid.querySelectorAll('[data-remover]').forEach(b => {
+      b.addEventListener('click', () => removerEndereco(b.dataset.remover));
+    });
+    grid.querySelectorAll('[data-principal]').forEach(b => {
+      b.addEventListener('click', () => tornarPrincipal(b.dataset.principal));
+    });
+
+    atualizarVisaoGeralEndereco();
+  }
+
+  function carregarEnderecos() {
+    if (!window.__logado) return;
+    fetch('/api/enderecos')
+      .then(r => r.json())
+      .then(data => { if (data.ok) renderizarEnderecos(data.enderecos); })
+      .catch(() => {});
+  }
+
+  document.getElementById('btn-novo-endereco-header')?.addEventListener('click', () => { window.location.href = '/enderecos/novo'; });
+  document.getElementById('btn-novo-endereco-vazio')?.addEventListener('click', () => { window.location.href = '/enderecos/novo'; });
+
+  document.addEventListener('endereco:salvo', () => carregarEnderecos());
+
+  async function tornarPrincipal(id) {
+    try {
+      const resp = await fetch(`/api/enderecos/${id}/principal`, {
+        method: 'PATCH',
+        headers: { 'X-CSRF-Token': csrfGlobal() },
+      });
+      const data = await resp.json();
+      if (data.ok) carregarEnderecos();
+    } catch {}
+  }
+
+  function removerEndereco(id) {
+    abrirConfirmacaoRemocao(id);
+  }
+
+  const dialogRemoverEndereco   = document.getElementById('dialog-remover-endereco');
+  const remEnderecoNomeEl       = document.getElementById('dialog-remover-endereco-nome');
+  const remEnderecoErroEl       = document.getElementById('dialog-remover-endereco-erro');
+  const remEnderecoBtnCancelar  = dialogRemoverEndereco?.querySelector('[data-remover-endereco-cancelar]');
+  const remEnderecoBtnConfirmar = dialogRemoverEndereco?.querySelector('[data-remover-endereco-confirmar]');
+  let idParaRemover = null;
+
+  function abrirConfirmacaoRemocao(id) {
+    if (!dialogRemoverEndereco) return;
+    idParaRemover = id;
+    const endereco = enderecosCache.find(e => e.id == id);
+    if (remEnderecoNomeEl) {
+      remEnderecoNomeEl.textContent = endereco ? window.EnderecoUI.escHtml(endereco.rotulo) : 'este endereço';
+    }
+    if (remEnderecoErroEl) {
+      remEnderecoErroEl.hidden = true;
+      remEnderecoErroEl.textContent = '';
+    }
+    if (remEnderecoBtnConfirmar) remEnderecoBtnConfirmar.disabled = false;
+    dialogRemoverEndereco.showModal();
+  }
+
+  function fecharConfirmacaoRemocao() {
+    idParaRemover = null;
+    dialogRemoverEndereco?.close();
+  }
+
+  remEnderecoBtnCancelar?.addEventListener('click', () => fecharConfirmacaoRemocao());
+
+  dialogRemoverEndereco?.addEventListener('click', (e) => {
+    if (e.target === dialogRemoverEndereco) fecharConfirmacaoRemocao();
+  });
+
+  remEnderecoBtnConfirmar?.addEventListener('click', async () => {
+    if (!idParaRemover || remEnderecoBtnConfirmar.disabled) return;
+    remEnderecoBtnConfirmar.disabled = true;
+    if (remEnderecoErroEl) remEnderecoErroEl.hidden = true;
+    try {
+      const resp = await fetch(`/api/enderecos/${idParaRemover}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-Token': csrfGlobal() },
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        fecharConfirmacaoRemocao();
+        carregarEnderecos();
+      } else {
+        throw new Error(data.erro || 'Não foi possível remover o endereço.');
+      }
+    } catch (err) {
+      if (remEnderecoErroEl) {
+        remEnderecoErroEl.textContent = err.message || 'Não foi possível remover o endereço. Tente novamente.';
+        remEnderecoErroEl.hidden = false;
+      }
+    } finally {
+      remEnderecoBtnConfirmar.disabled = false;
+    }
+  });
+
+  carregarEnderecos();
+
+  const dialogExcluirConta        = document.getElementById('dialog-excluir-conta');
+  const excluirContaSenhaEl       = document.getElementById('excluir-conta-senha');
+  const excluirContaMsgEl         = document.getElementById('excluir-conta-msg');
+  const excluirContaBtnCancelar   = document.getElementById('excluir-conta-cancelar');
+  const excluirContaBtnConfirmar  = document.getElementById('excluir-conta-confirmar');
+
+  document.getElementById('btn-abrir-exclusao-conta')?.addEventListener('click', () => {
+    if (excluirContaSenhaEl) { excluirContaSenhaEl.value = ''; excluirContaSenhaEl.removeAttribute('aria-invalid'); }
+    if (excluirContaMsgEl) excluirContaMsgEl.textContent = '';
+    dialogExcluirConta?.showModal();
+    setTimeout(() => excluirContaSenhaEl?.focus(), 50);
+  });
+  excluirContaBtnCancelar?.addEventListener('click', () => dialogExcluirConta?.close());
+  dialogExcluirConta?.addEventListener('click', (e) => {
+    const r = dialogExcluirConta.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dialogExcluirConta.close();
+  });
+
+  excluirContaBtnConfirmar?.addEventListener('click', async () => {
+    const senha = excluirContaSenhaEl?.value || '';
+    if (excluirContaMsgEl) excluirContaMsgEl.textContent = '';
+    excluirContaSenhaEl?.removeAttribute('aria-invalid');
+    if (!senha) {
+      if (excluirContaMsgEl) excluirContaMsgEl.textContent = 'Digite sua senha atual.';
+      excluirContaSenhaEl?.setAttribute('aria-invalid', 'true');
+      excluirContaSenhaEl?.focus();
+      return;
+    }
+    excluirContaBtnConfirmar.disabled = true;
+    try {
+      const resp = await fetch('/api/perfil/excluir-conta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfGlobal() },
+        body: JSON.stringify({ senha }),
+      });
+      const data = await resp.json();
+      if (data.ok) {
+        window.location.href = data.redirect || '/';
+      } else {
+        if (excluirContaMsgEl) excluirContaMsgEl.textContent = data.message || 'Não foi possível excluir a conta.';
+        excluirContaSenhaEl?.setAttribute('aria-invalid', 'true');
+        excluirContaSenhaEl?.focus();
+      }
+    } catch {
+      if (excluirContaMsgEl) excluirContaMsgEl.textContent = 'Erro de conexão. Tente novamente.';
+    } finally {
+      excluirContaBtnConfirmar.disabled = false;
+    }
+  });
+
+  function atualizarVisaoGeralEndereco() {
+    const padrao = enderecosCache.find(e => e.padrao) || enderecosCache[0];
+    const escHtml = window.EnderecoUI.escHtml;
+    const html = padrao
+      ? `<p><strong>${escHtml(padrao.rotulo)}</strong><br>
+           ${escHtml(padrao.logradouro)}${padrao.numero ? ', ' + escHtml(padrao.numero) : ''}<br>
+           ${padrao.bairro ? escHtml(padrao.bairro) + ', ' : ''}${escHtml(padrao.cidade)} - ${escHtml(padrao.uf)} · ${escHtml(padrao.cep)}</p>`
+      : `<p class="vg-vazio-texto">Nenhum endereço cadastrado ainda.</p>`;
+
+    const vgAlvo = document.getElementById('vg-endereco-padrao');
+    if (vgAlvo) vgAlvo.innerHTML = html;
+
+    const contaAlvo = document.getElementById('conta-endereco-resumo');
+    if (contaAlvo) contaAlvo.innerHTML = html;
+  }
+
+  function atualizarVisaoGeralPedido(pedidos) {
+    const alvo = document.getElementById('vg-pedido-atual');
+    if (!alvo) return;
+    const emAndamento = (pedidos || []).find(p => ['preparando', 'enviado', 'em_transporte', 'saiu_entrega'].includes(p.status));
+    if (!emAndamento) {
+      alvo.innerHTML = `
+        <section class="vg-sem-pedido">
+          <p>Você não tem nenhum pedido em andamento no momento.</p>
+        </section>`;
+      return;
+    }
+    const rotulos = ['Confirmado', 'Preparando', 'A caminho', 'Entregue'];
+    const mapaEtapa = { preparando: 1, enviado: 2, em_transporte: 2, saiu_entrega: 2, entregue: 3 };
+    const atual = mapaEtapa[emAndamento.status] ?? 0;
+    const nomesItens = (emAndamento.itens || []).map(i => i.produto_nome).join(' + ');
+    const emTransito = ['enviado', 'em_transporte', 'saiu_entrega'].includes(emAndamento.status);
+
+    alvo.innerHTML = `
+      <section class="vg-pedido-card">
+        <header>
+          <b class="vg-pedido-tag">Pedido em andamento</b>
+          <mark class="vg-pedido-eta">${emTransito ? 'A caminho' : 'Em preparo'}</mark>
+        </header>
+        <h3>Pedido #${emAndamento.id}</h3>
+        <p class="vg-pedido-itens">${nomesItens || (emAndamento.itens?.length || 0) + ' itens'}</p>
+        <ol class="vg-stepper">
+          ${rotulos.map((r, i) => `
+            <li class="${i <= atual ? 'feito' : ''}">
+              <b class="vg-stepper-bolha">${i < atual ? '<i class="fas fa-check" aria-hidden="true"></i>' : i + 1}</b>
+              <b>${r}</b>
+            </li>`).join('')}
+        </ol>
+        <section class="vg-pedido-acoes">
+          <a href="/pedido/${emAndamento.id}" class="btn-primario">Ver detalhes</a>
+        </section>
+      </section>`;
+  }
+
+  function carregarVisaoGeral() {
+    if (!window.__logado) return;
+    fetch('/api/meus-pedidos')
+      .then(r => r.json())
+      .then(data => atualizarVisaoGeralPedido(data.ok ? data.data : []))
+      .catch(() => atualizarVisaoGeralPedido([]));
+  }
+  carregarVisaoGeral();
+
+  /* Dica genérica da semana */
+  (function mostrarDicaSemana() {
+    const dicas = [
+      'Regue de manhã cedo: a água escorre menos antes do sol forte do meio-dia.',
+      'Gire o vaso 1/4 de volta a cada rega para um crescimento mais uniforme.',
+      'Folhas amareladas geralmente indicam excesso de água, não falta.',
+      'Adube a cada 30 dias na primavera e verão para um crescimento saudável.',
+      'Limpe a poeira das folhas: isso ajuda a planta a fotossintetizar melhor.',
+    ];
+    const dia = Math.floor(Date.now() / 86400000);
+    const dicaEl  = document.getElementById('vg-dica');
+    const texto   = document.getElementById('vg-dica-texto');
+    if (!dicaEl) return;
+    texto.textContent = dicas[dia % dicas.length];
+    dicaEl.hidden = false;
+  })();
+
+  document.addEventListener('click', (e) => {
+    const alvo = e.target.closest('[data-painel-alvo]');
+    if (!alvo) return;
+    e.preventDefault();
+    ativarPainel(alvo.dataset.painelAlvo);
+  });
+  </script>
+
+  <script>
+  (function () {
+    function fmt(v) {
+      return 'R$ ' + Number(v).toFixed(2).replace('.', ',');
+    }
+    function precoNum(v) {
+      return Number(v) || 0;
+    }
+    function lerCarrinho() {
+      try { return JSON.parse(localStorage.getItem('carrinho')) || []; }
+      catch { return []; }
+    }
+    function salvarCarrinho(c) { localStorage.setItem('carrinho', JSON.stringify(c)); }
+
+    function renderCarrinhoPerfil() {
+      const lista = document.getElementById('lista-carrinho-perfil');
+      if (!lista) return;
+      const carrinho = lerCarrinho();
+      lista.innerHTML = '';
+      if (carrinho.length === 0) {
+        const vazio = document.createElement('section');
+        vazio.className = 'carrinho-vazio';
+        vazio.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <path d="M16 10a4 4 0 0 1-8 0"/>
+          </svg>
+          <p>Seu carrinho está vazio</p>
+          <small>Adicione produtos para vê-los aqui</small>
+        `;
+        lista.appendChild(vazio);
+        atualizarCheckout(0);
+        return;
+      }
+      let total = 0;
+      carrinho.forEach((item, index) => {
+        const preco = precoNum(item.preco);
+        total += preco * item.quantidade;
+
+        const artigo = document.createElement('article');
+        artigo.setAttribute('aria-label', item.nome);
+
+        const fig = document.createElement('figure');
+        fig.setAttribute('aria-hidden', 'true');
+        if (item.imagem) {
+          const img = document.createElement('img');
+          img.src = item.imagem; img.alt = item.nome;
+          fig.appendChild(img);
+        } else {
+          fig.innerHTML = `<svg viewBox="0 0 36 36" fill="none" width="56" height="56">
+            <ellipse cx="18" cy="14" rx="10" ry="7" fill="#81C784"/>
+            <rect x="16" y="20" width="4" height="8" rx="1" fill="#6D4C41"/>
+          </svg>`;
+        }
+
+        const info = document.createElement('section');
+        const h2 = document.createElement('h2');
+        h2.textContent = item.nome;
+        info.appendChild(h2);
+        if (item.cor) {
+          const corSpan = document.createElement('b');
+          corSpan.className = 'cor-item';
+          corSpan.textContent = 'Cor: ' + item.cor;
+          info.appendChild(corSpan);
+        }
+        const strong = document.createElement('strong');
+        strong.className = 'preco-item';
+        strong.textContent = fmt(preco * item.quantidade);
+        info.appendChild(strong);
+
+        const controles = document.createElement('aside');
+        const menu = document.createElement('menu');
+
+        const liMenos = document.createElement('li');
+        const btnMenos = document.createElement('button');
+        btnMenos.type = 'button'; btnMenos.className = 'btn-diminuir';
+        btnMenos.dataset.index = index; btnMenos.setAttribute('aria-label', 'Diminuir');
+        btnMenos.textContent = '−'; liMenos.appendChild(btnMenos);
+
+        const liQtd = document.createElement('li');
+        const qtdOut = document.createElement('output');
+        qtdOut.className = 'qtd-item'; qtdOut.textContent = item.quantidade;
+        liQtd.appendChild(qtdOut);
+
+        const liMais = document.createElement('li');
+        const btnMais = document.createElement('button');
+        btnMais.type = 'button'; btnMais.className = 'btn-aumentar';
+        btnMais.dataset.index = index; btnMais.setAttribute('aria-label', 'Aumentar');
+        btnMais.textContent = '+'; liMais.appendChild(btnMais);
+
+        menu.appendChild(liMenos); menu.appendChild(liQtd); menu.appendChild(liMais);
+
+        const btnExcluir = document.createElement('button');
+        btnExcluir.className = 'excluir'; btnExcluir.type = 'button';
+        btnExcluir.setAttribute('aria-label', 'Remover ' + item.nome);
+        btnExcluir.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14H6L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+          <path d="M9 6V4h6v2"/>
+        </svg>`;
+
+        controles.appendChild(menu); controles.appendChild(btnExcluir);
+        artigo.appendChild(fig); artigo.appendChild(info); artigo.appendChild(controles);
+        lista.appendChild(artigo);
+      });
+      atualizarCheckout(total);
+      vincularEventosCarrinho();
+    }
+
+    function atualizarCheckout(total) {
+      const elSub   = document.getElementById('checkout-subtotal');
+      const elTotal = document.getElementById('checkout-total');
+      if (elSub)   elSub.textContent   = fmt(total);
+      if (elTotal) elTotal.textContent = fmt(total);
+    }
+
+    function vincularEventosCarrinho() {
+      const lista = document.getElementById('lista-carrinho-perfil');
+      if (!lista) return;
+      lista.querySelectorAll('.btn-aumentar').forEach(btn =>
+        btn.addEventListener('click', () => {
+          const c = lerCarrinho();
+          c[Number(btn.dataset.index)].quantidade++;
+          salvarCarrinho(c); renderCarrinhoPerfil();
+        })
+      );
+      lista.querySelectorAll('.btn-diminuir').forEach(btn =>
+        btn.addEventListener('click', () => {
+          const c = lerCarrinho();
+          const i = Number(btn.dataset.index);
+          if (c[i].quantidade > 1) c[i].quantidade--;
+          else c.splice(i, 1);
+          salvarCarrinho(c); renderCarrinhoPerfil();
+        })
+      );
+      lista.querySelectorAll('.excluir').forEach(btn =>
+        btn.addEventListener('click', () => {
+          const c = lerCarrinho();
+          const artigo = btn.closest('article');
+          const index = [...lista.querySelectorAll('article')].indexOf(artigo);
+          c.splice(index, 1);
+          salvarCarrinho(c); renderCarrinhoPerfil();
+        })
+      );
+    }
+
+    document.getElementById('btn-ir-pagamento')?.addEventListener('click', () => {
+      const c = lerCarrinho();
+      if (c.length === 0) { alert('Seu carrinho está vazio.'); return; }
+      sessionStorage.setItem('carrinho_checkout', JSON.stringify(c));
+      window.location.href = '/pagamento';
+    });
+
+    var CATEGORIAS_COM_GUIA = ['Plantas', 'Adubos', 'Controle de Pragas'];
+
+    (function () {
+      const ROTULOS_STATUS = {
+        preparando: 'Em preparação', enviado: 'Enviado', em_transporte: 'Em transporte',
+        saiu_entrega: 'Saiu para entrega', entregue: 'Entregue', cancelado: 'Cancelado',
+      };
+      const CLASSE_STATUS = {
+        preparando: 'dourado', enviado: 'azul', em_transporte: 'azul',
+        saiu_entrega: 'azul', entregue: 'verde', cancelado: 'vermelho',
+      };
+      const ROTULOS_PAGAMENTO = {
+        pendente: 'Aguardando pagamento', processando: 'Pagamento em processamento', aprovado: 'Pago',
+        recusado: 'Pagamento recusado', expirado: 'Pagamento expirado', estornado: 'Reembolsado',
+      };
+      const ETAPAS_STEPPER = ['Confirmado', 'Preparando', 'A caminho', 'Entregue'];
+      const MAPA_ETAPA = { preparando: 1, enviado: 2, em_transporte: 2, saiu_entrega: 2, entregue: 3 };
+      const AGUARDANDO_PAGAMENTO = ['pendente', 'processando'];
+
+      let pedidosCache = [];
+      let filtroAtivo = 'todos';
+      let termoBusca = '';
+
+      function escHtml(str) {
+        return String(str ?? '').replace(/[&<>"']/g, (c) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        }[c]));
+      }
+      function dataFmt(d) {
+        return d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '-';
+      }
+
+      function categoriaDoPedido(p) {
+        if (p.status === 'cancelado') return 'cancelados';
+        if (p.status === 'entregue') return 'concluidos';
+        if (AGUARDANDO_PAGAMENTO.includes(p.status_pagamento)) return 'aguardando';
+        return 'andamento';
+      }
+
+      function iconeResumo(tipo) {
+        const icones = {
+          total: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+          andamento: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="7" width="15" height="10" rx="1.5"/><path d="M16 10h3.5l3 3.5V17h-6.5"/><circle cx="6" cy="19" r="1.6"/><circle cx="17.5" cy="19" r="1.6"/></svg>',
+          concluidos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9"/><polyline points="8 12 12 16 22 4"/></svg>',
+          aguardando: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+        };
+        return icones[tipo] || icones.total;
+      }
+
+      function renderResumo(lista) {
+        const alvo = document.getElementById('pedidos-resumo');
+        if (!alvo) return;
+        const contagem = { andamento: 0, concluidos: 0, aguardando: 0, cancelados: 0 };
+        lista.forEach(p => { contagem[categoriaDoPedido(p)]++; });
+        const itens = [
+          ['total',      'Pedidos no total',      lista.length],
+          ['andamento',  'Em andamento',           contagem.andamento],
+          ['concluidos', 'Concluídos',             contagem.concluidos],
+          ['aguardando', 'Aguardando pagamento',   contagem.aguardando],
+        ];
+        alvo.innerHTML = itens.map(([tipo, rotulo, valor]) => `
+          <li class="pedidos-resumo-item pedidos-resumo-item--${tipo}">
+            <i class="pedidos-resumo-icone" aria-hidden="true">${iconeResumo(tipo)}</i>
+            <strong>${valor}</strong>
+            <b>${rotulo}</b>
+          </li>
+        `).join('');
+      }
+
+      function stepperOuCancelado(p) {
+        if (p.status === 'cancelado') {
+          return `<p class="pedido-card-cancelado">
+            Pedido cancelado${p.motivo_cancelamento ? ': ' + escHtml(p.motivo_cancelamento) : '.'}
+          </p>`;
+        }
+        const atual = MAPA_ETAPA[p.status] ?? 0;
+        return `<ol class="pedido-card-stepper">
+          ${ETAPAS_STEPPER.map((rotulo, i) => `
+            <li class="${i <= atual ? 'feito' : ''}${i === atual ? ' atual' : ''}">
+              <b class="pedido-card-stepper-bolha">${i < atual ? '<i class="fas fa-check" aria-hidden="true"></i>' : i + 1}</b>
+              <b>${rotulo}</b>
+            </li>
+          `).join('')}
+        </ol>`;
+      }
+
+      function produtosPreview(p) {
+        const itens = p.itens || [];
+        const MAX = 3;
+        const visiveis = itens.slice(0, MAX);
+        const resto = itens.length - visiveis.length;
+        return `<ul class="pedido-card-produtos">
+          ${visiveis.map(it => `
+            <li>
+              <figure>
+                ${it.produto_imagem
+                  ? `<img src="${escHtml(it.produto_imagem)}" alt="" loading="lazy" data-fallback-icon="fas fa-seedling">`
+                  : '<i class="fas fa-seedling" aria-hidden="true"></i>'}
+              </figure>
+              <b>${escHtml(it.produto_nome || 'Produto')}${it.quantidade > 1 ? ` × ${it.quantidade}` : ''}</b>
+            </li>
+          `).join('')}
+          ${resto > 0 ? `<li class="pedido-card-produto-resto"><b>+ ${resto} produto${resto > 1 ? 's' : ''}</b></li>` : ''}
+        </ul>`;
+      }
+
+      function detalhesExpandidos(p) {
+        const itens = p.itens || [];
+        const enderecoDisponivel = !!p.end_logradouro;
+        const naoCanceladoOuEntregue = p.status !== 'cancelado' && p.status !== 'entregue';
+
+        const linhasItens = itens.map(it => `
+          <li>
+            <b class="pedido-card-item-nome">
+              ${escHtml(it.produto_nome || 'Produto')}${it.cor ? ` · ${escHtml(it.cor)}` : ''} × ${it.quantidade}
+              ${it.produto_slug && CATEGORIAS_COM_GUIA.indexOf(it.categoria_nome) !== -1 ? `
+                <a href="/produto/${escHtml(it.produto_slug)}/guia.pdf?baixar=1" target="_blank" rel="noopener"
+                   class="link-guia-pedido" title="Baixar guia de utilização em PDF"
+                   aria-label="Baixar guia de utilização em PDF de ${escHtml(it.produto_nome || 'produto')}">
+                  <i class="fas fa-file-pdf" aria-hidden="true"></i>
+                </a>` : ''}
+            </b>
+            <b class="item-total">${fmt(it.preco_unit * it.quantidade)}</b>
+          </li>
+        `).join('');
+
+        const formaPagto = p.forma_pagto ? p.forma_pagto.charAt(0).toUpperCase() + p.forma_pagto.slice(1) : 'Não informado';
+        const parcelamento = p.parcelas > 1 ? `${p.parcelas}× de ${fmt(p.total / p.parcelas)}` : 'à vista';
+
+        return `
+          <ul class="pedido-card-itens-completos">${linhasItens}</ul>
+
+          <dl class="pedido-card-financeiro">
+            <dt>Subtotal</dt><dd>${fmt(p.subtotal)}</dd>
+            <dt>Frete</dt><dd>${Number(p.frete) > 0 ? fmt(p.frete) : 'Grátis'}</dd>
+            ${Number(p.desconto) > 0 ? `<dt>Desconto${p.cupom ? ` (${escHtml(p.cupom)})` : ''}</dt><dd>− ${fmt(p.desconto)}</dd>` : ''}
+            <dt>Total</dt><dd class="total">${fmt(p.total)}</dd>
+          </dl>
+
+          <p class="pedido-card-pagamento">
+            <strong>${escHtml(formaPagto)}</strong> · ${parcelamento}
+            <mark class="badge-pagamento badge-pagamento--${p.status_pagamento}">${ROTULOS_PAGAMENTO[p.status_pagamento] || p.status_pagamento}</mark>
+          </p>
+
+          ${enderecoDisponivel ? `
+            <p class="pedido-card-entrega">
+              <strong>Entrega:</strong>
+              ${escHtml(p.end_logradouro)}, ${escHtml(p.end_numero || 's/n')},
+              ${p.end_bairro ? escHtml(p.end_bairro) + ', ' : ''}${escHtml(p.end_cidade || '')}/${escHtml(p.end_uf || '')}
+              ${p.codigo_rastreio && p.status !== 'cancelado' ? `<br><strong>Rastreio:</strong> <code>${escHtml(p.codigo_rastreio)}</code>` : ''}
+              ${p.previsao_entrega && naoCanceladoOuEntregue ? `<br><strong>Previsão de entrega:</strong> ${dataFmt(p.previsao_entrega)}` : ''}
+            </p>` : ''}
+        `;
+      }
+
+      function cardPedido(p, animar) {
+        const classeStatus = CLASSE_STATUS[p.status] || 'cinza';
+        return `
+          <li>
+            <article class="pedido-card${animar ? ' entrando' : ''}">
+              <header class="pedido-card-topo">
+                <section class="pedido-card-id">
+                  <h3>Pedido #${p.id}</h3>
+                  <time datetime="${p.criado_em || ''}">${dataFmt(p.criado_em)}</time>
+                </section>
+                <mark class="badge-status badge-status--${classeStatus}">${ROTULOS_STATUS[p.status] || p.status}</mark>
+              </header>
+
+              ${stepperOuCancelado(p)}
+
+              ${produtosPreview(p)}
+
+              <footer class="pedido-card-rodape">
+                <section class="pedido-card-total">
+                  <b>Total do pedido</b>
+                  <strong>${fmt(p.total)}</strong>
+                </section>
+                <menu class="pedido-card-acoes">
+                  <li><a href="/suporte?pedido=${p.id}" class="btn-pedido-secundario">Preciso de ajuda</a></li>
+                  <li><a href="/pedido/${p.id}/comprovante" target="_blank" rel="noopener" class="btn-pedido-secundario">Comprovante</a></li>
+                  <li><a href="/pedido/${p.id}" class="btn-pedido-primario">Ver pedido completo</a></li>
+                </menu>
+              </footer>
+
+              <details class="pedido-card-mais">
+                <summary>Ver mais detalhes</summary>
+                ${detalhesExpandidos(p)}
+              </details>
+            </article>
+          </li>
+        `;
+      }
+
+      function renderLista(lista, animar) {
+        const ul = document.getElementById('lista-pedidos');
+        const semResultado = document.getElementById('pedidos-sem-resultado');
+        if (!ul) return;
+        if (!lista.length) {
+          ul.innerHTML = '';
+          if (semResultado) semResultado.hidden = false;
+          return;
+        }
+        if (semResultado) semResultado.hidden = true;
+        ul.innerHTML = lista.map(p => cardPedido(p, animar)).join('');
+      }
+
+      function aplicarFiltros(animar) {
+        const termo = termoBusca.trim().replace(/\D/g, '');
+        let lista = pedidosCache;
+        if (filtroAtivo !== 'todos') lista = lista.filter(p => categoriaDoPedido(p) === filtroAtivo);
+        if (termo) lista = lista.filter(p => String(p.id).includes(termo));
+        renderLista(lista, !!animar);
+      }
+
+      document.getElementById('pedidos-abas')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-filtro]');
+        if (!btn) return;
+        filtroAtivo = btn.dataset.filtro;
+        document.querySelectorAll('#pedidos-abas button').forEach(b => {
+          b.classList.toggle('ativo', b === btn);
+          b.setAttribute('aria-pressed', String(b === btn));
+        });
+        aplicarFiltros();
+      });
+
+      document.getElementById('pedidos-busca-input')?.addEventListener('input', (e) => {
+        termoBusca = e.target.value;
+        aplicarFiltros();
+      });
+
+      document.getElementById('pedidos-filtros')?.addEventListener('submit', (e) => e.preventDefault());
+
+      window.carregarPedidos = async function carregarPedidos() {
+        const carregando = document.getElementById('pedidos-carregando');
+        const corpo = document.getElementById('pedidos-corpo');
+        const vazio = document.getElementById('pedidos-vazio');
+        if (!carregando || !corpo || !vazio) return;
+        try {
+          const resp = await fetch('/api/meus-pedidos');
+          const data = await resp.json();
+          pedidosCache = (data.ok && data.data) ? data.data : [];
+        } catch {
+          pedidosCache = [];
+        }
+        carregando.hidden = true;
+        if (!pedidosCache.length) {
+          corpo.hidden = true;
+          vazio.hidden = false;
+          return;
+        }
+        vazio.hidden = true;
+        corpo.hidden = false;
+        renderResumo(pedidosCache);
+        aplicarFiltros(true);
+      };
+    })();
+
+    renderCarrinhoPerfil();
+    carregarPedidos();
+
+    document.querySelectorAll('nav[aria-label="abas"] button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.painel === 'painel-carrinho')     renderCarrinhoPerfil();
+        if (btn.dataset.painel === 'painel-pedidos')      { carregarPedidos(); carregarVisaoGeral(); }
+        if (btn.dataset.painel === 'painel-enderecos')    carregarEnderecos();
+        if (btn.dataset.painel === 'painel-visao-geral')  { carregarVisaoGeral(); carregarEnderecos(); }
+      });
+    });
+  })();
+  </script>
+
+</body>
+</html>

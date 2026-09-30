@@ -1,0 +1,168 @@
+<%
+/* ADICIONADO (Auditoria de segurança/LGPD): Termos de Uso (GET
+   /termos-de-uso). Não existia nenhuma versão desta página antes —
+   conteúdo escrito a partir do funcionamento REAL do sistema (regras de
+   cancelamento em Pedido.js, moderação de avaliações em Comentario.js,
+   bloqueio de conta em Usuario.js etc.), no mesmo espírito de
+   politica-privacidade.ejs: pontos que dependem de uma decisão jurídica/
+   de negócio da própria Floria (ex.: prazo de reembolso, política de
+   trocas de plantas, foro de eleição) ficam sinalizados como "ponto em
+   aberto" em vez de inventados. ESTE TEXTO É UM RASCUNHO TÉCNICO — a
+   revisão de um profissional jurídico antes de publicar em produção é
+   recomendada, especialmente nos pontos assinalados.
+
+   Mesmo esquema de data de politica-privacidade.ejs — só editar os 3
+   números abaixo quando o conteúdo desta página mudar de verdade. */
+const [ANO_ATUALIZACAO, MES_ATUALIZACAO, DIA_ATUALIZACAO] = [2026, 9, 12];
+const ultimaAtualizacao = new Date(ANO_ATUALIZACAO, MES_ATUALIZACAO - 1, DIA_ATUALIZACAO);
+const ultimaAtualizacaoFmt = ultimaAtualizacao.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+const ultimaAtualizacaoISO = `${ANO_ATUALIZACAO}-${String(MES_ATUALIZACAO).padStart(2, '0')}-${String(DIA_ATUALIZACAO).padStart(2, '0')}`;
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Termos de Uso - Floria</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/institucional/politica-privacidade.css">
+</head>
+<body>
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <main id="termos-de-uso">
+
+    <header class="politica-cabecalho">
+      <p class="politica-eyebrow">Condições de uso da loja</p>
+      <h1>Termos de Uso</h1>
+      <p class="politica-intro">
+        Estes Termos de Uso regem o acesso e a utilização do site da Floria, incluindo a criação de conta,
+        a navegação pelo catálogo, a compra de produtos e a publicação de avaliações. Ao usar o site ou criar
+        uma conta, você concorda com estas condições. Para saber como tratamos seus dados pessoais, consulte
+        também a nossa <a href="/politica-de-privacidade">Política de Privacidade</a>.
+      </p>
+      <p class="politica-atualizacao">
+        Última atualização: <time datetime="<%= ultimaAtualizacaoISO %>"><%= ultimaAtualizacaoFmt %></time>
+      </p>
+    </header>
+
+    <nav class="politica-sumario" aria-label="Sumário destes termos">
+      <h2>Nesta página</h2>
+      <ol>
+        <li><a href="#quem-somos">1. Quem somos</a></li>
+        <li><a href="#conta">2. Sua conta na Floria</a></li>
+        <li><a href="#uso-aceitavel">3. Uso aceitável do site</a></li>
+        <li><a href="#pedidos-pagamento">4. Pedidos e pagamento</a></li>
+        <li><a href="#entrega">5. Entrega</a></li>
+        <li><a href="#cancelamento-arrependimento">6. Cancelamento e direito de arrependimento</a></li>
+        <li><a href="#trocas-garantia">7. Trocas, devoluções e garantia</a></li>
+        <li><a href="#avaliacoes">8. Avaliações e conteúdo enviado por você</a></li>
+        <li><a href="#propriedade-intelectual">9. Propriedade intelectual</a></li>
+        <li><a href="#suspensao">10. Suspensão e encerramento de conta</a></li>
+        <li><a href="#responsabilidade">11. Limitação de responsabilidade</a></li>
+        <li><a href="#alteracoes">12. Alterações destes termos</a></li>
+        <li><a href="#lei-foro">13. Lei aplicável e foro</a></li>
+        <li><a href="#contato">14. Fale conosco</a></li>
+      </ol>
+    </nav>
+
+    <article class="politica-corpo">
+
+      <section id="quem-somos" aria-labelledby="quem-somos-titulo">
+        <h2 id="quem-somos-titulo">1. Quem somos</h2>
+        <p>A Floria é uma loja on-line especializada em plantas, vasos e produtos de jardinagem. Estes termos são um contrato entre a Floria e qualquer pessoa que acesse o site, crie uma conta ou faça uma compra.</p>
+        <p><b>Ponto em aberto:</b> esta seção deve ser completada com a razão social, CNPJ e endereço completo da empresa responsável pela Floria, assim que definidos formalmente.</p>
+      </section>
+
+      <section id="conta" aria-labelledby="conta-titulo">
+        <h2 id="conta-titulo">2. Sua conta na Floria</h2>
+        <p>Para comprar, você precisa criar uma conta com nome completo, e-mail, CPF e telefone. Você é responsável por manter sua senha em sigilo e por todas as atividades realizadas na sua conta. Avise imediatamente nosso <a href="/suporte">suporte</a> se suspeitar de acesso não autorizado.</p>
+        <p>As informações fornecidas no cadastro devem ser verdadeiras, atuais e completas. Contas duplicadas ou com dados falsos podem ser suspensas.</p>
+        <p><b>Ponto em aberto:</b> o site hoje não verifica idade mínima no cadastro. Recomendamos definir e publicar aqui uma idade mínima para criar conta e comprar (em geral, maiores de 18 anos, ou menores assistidos/representados pelos responsáveis legais, conforme o Código Civil), e avaliar se algum mecanismo técnico de verificação é necessário.</p>
+      </section>
+
+      <section id="uso-aceitavel" aria-labelledby="uso-aceitavel-titulo">
+        <h2 id="uso-aceitavel-titulo">3. Uso aceitável do site</h2>
+        <p>Ao usar o site, você concorda em não:</p>
+        <ul>
+          <li>Tentar acessar áreas, contas ou dados de outros usuários sem autorização;</li>
+          <li>Enviar vírus, automatizar acessos de forma abusiva (scraping agressivo, bots) ou tentar sobrecarregar o site;</li>
+          <li>Publicar avaliações ou conteúdo falso, ofensivo, discriminatório ou que infrinja direitos de terceiros;</li>
+          <li>Usar os dados de outra pessoa para criar conta ou fazer pedidos sem autorização dela;</li>
+          <li>Utilizar cupons, promoções ou o programa de níveis de cliente de forma fraudulenta.</li>
+        </ul>
+        <p>O descumprimento destas regras pode levar à suspensão ou ao encerramento da conta, sem prejuízo de outras medidas cabíveis.</p>
+      </section>
+
+      <section id="pedidos-pagamento" aria-labelledby="pedidos-pagamento-titulo">
+        <h2 id="pedidos-pagamento-titulo">4. Pedidos e pagamento</h2>
+        <p>Os preços, a disponibilidade e as condições de cada produto são os exibidos no site no momento da compra. Um pedido só é confirmado depois que o pagamento é aprovado; enquanto isso, ele fica com status de pagamento pendente ou em processamento.</p>
+        <p>Cupons de desconto têm regras próprias de validade, valor mínimo de compra e/ou categorias participantes, exibidas no momento da aplicação do cupom.</p>
+        <p><b>Ponto em aberto:</b> as formas de pagamento aceitas e o processador/gateway responsável por processá-las devem ser descritos aqui assim que definidos e integrados em produção.</p>
+      </section>
+
+      <section id="entrega" aria-labelledby="entrega-titulo">
+        <h2 id="entrega-titulo">5. Entrega</h2>
+        <p>O prazo e o valor do frete são calculados a partir do CEP de entrega informado e exibidos antes da finalização da compra. Você pode acompanhar o status de cada pedido (em preparo, enviado, em transporte, saiu para entrega ou entregue) na sua conta, em "Meus pedidos".</p>
+        <p>É de sua responsabilidade conferir se o endereço de entrega está correto e completo antes de finalizar o pedido: problemas de entrega causados por endereço incorreto informado por você podem gerar custo adicional de reenvio.</p>
+      </section>
+
+      <section id="cancelamento-arrependimento" aria-labelledby="cancelamento-arrependimento-titulo">
+        <h2 id="cancelamento-arrependimento-titulo">6. Cancelamento e direito de arrependimento</h2>
+        <p>Enquanto o pedido ainda estiver "em preparo" ou "enviado" (isto é, antes de estar em transporte), você pode cancelá-lo diretamente pela sua conta, em "Meus pedidos".</p>
+        <p>Independentemente disso, e por se tratar de uma compra feita fora de um estabelecimento físico, você tem direito de se arrepender da compra em até <b>7 (sete) dias corridos</b> a contar do recebimento do produto, conforme o art. 49 do Código de Defesa do Consumidor (Lei nº 8.078/1990). Para exercer esse direito depois que o pedido já foi entregue, entre em contato com o nosso <a href="/suporte">suporte</a>.</p>
+        <p><b>Ponto em aberto:</b> os detalhes operacionais do direito de arrependimento após a entrega (quem paga o frete de devolução, prazo e forma de reembolso) precisam ser definidos pela Floria e descritos aqui. Hoje esse fluxo ainda depende de atendimento manual pelo suporte, sem uma tela própria no site.</p>
+      </section>
+
+      <section id="trocas-garantia" aria-labelledby="trocas-garantia-titulo">
+        <h2 id="trocas-garantia-titulo">7. Trocas, devoluções e garantia</h2>
+        <p>Produtos com defeito de fabricação, avaria de transporte, ou que cheguem em desacordo com o pedido, podem ser trocados ou reembolsados. Entre em contato com o suporte informando o número do pedido e, se possível, fotos do produto recebido.</p>
+        <p><b>Ponto em aberto:</b> por se tratar de uma loja de plantas (produtos perecíveis, sujeitos a variações naturais e a cuidados de manuseio pós-entrega), a política específica de garantia para plantas vivas (prazo de garantia contra morte/dano, e o que caracteriza mau cuidado do cliente versus problema do produto/transporte) ainda precisa ser definida pela Floria e publicada nesta seção.</p>
+      </section>
+
+      <section id="avaliacoes" aria-labelledby="avaliacoes-titulo">
+        <h2 id="avaliacoes-titulo">8. Avaliações e conteúdo enviado por você</h2>
+        <p>Ao publicar uma avaliação (nota, comentário e, quando permitido, fotos ou vídeos), você garante que o conteúdo é verdadeiro, de sua autoria e não viola direitos de terceiros. As avaliações passam por moderação e podem ser reprovadas ou removidas caso violem estas condições ou a seção 3 acima.</p>
+        <p>Você concede à Floria uma licença gratuita e não exclusiva para exibir o conteúdo da sua avaliação nas páginas do site, pelo tempo em que ela permanecer publicada.</p>
+      </section>
+
+      <section id="propriedade-intelectual" aria-labelledby="propriedade-intelectual-titulo">
+        <h2 id="propriedade-intelectual-titulo">9. Propriedade intelectual</h2>
+        <p>A marca Floria, o layout, os textos, as imagens de catálogo e o código do site são de propriedade da Floria ou usados sob licença, e não podem ser copiados, redistribuídos ou usados comercialmente sem autorização prévia por escrito.</p>
+      </section>
+
+      <section id="suspensao" aria-labelledby="suspensao-titulo">
+        <h2 id="suspensao-titulo">10. Suspensão e encerramento de conta</h2>
+        <p>A Floria pode suspender ou bloquear uma conta em caso de suspeita de fraude, uso indevido do site, ou violação destes termos, sem prejuízo do seu direito de contestar a medida junto ao nosso suporte.</p>
+        <p>Você pode encerrar sua conta a qualquer momento em "Meus dados" &rarr; "Privacidade e meus dados" &rarr; "Excluir minha conta". Veja o que acontece com seus dados nesse caso na nossa <a href="/politica-de-privacidade#retencao">Política de Privacidade</a>.</p>
+      </section>
+
+      <section id="responsabilidade" aria-labelledby="responsabilidade-titulo">
+        <h2 id="responsabilidade-titulo">11. Limitação de responsabilidade</h2>
+        <p>Fazemos o possível para manter as informações do catálogo (preço, estoque, descrição) corretas e o site disponível, mas não garantimos operação livre de interrupções ou erros. Nenhuma cláusula destes termos exclui os direitos que o Código de Defesa do Consumidor garante a você.</p>
+        <p><b>Ponto em aberto:</b> qualquer limitação de responsabilidade mais específica (por exemplo, teto de indenização) deve ser redigida com apoio jurídico, para não extrapolar o que a legislação consumerista permite.</p>
+      </section>
+
+      <section id="alteracoes" aria-labelledby="alteracoes-titulo">
+        <h2 id="alteracoes-titulo">12. Alterações destes termos</h2>
+        <p>Podemos atualizar estes Termos de Uso sempre que o funcionamento da loja mudar de forma relevante. A data em "Última atualização", no topo desta página, é revisada a cada mudança. O uso continuado do site após uma atualização representa a aceitação dos novos termos.</p>
+      </section>
+
+      <section id="lei-foro" aria-labelledby="lei-foro-titulo">
+        <h2 id="lei-foro-titulo">13. Lei aplicável e foro</h2>
+        <p>Estes termos são regidos pelas leis brasileiras, em especial o Código de Defesa do Consumidor, o Marco Civil da Internet (Lei nº 12.965/2014) e a LGPD (Lei nº 13.709/2018).</p>
+        <p><b>Ponto em aberto:</b> a definição do foro (comarca) para eventual disputa judicial deve ser feita com apoio jurídico. Em relações de consumo, a lei já garante ao consumidor o direito de acionar a Floria no foro do seu próprio domicílio, independentemente do que for indicado aqui.</p>
+      </section>
+
+      <section id="contato" aria-labelledby="contato-titulo">
+        <h2 id="contato-titulo">14. Fale conosco</h2>
+        <p>Dúvidas sobre estes Termos de Uso podem ser enviadas por e-mail: <a href="<%= socialLinks.email.href %>"><%= socialLinks.email.valor %></a>, ou pela nossa <a href="/suporte">Central de Suporte</a>.</p>
+      </section>
+
+    </article>
+  </main>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

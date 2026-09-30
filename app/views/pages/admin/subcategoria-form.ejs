@@ -1,0 +1,107 @@
+<%
+/* Página exclusiva de Criar/Editar Subcategoria, substituindo o antigo
+   <dialog id="dialog-subcategoria"> em categorias.ejs — mesmo princípio
+   já usado em /admin/produtos/novo. `subcategoria` vem `null` na
+   criação (rota GET /admin/subcategorias/novo, com `categoria_id` opcional
+   na query pra pré-selecionar) ou populada na edição (rota GET
+   /admin/subcategorias/:id/editar, via Subcategoria.findById).
+   `categorias` vem de Categoria.findAllAdmin(). CRUD continua batendo
+   nos mesmos POST/PUT /api/admin/subcategorias de sempre (ver
+   admin-subcategoria-form.js). */
+const modoEdicao = !!subcategoria;
+const tituloPagina = modoEdicao ? 'Editar Subcategoria' : 'Nova Subcategoria';
+const categoriaSelecionada = modoEdicao ? subcategoria.categoria_id : (categoriaIdPreSelecionada ? Number(categoriaIdPreSelecionada) : '');
+%>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Floria Admin - <%= tituloPagina %></title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'categorias' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina }) %>
+
+    <main class="admin-main">
+      <nav class="admin-breadcrumb admin-breadcrumb--pagina" aria-label="Trilha de navegação">
+        <a href="/admin/categorias">Categorias e Subcategorias</a>
+        <b aria-hidden="true">/</b>
+        <b class="atual"><%= modoEdicao ? ('Editar: ' + subcategoria.nome) : 'Nova subcategoria' %></b>
+      </nav>
+
+      <header class="admin-page-header">
+        <hgroup>
+          <h1><%= tituloPagina %></h1>
+          <p class="admin-page-header__data">
+            <%= modoEdicao
+              ? 'Atualize o nome, slug e visibilidade desta subcategoria.'
+              : 'Subcategorias refinam o filtro dentro de uma categoria.' %>
+          </p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--secundario" href="/admin/categorias"><i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar</a>
+        </nav>
+      </header>
+
+      <form id="form-subcategoria" class="form-pagina-layout" data-modo="<%= modoEdicao ? 'editar' : 'novo' %>" data-id="<%= modoEdicao ? subcategoria.id : '' %>">
+        <article class="form-pagina-principal">
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-layer-group" aria-hidden="true"></i>Dados da subcategoria</legend>
+            <label class="campo-admin">
+              <b>Categoria *</b>
+              <select id="sub-categoria" required>
+                <option value="">Selecione...</option>
+                <% categorias.forEach(c => { %>
+                  <option value="<%= c.id %>" <%= Number(categoriaSelecionada) === c.id ? 'selected' : '' %>><%= c.nome %></option>
+                <% }) %>
+              </select>
+            </label>
+            <label class="campo-admin">
+              <b>Nome *</b>
+              <input type="text" id="sub-nome" maxlength="80" value="<%= modoEdicao ? subcategoria.nome : '' %>" required>
+            </label>
+            <label class="campo-admin">
+              <b>Slug *</b>
+              <input type="text" id="sub-slug" maxlength="80" pattern="[a-z0-9\-]+" placeholder="ex: suculentas" value="<%= modoEdicao ? subcategoria.slug : '' %>" required>
+              <small class="campo-admin__ajuda">Gerado automaticamente a partir do nome; pode ajustar manualmente.</small>
+            </label>
+            <label class="campo-admin">
+              <b>Descrição</b>
+              <textarea id="sub-descricao" rows="3" maxlength="2000"><%= modoEdicao ? (subcategoria.descricao || '') : '' %></textarea>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-toggle-on" aria-hidden="true"></i>Status</legend>
+            <ul class="lista-status-produto">
+              <li>
+                <label class="lista-status-produto__rotulo" for="sub-ativa">
+                  <strong>Subcategoria ativa</strong>
+                  <small>Visível na loja e nos filtros de busca.</small>
+                </label>
+                <label class="toggle">
+                  <input type="checkbox" id="sub-ativa" <%= (!modoEdicao || subcategoria.ativa) ? 'checked' : '' %>>
+                  <i class="toggle__trilho" aria-hidden="true"></i>
+                </label>
+              </li>
+            </ul>
+          </fieldset>
+
+          <output class="form-admin__mensagem" id="form-subcategoria-msg" role="alert"></output>
+        </article>
+
+        <footer class="form-pagina-acoes">
+          <a class="btn-admin btn-admin--secundario" href="/admin/categorias"><i class="fas fa-times" aria-hidden="true"></i>Cancelar</a>
+          <button type="submit" class="btn-admin btn-admin--primario" id="btn-salvar-subcategoria"><i class="fas fa-save" aria-hidden="true"></i>Salvar</button>
+        </footer>
+      </form>
+    </main>
+  </section>
+
+  <script src="/js/admin/admin-subcategoria-form.js" defer></script>
+</body>
+</html>

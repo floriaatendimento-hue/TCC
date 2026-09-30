@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hortelã - Floria</title>
+  <link rel="stylesheet" href="/css/produtos/detalhes.css" />
+  <link rel="stylesheet" href="/css/shared/carousel.css" />
+</head>
+<body>
+
+  <%- include("../../partials/layout/header") %>
+  <%- include("../../partials/layout/nav") %>
+
+  <%
+    var pv = {
+      slug: 'hortela',
+      nome: 'Hortelã',
+      sku: 'FLO-HORTELA',
+      marca: null,
+      categoriaNome: 'Plantas',
+      categoriaSlug: 'plantas',
+      subcategoriaNome: null,
+      imagens: [
+        { src: '/imagens/hortela.png', alt: 'Hortelã - vista frontal' },
+        { src: '/imagens/hortela.jpeg', alt: 'Hortelã - detalhe das folhas' },
+        { src: '/imagens/hortela.png', alt: 'Hortelã - close' }
+      ],
+      precoAtual: 78.25,
+      precoAntigo: 95.00,
+      parcelasTexto: 'em até 2x sem juros',
+      estoque: 28,
+      estoqueMinimo: 5,
+      avaliacaoEstrelas: '<i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i><i class="fas fa-star" aria-hidden="true"></i>',
+      avaliacaoTexto: '(43 avaliações)',
+      variacoes: [],
+      tags: [
+        { icone: 'fas fa-sun', texto: 'Sol pleno ou meia sombra' },
+        { icone: 'fas fa-tint', texto: 'Rega frequente' },
+        { icone: 'fas fa-seedling', texto: 'Erva culinária' }
+      ],
+      descricao: 'A Hortelã (Mentha spicata) é uma das ervas mais versáteis da culinária e fitoterapia. De crescimento vigoroso e aroma refrescante inconfundível, é indispensável em drinks, chás, saladas e pratos do Oriente Médio. Prefere solo úmido e luminosidade moderada a alta. Em vasos, é ideal mantê-la em saucers com água para garantir hidratação constante. Cresce rapidamente e pode ser colhida com frequência, estimulando a brotação.',
+      beneficios: 'Aroma refrescante indispensável em chás, drinks e pratos, e ainda ajuda a afastar alguns insetos.',
+      comoUtilizar: 'Mantenha o solo sempre levemente úmido e colha os ramos com frequência para estimular novas brotações.',
+      recomendacoes: 'Espécie de crescimento rápido: cultive em vaso isolado para evitar que invada outras plantas próximas.',
+      ficha: [
+        { rotulo: 'Nome científico', valor: 'Mentha sp.' },
+        { rotulo: 'Família', valor: 'Lamiaceae' },
+        { rotulo: 'Porte (muda vendida)', valor: '15 – 30 cm' },
+        { rotulo: 'Luminosidade', valor: 'Meia sombra a sol pleno' },
+        { rotulo: 'Toxicidade', valor: 'Não tóxica: segura em consumo moderado (excesso do óleo mentolado pode causar leve irritação)' }
+      ],
+      cuidados: [
+        { icone: 'fas fa-sun', titulo: 'Luz', texto: 'Meia sombra: evite sol forte no meio do dia.' },
+        { icone: 'fas fa-tint', titulo: 'Rega', texto: 'Frequente, mantendo o solo sempre levemente úmido.' },
+        { icone: 'fas fa-thermometer-half', titulo: 'Temperatura', texto: '15°C – 25°C.' },
+        { icone: 'fas fa-exclamation-triangle', titulo: 'Atenção', texto: 'Espécie de crescimento rápido: pode invadir outros vasos próximos.' }
+      ]
+    };
+  %>
+
+  <%- include("../../partials/produto/_pagina", { pv: pv }) %>
+
+  <%- include("../../partials/layout/footer") %>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Floria Admin - Nova Compra</title>
+  <link rel="stylesheet" href="/css/admin/admin-dashboard.css">
+  <link rel="stylesheet" href="/css/admin/date-picker-br.css">
+</head>
+<body>
+  <section class="admin-shell">
+    <%- include("../../partials/admin/nav-adm", { secaoAtual: 'compras' }) %>
+    <%- include("../../partials/admin/header-adm-v2", { tituloPagina: 'Nova Compra' }) %>
+
+    <main class="admin-main">
+      <nav class="admin-breadcrumb admin-breadcrumb--pagina" aria-label="Trilha de navegação">
+        <a href="/admin/compras">Compras</a>
+        <b aria-hidden="true">/</b>
+        <b class="atual">Nova compra</b>
+      </nav>
+
+      <header class="admin-page-header">
+        <hgroup>
+          <h1>Registrar Compra de Fornecedor</h1>
+          <p class="admin-page-header__data">O total é sempre recalculado a partir dos itens, desconto, frete, impostos e taxas, nunca digitado direto.</p>
+        </hgroup>
+        <nav class="admin-acoes-rapidas">
+          <a class="btn-admin btn-admin--secundario" href="/admin/compras"><i class="fas fa-arrow-left" aria-hidden="true"></i>Voltar</a>
+        </nav>
+      </header>
+
+      <% if (!fornecedores.length) { %>
+        <article class="alerta-card" style="margin-bottom: var(--esp-5);">
+          <h3 class="alerta-card__titulo"><i class="fas fa-exclamation-triangle" aria-hidden="true"></i>Nenhum fornecedor ativo</h3>
+          <p>Cadastre um <a href="/admin/fornecedores/novo">novo fornecedor</a> (ou reative um existente) antes de registrar uma compra.</p>
+        </article>
+      <% } %>
+
+      <form id="form-compra" class="movimentacao-layout">
+        <article class="movimentacao-formulario">
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-truck" aria-hidden="true"></i>Fornecedor e data</legend>
+            <label class="campo-admin">
+              <b>Fornecedor *</b>
+              <select id="f-fornecedor" required <%= fornecedores.length ? '' : 'disabled' %>>
+                <option value="">Selecione...</option>
+                <% fornecedores.forEach(f => { %>
+                  <option value="<%= f.id %>" <%= String(locals.fornecedorIdPreSelecionado) === String(f.id) ? 'selected' : '' %>><%= f.razao_social %></option>
+                <% }) %>
+              </select>
+            </label>
+            <label class="campo-admin">
+              <b>Data da compra *</b>
+              <input type="date" id="f-data-compra" required data-br-enhance>
+            </label>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-boxes" aria-hidden="true"></i>Itens da compra</legend>
+            <p class="form-secao__ajuda">O produto do catálogo é opcional: o fornecedor pode vender insumos que não fazem parte do catálogo de venda. Ligar a um produto existente evita adicionar o mesmo item duas vezes por engano.</p>
+            <datalist id="lista-produtos"></datalist>
+            <section class="tabela-scroll" tabindex="0" role="region" aria-label="Tabela de dados (role com as setas do teclado)">
+              <table class="tabela-admin" id="tabela-itens">
+                <thead>
+                  <tr><th>Produto do catálogo</th><th>Descrição</th><th class="num">Qtd.</th><th>Unid.</th><th class="num">Preço unit. (R$)</th><th class="num">Desconto (R$)</th><th class="num">Subtotal</th><th></th></tr>
+                </thead>
+                <tbody id="itens-tbody"></tbody>
+              </table>
+            </section>
+            <button type="button" class="btn-admin btn-admin--secundario" id="btn-add-item" style="margin-top: var(--esp-3);">
+              <i class="fas fa-plus" aria-hidden="true"></i>Adicionar item
+            </button>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-calculator" aria-hidden="true"></i>Custos adicionais</legend>
+            <label class="campo-admin"><b>Desconto (R$)</b><input type="number" id="f-desconto" min="0" step="0.01" value="0"></label>
+            <label class="campo-admin"><b>Frete (R$)</b><input type="number" id="f-frete" min="0" step="0.01" value="0"></label>
+            <label class="campo-admin"><b>Impostos (R$)</b><input type="number" id="f-impostos" min="0" step="0.01" value="0"></label>
+            <label class="campo-admin"><b>Taxas (R$)</b><input type="number" id="f-taxas" min="0" step="0.01" value="0"></label>
+          </fieldset>
+
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i>Condição de pagamento</legend>
+            <label class="campo-admin">
+              <b>Forma de pagamento *</b>
+              <select id="f-forma-pagamento">
+                <option value="a_vista">À vista (1 conta a pagar)</option>
+                <option value="parcelado">Parcelado</option>
+              </select>
+            </label>
+
+            <section id="bloco-a-vista">
+              <label class="campo-admin">
+                <b>Vencimento *</b>
+                <input type="date" id="f-vencimento" data-br-enhance>
+              </label>
+            </section>
+
+            <section id="bloco-parcelado" hidden>
+              <section class="form-admin__linha">
+                <label class="campo-admin"><b>Nº de parcelas *</b><input type="number" id="f-numero-parcelas" min="2" max="60" value="2"></label>
+                <label class="campo-admin"><b>1ª parcela vence em *</b><input type="date" id="f-primeiro-vencimento" data-br-enhance></label>
+                <label class="campo-admin"><b>Intervalo entre parcelas (dias)</b><input type="number" id="f-intervalo-dias" min="1" max="365" value="30"></label>
+              </section>
+              <p class="form-secao__ajuda">Prévia das parcelas (a soma sempre bate exatamente com o total — a última parcela absorve qualquer diferença de centavos):</p>
+              <ul class="resumo-movimentacao" id="preview-parcelas"></ul>
+            </section>
+
+            <label class="campo-admin">
+              <b>Observações</b>
+              <textarea id="f-observacoes" maxlength="500" rows="3"></textarea>
+            </label>
+          </fieldset>
+
+          <output class="form-admin__mensagem" id="form-compra-msg" role="alert"></output>
+        </article>
+
+        <aside class="movimentacao-painel" aria-label="Resumo do custo real da compra">
+          <fieldset class="form-secao">
+            <legend><i class="fas fa-clipboard-list" aria-hidden="true"></i>Custo real da compra</legend>
+            <ul class="resumo-movimentacao">
+              <li><small>Subtotal dos itens</small><strong id="resumo-subtotal">R$ 0,00</strong></li>
+              <li><small>Desconto</small><strong id="resumo-desconto">- R$ 0,00</strong></li>
+              <li><small>Frete</small><strong id="resumo-frete">+ R$ 0,00</strong></li>
+              <li><small>Impostos</small><strong id="resumo-impostos">+ R$ 0,00</strong></li>
+              <li><small>Taxas</small><strong id="resumo-taxas">+ R$ 0,00</strong></li>
+              <li><small>Total (custo real)</small><strong id="resumo-total">R$ 0,00</strong></li>
+            </ul>
+          </fieldset>
+        </aside>
+
+        <footer class="movimentacao-acoes">
+          <a class="btn-admin btn-admin--secundario" href="/admin/compras"><i class="fas fa-times" aria-hidden="true"></i>Cancelar</a>
+          <button type="submit" class="btn-admin btn-admin--primario" id="btn-salvar-compra" <%= fornecedores.length ? '' : 'disabled' %>>
+            <i class="fas fa-check" aria-hidden="true"></i>Registrar Compra
+          </button>
+        </footer>
+      </form>
+    </main>
+  </section>
+
+  <script src="/js/admin/date-picker-br.js" defer></script>
+  <script src="/js/admin/admin-compra-form.js" defer></script>
+</body>
+</html>

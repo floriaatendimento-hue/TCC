@@ -1,0 +1,115 @@
+<section class="comentarios" id="comentarios" aria-label="Avaliações e comentários">
+
+  <header class="comentarios-header">
+    <h2>Avaliações</h2>
+    <label class="toggle-ocultar-midias" for="toggle-ocultar-midias">
+      <input type="checkbox" id="toggle-ocultar-midias">
+      <i class="toggle-ocultar-midias-track" aria-hidden="true"></i>
+      <b class="toggle-ocultar-midias-texto">Ocultar imagens e vídeos</b>
+    </label>
+  </header>
+
+  <section class="avaliacoes-corpo">
+    <section class="avaliacoes-resumo" id="avaliacoes-resumo" aria-live="polite"></section>
+
+    <section class="avaliacoes-coluna-direita">
+      <% if (usuario) { %>
+      <aside class="avaliar-cta" id="avaliar-cta">
+        <p>
+          <strong id="avaliar-cta-titulo">Comprou este produto?</strong>
+          <b id="avaliar-cta-texto">Conte-nos sua experiência.</b>
+        </p>
+        <button type="button" class="btn-avaliar-toggle" id="btn-avaliar-toggle">Avaliar</button>
+      </aside>
+
+      <form class="review-form" id="review-form" novalidate aria-label="Deixar avaliação" hidden>
+        <h3 id="review-form-titulo">Deixe sua avaliação</h3>
+
+        <output id="review-status-aviso" class="review-status-aviso" role="status" hidden></output>
+
+        <fieldset class="review-stars" id="star-group"
+             role="group" aria-label="Selecione de 1 a 5 estrelas">
+          <button type="button" data-valor="1" aria-label="1 estrela"><i class="fas fa-star" aria-hidden="true"></i></button>
+          <button type="button" data-valor="2" aria-label="2 estrelas"><i class="fas fa-star" aria-hidden="true"></i></button>
+          <button type="button" data-valor="3" aria-label="3 estrelas"><i class="fas fa-star" aria-hidden="true"></i></button>
+          <button type="button" data-valor="4" aria-label="4 estrelas"><i class="fas fa-star" aria-hidden="true"></i></button>
+          <button type="button" data-valor="5" aria-label="5 estrelas"><i class="fas fa-star" aria-hidden="true"></i></button>
+        </fieldset>
+
+        <textarea id="review-texto" name="comentario" rows="4"
+          placeholder="Compartilhe sua experiência com este produto..."
+          maxlength="1000" aria-label="Seu comentário"></textarea>
+
+        <section class="review-midia-upload">
+          <section class="review-midia-campos">
+            <p class="review-midia-campo">
+              <input type="file" id="review-imagens" class="sr-only-input"
+                     accept="image/jpeg,image/png,image/webp" multiple>
+              <button type="button" class="btn-midia-escolher" id="btn-escolher-imagens">
+                <i class="far fa-image" aria-hidden="true"></i> Adicionar fotos
+              </button>
+              <small class="review-midia-limite">até 10 · JPG, PNG ou WebP</small>
+            </p>
+            <p class="review-midia-campo">
+              <input type="file" id="review-videos" class="sr-only-input"
+                     accept="video/mp4,video/webm,video/quicktime,.mov" multiple>
+              <button type="button" class="btn-midia-escolher" id="btn-escolher-videos">
+                <i class="far fa-file-video" aria-hidden="true"></i> Adicionar vídeos
+              </button>
+              <small class="review-midia-limite">até 3 · MP4, WebM ou MOV</small>
+            </p>
+          </section>
+
+          <section class="review-midia-preview" id="review-midia-preview" aria-live="polite" hidden></section>
+
+          <section class="review-upload-progresso" id="review-upload-progresso" hidden>
+            <b class="review-upload-barra">
+              <b class="review-upload-barra-fill" id="review-upload-barra-fill"></b>
+            </b>
+            <output class="review-upload-progresso-texto" id="review-upload-progresso-texto">Enviando… 0%</output>
+          </section>
+        </section>
+
+        <footer class="review-form-acoes">
+          <button type="submit" class="btn-enviar-review" id="btn-enviar-review">
+            Publicar avaliação
+          </button>
+          <button type="button" class="btn-excluir-review" id="btn-excluir-review" hidden>
+            Excluir minha avaliação
+          </button>
+        </footer>
+
+        <output id="review-msg" role="alert"></output>
+      </form>
+      <% } else { %>
+      <aside class="review-login-aviso">
+        <p>
+          <a href="/login">Faça login</a> ou <a href="/cadastro">crie uma conta</a>
+          para deixar sua avaliação.
+        </p>
+      </aside>
+      <% } %>
+
+      <section class="lista-comentarios-wrap">
+        <header class="lista-comentarios-controles">
+          <fieldset class="filtro-avaliacoes" id="filtro-avaliacoes" role="group" aria-label="Filtrar avaliações por nota">
+            <legend class="sr-only">Filtrar avaliações por nota</legend>
+            <button type="button" class="filtro-btn ativo" data-filtro="todas">Todas</button>
+            <button type="button" class="filtro-btn" data-filtro="5">5 <i class="fas fa-star" aria-hidden="true"></i></button>
+            <button type="button" class="filtro-btn" data-filtro="4">4 <i class="fas fa-star" aria-hidden="true"></i></button>
+            <button type="button" class="filtro-btn" data-filtro="3">3 <i class="fas fa-star" aria-hidden="true"></i></button>
+            <button type="button" class="filtro-btn" data-filtro="2">2 <i class="fas fa-star" aria-hidden="true"></i></button>
+            <button type="button" class="filtro-btn" data-filtro="1">1 <i class="fas fa-star" aria-hidden="true"></i></button>
+          </fieldset>
+          <button type="button" class="btn-toggle-lista" id="btn-toggle-lista" aria-expanded="true" aria-controls="lista-comentarios">
+            Ocultar comentários
+          </button>
+        </header>
+        <section id="lista-comentarios" class="lista-comentarios" aria-live="polite"></section>
+      </section>
+    </section>
+  </section>
+
+</section>
+
+<script src="/js/shared/comentarios.js"></script>
