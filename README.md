@@ -19,5 +19,3 @@ npm run dev
 ```
 
 O schema do banco é criado/migrado automaticamente ao subir o servidor.
-
-Acesse em http://localhost:3000
